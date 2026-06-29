@@ -39,19 +39,49 @@ const ASSET_DEF = {
 
 const YAHOO_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Accept': 'application/json',
+  'Accept': 'application/json, text/plain, */*',
   'Accept-Language': 'en-US,en;q=0.9',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Referer': 'https://finance.yahoo.com/',
+  'Origin': 'https://finance.yahoo.com',
 };
+
+// 모듈 레벨 인증 캐시 (같은 Vercel 인스턴스 내 재사용)
+let _yfCrumb = null, _yfCookie = null, _yfAuthTime = 0;
+// 데이터 캐시 (같은 인스턴스 내 재사용)
+const _dataCache = new Map();
+
+async function getYFAuth() {
+  if (_yfCrumb && (Date.now() - _yfAuthTime) < 3_600_000) return { crumb: _yfCrumb, cookie: _yfCookie };
+  try {
+    const fcRes = await fetch('https://fc.yahoo.com/', { headers: YAHOO_HEADERS, signal: AbortSignal.timeout(10000) });
+    const rawCookies = fcRes.headers.getSetCookie ? fcRes.headers.getSetCookie() : [fcRes.headers.get('set-cookie') || ''];
+    const a1 = rawCookies.map(c => c.split(';')[0]).find(c => c.startsWith('A1=')) || '';
+    if (!a1) throw new Error('no cookie');
+    const crumbRes = await fetch('https://query2.finance.yahoo.com/v1/test/getcrumb', {
+      headers: { ...YAHOO_HEADERS, Cookie: a1 },
+      signal: AbortSignal.timeout(10000),
+    });
+    const crumb = (await crumbRes.text()).trim();
+    if (crumb && !crumb.startsWith('<') && crumb !== 'null') {
+      _yfCrumb = crumb; _yfCookie = a1; _yfAuthTime = Date.now();
+    }
+  } catch(e) { /* 인증 실패 시 crumb 없이 진행 */ }
+  return { crumb: _yfCrumb, cookie: _yfCookie };
+}
 
 async function fetchYahoo(ticker, startYear, endYear) {
   const t1 = Math.floor(new Date(`${startYear}-01-01`).getTime() / 1000);
   const t2 = Math.floor(new Date(`${endYear}-12-31`).getTime() / 1000);
   const path = encodeURIComponent(ticker);
+  const { crumb, cookie } = await getYFAuth();
+  const crumbParam = crumb ? `&crumb=${encodeURIComponent(crumb)}` : '';
+  const cookieHdr = cookie ? { Cookie: cookie } : {};
 
   for (const base of ['query1', 'query2']) {
-    const url = `https://${base}.finance.yahoo.com/v8/finance/chart/${path}?period1=${t1}&period2=${t2}&interval=1mo&events=adjclose&includeAdjustedClose=true`;
+    const url = `https://${base}.finance.yahoo.com/v8/finance/chart/${path}?period1=${t1}&period2=${t2}&interval=1mo&events=adjclose&includeAdjustedClose=true${crumbParam}`;
     try {
-      const res = await fetch(url, { headers: YAHOO_HEADERS, signal: AbortSignal.timeout(20000) });
+      const res = await fetch(url, { headers: { ...YAHOO_HEADERS, ...cookieHdr }, signal: AbortSignal.timeout(20000) });
       if (!res.ok) continue;
       const data = await res.json();
       const r = data?.chart?.result?.[0];
@@ -123,6 +153,9 @@ function yieldToReturnMap(yields, duration) {
 }
 
 async function fetchOneAsset(assetId, startYear, endYear) {
+  const ck = `${assetId}_${startYear}_${endYear}`;
+  if (_dataCache.has(ck)) return _dataCache.get(ck);
+
   const def = ASSET_DEF[assetId];
   if (!def) throw new Error(`Unknown asset: ${assetId}`);
 
@@ -136,7 +169,9 @@ async function fetchOneAsset(assetId, startYear, endYear) {
     } else {
       priceMap = yieldToReturnMap(yields, def.dur);
     }
-    return { priceMap, firstYear: yields[0].year, firstMonth: yields[0].month, isReturn: true, proxyNote: null };
+    const r = { priceMap, firstYear: yields[0].year, firstMonth: yields[0].month, isReturn: true, proxyNote: null };
+    _dataCache.set(ck, r);
+    return r;
   }
 
   // Yahoo Finance
@@ -173,7 +208,9 @@ async function fetchOneAsset(assetId, startYear, endYear) {
     } catch (e) {}
   }
 
-  return { priceMap: parsed.priceMap, firstYear: parsed.firstYear, firstMonth: parsed.firstMonth, isReturn: false, proxyNote };
+  const result = { priceMap: parsed.priceMap, firstYear: parsed.firstYear, firstMonth: parsed.firstMonth, isReturn: false, proxyNote };
+  _dataCache.set(ck, result);
+  return result;
 }
 
 async function fetchFXData(startYear, endYear) {
@@ -216,6 +253,8 @@ module.exports = async (req, res) => {
       else assetData[id] = { error: r.reason?.message || '데이터 없음' };
     });
 
+    // CDN 캐시 1시간, stale-while-revalidate 24시간
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
     res.status(200).json({
       assetData,
       fxMap: fxMap.status === 'fulfilled' ? fxMap.value : null,

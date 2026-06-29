@@ -383,19 +383,34 @@ async function doRunBacktest(){
     let stepIdx = 0;
     updateStep(stepIdx++, 'active');
 
-    // 서버사이드 데이터 fetching: Yahoo/ECOS를 서버에서 직접 호출 (CORS 없음)
+    // 데이터 fetch: 메모리 캐시 → localStorage(24h) → 서버 API 순으로 확인
     const cacheKey = `${Array.from(uniqueAssets).sort().join(',')}_${s.startYear}_${s.endYear}`;
     let fxMap, assetDataMap;
     if(dataCache.has(cacheKey)){
       ({fxMap, assetDataMap} = dataCache.get(cacheKey));
     } else {
-      const fetchRes = await fetch('/api/fetch-data', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ assetIds: Array.from(uniqueAssets), startYear: s.startYear, endYear: s.endYear }),
-      });
-      if(!fetchRes.ok) throw new Error('데이터 서버 오류');
-      const fetched = await fetchRes.json();
+      // localStorage 확인 (24시간 TTL)
+      let fetched = null;
+      try{
+        const lsRaw = localStorage.getItem('bt_' + cacheKey);
+        if(lsRaw){
+          const {data, ts} = JSON.parse(lsRaw);
+          if(Date.now() - ts < 86_400_000) fetched = data;
+          else localStorage.removeItem('bt_' + cacheKey);
+        }
+      }catch(e){}
+
+      if(!fetched){
+        const fetchRes = await fetch('/api/fetch-data', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ assetIds: Array.from(uniqueAssets), startYear: s.startYear, endYear: s.endYear }),
+        });
+        if(!fetchRes.ok) throw new Error('데이터 서버 오류');
+        fetched = await fetchRes.json();
+        try{ localStorage.setItem('bt_' + cacheKey, JSON.stringify({data: fetched, ts: Date.now()})); }catch(e){}
+      }
+
       fxMap = fetched.fxMap;
       assetDataMap = fetched.assetData;
       dataCache.set(cacheKey, {fxMap, assetDataMap});
