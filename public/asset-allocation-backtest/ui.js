@@ -2,6 +2,15 @@ let activeTab = 'settings';
 let gearTarget = -1;
 let gearSubview = '';
 
+const CRISES = [
+  {name:'IMF 외환위기',   s:{y:1997,m:10}, e:{y:1998,m:6}},
+  {name:'닷컴버블',       s:{y:2000,m:3},  e:{y:2002,m:10}},
+  {name:'카드대란',       s:{y:2003,m:1},  e:{y:2003,m:9}},
+  {name:'글로벌 금융위기',s:{y:2007,m:11}, e:{y:2009,m:3}},
+  {name:'코로나19',       s:{y:2020,m:1},  e:{y:2020,m:3}},
+  {name:'금리인상 충격',  s:{y:2022,m:1},  e:{y:2022,m:9}},
+];
+
 // ── Modal open/close ───────────────────────────────────────────
 function _noScroll(e){
   // Allow touchmove only inside scrollable modal regions
@@ -390,14 +399,22 @@ async function doRunBacktest(){
     }
 
     updateStep(stepIdx++, 'active');
-    const results = activePorts.map((p,pi) => {
-      if(!p.active) return null;
-      try{
-        return runEngine(p.rows, assetDataMap, fxMap, s);
-      }catch(e){
-        warnings.push(`${p.name}: 계산 오류 — ${e.message}`);
-        return null;
-      }
+    const assetDefs = {};
+    Array.from(uniqueAssets).forEach(id => {
+      assetDefs[id] = { cur: ASSET_DEF[id]?.cur || 'KRW' };
+    });
+    const apiRes = await fetch('/api/backtest-asset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ portfolios: activePorts, assetDataMap, fxMap, settings: s, assetDefs }),
+    });
+    if (!apiRes.ok) throw new Error('백테스트 서버 오류');
+    const { results: rawResults, error: apiError } = await apiRes.json();
+    if (apiError) throw new Error(apiError);
+    const results = rawResults.map((r, i) => {
+      if (!r) return null;
+      if (r.error) { warnings.push(`${activePorts[i].name}: 계산 오류 — ${r.error}`); return null; }
+      return r;
     });
     updateStep(stepIdx-1, 'done');
 
@@ -490,7 +507,7 @@ function renderResults(results, ports, warnings, settings){
   const crisisRows = CRISES.map(c=>{
     const cells = results.map((r,i)=>{
       if(!r) return '';
-      const ret = getCrisisReturn(r.monthlyValues, c);
+      const ret = r.crisisReturns ? (r.crisisReturns[c.name] ?? null) : null;
       if(ret===null) return `<td style="color:var(--text3)">N/A</td>`;
       return `<td class="${ret>=0?'positive':'negative'}">${pct(ret)}</td>`;
     }).join('');
@@ -502,7 +519,7 @@ function renderResults(results, ports, warnings, settings){
   const rollingHTML = results.map((r,pi)=>{
     if(!r) return '';
     const tRows = rollingYears.map(yr=>{
-      const ro = computeRolling(r.monthlyValues, yr);
+      const ro = r.rollingReturns ? r.rollingReturns[yr] : null;
       if(!ro) return `<tr><td>${yr}년</td><td colspan="3" style="color:var(--text3)">데이터 부족</td></tr>`;
       return `<tr>
         <td>${yr}년</td>
@@ -546,23 +563,13 @@ function renderResults(results, ports, warnings, settings){
   const heatmapHTML = results.map((r,pi)=>{
     if(!r || r.assets.length < 2) return '';
     const labels = r.assets.map(a=>ASSET_DEF[a.id]?.name?.slice(0,8)||a.id);
-    // Build monthly return series per asset
-    const retSeries = r.assets.map((a,ai)=>{
-      const vals = r.monthlyValues.map(m=>m.assetVals[ai]);
-      const rets = [];
-      for(let i=1;i<vals.length;i++){
-        rets.push(vals[i-1]>0 && vals[i]>0
-          ? (vals[i]-vals[i-1])/vals[i-1]
-          : null);  // 누락·미상장 구간은 null로 마킹
-      }
-      return rets;
-    });
+    const corrMatrix = r.correlationMatrix || [];
     let hRows = `<tr><th></th>${labels.map(l=>`<th><span class="hm-col-hdr">${escHtml(l)}</span></th>`).join('')}</tr>`;
     labels.forEach((l,i)=>{
       hRows += `<tr><th>${escHtml(l)}</th>`;
       labels.forEach((_,j)=>{
         if(i===j){ hRows+=`<td style="background:var(--surface2);color:var(--text2)">1.00</td>`; return; }
-        const c = pearsonCorr(retSeries[i], retSeries[j]);
+        const c = (corrMatrix[i] && corrMatrix[i][j] != null) ? corrMatrix[i][j] : 0;
         const bg = corrColor(c);
         hRows+=`<td style="background:${bg.bg};color:${bg.fg}">${c.toFixed(2)}</td>`;
       });
