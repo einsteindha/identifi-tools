@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투자성향 분석 | Investment Profile Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1814; --ink-2: #3d3a35; --ink-3: #7a776f; --ink-4: #b5b2a9;
+  --paper: #faf8f4; --paper-2: #f2efe9; --paper-3: #e8e4db;
+  --gold: #c4933f; --gold-light: #f0d99a; --gold-pale: #fdf5e0;
+  --teal: #2a7c6f; --blue: #2b5ea7; --amber: #b86e1a; --red: #943030;
+  --red-light: #fae8e8; --radius: 2px; --radius-lg: 4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:'Noto Sans KR',sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
+.page{max-width:720px;margin:0 auto;padding:3rem 2rem 5rem}
+.site-header{border-bottom:1px solid var(--paper-3);padding-bottom:1.5rem;margin-bottom:2.5rem;display:flex;align-items:baseline;justify-content:space-between}
+.site-logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink)}
+.site-logo span{color:var(--gold);font-style:italic}
+.site-sub{font-size:11px;color:var(--ink-4);letter-spacing:.1em;text-transform:uppercase}
+.progress-section{margin-bottom:2.5rem}
+.progress-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.6rem}
+.progress-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.progress-count{font-size:13px;color:var(--ink-3)}
+.progress-track{height:2px;background:var(--paper-3);border-radius:1px;overflow:hidden}
+.progress-fill{height:100%;background:var(--gold);border-radius:1px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.section-eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;font-weight:500}
+.section-heading{font-family:'Noto Serif KR',serif;font-size:20px;font-weight:500;color:var(--ink);margin-bottom:.5rem}
+.section-desc{font-size:13px;color:var(--ink-3);line-height:1.7;margin-bottom:2rem;padding-left:.75rem;border-left:2px solid var(--paper-3)}
+.q-meta{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem}
+.q-number{font-size:11px;color:var(--ink-4);letter-spacing:.1em}
+.q-weight{font-size:10px;background:var(--paper-2);border:1px solid var(--paper-3);border-radius:2px;padding:.15rem .45rem;color:var(--ink-3)}
+.q-text{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:400;color:var(--ink);line-height:1.55;margin-bottom:1.5rem}
+.scale-legend{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-4);letter-spacing:.06em;margin-bottom:.5rem;text-transform:uppercase}
+.scale-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:2rem}
+.scale-btn{background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius);padding:.75rem .4rem .6rem;cursor:pointer;text-align:center;transition:all .18s ease;display:flex;flex-direction:column;align-items:center;gap:5px}
+.scale-btn:hover{border-color:var(--gold);background:var(--gold-pale)}
+.scale-btn.selected{background:var(--ink);border-color:var(--ink)}
+.scale-btn .num{font-size:18px;font-family:'DM Serif Display',serif;color:var(--ink-3);line-height:1;transition:color .18s}
+.scale-btn.selected .num{color:var(--gold)}
+.scale-btn .hint{font-size:10px;color:var(--ink-4);line-height:1.35;transition:color .18s;word-break:keep-all}
+.scale-btn.selected .hint{color:rgba(255,255,255,.6)}
+.nav-row{display:flex;gap:10px;align-items:center}
+.btn{padding:.65rem 1.5rem;border-radius:var(--radius);cursor:pointer;font-size:13px;font-family:'Noto Sans KR',sans-serif;font-weight:400;transition:all .18s;letter-spacing:.02em}
+.btn-outline{background:transparent;border:1px solid var(--paper-3);color:var(--ink-3)}
+.btn-outline:hover{border-color:var(--ink-3);color:var(--ink)}
+.btn-outline:disabled{opacity:.3;cursor:not-allowed}
+.btn-primary{background:var(--ink);border:1px solid var(--ink);color:var(--gold-light);flex:1;text-align:center}
+.btn-primary:hover{background:var(--ink-2)}
+.btn-primary:disabled{opacity:.3;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid var(--paper-3);color:var(--ink-3);width:100%;padding:.7rem;text-align:center;margin-top:.75rem}
+.btn-ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+.result-top{border-bottom:1px solid var(--paper-3);padding-bottom:2rem;margin-bottom:2rem}
+.result-type-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.result-name{font-family:'DM Serif Display',serif;font-size:36px;color:var(--ink);line-height:1.2;margin-bottom:.75rem}
+.result-badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.result-badge{display:inline-flex;align-items:center;gap:.4rem;font-size:11px;letter-spacing:.08em;padding:.3rem .8rem;border-radius:1px}
+.badge-dark{background:var(--ink);color:var(--gold-light)}
+.result-desc{font-family:'Noto Serif KR',serif;font-size:15px;color:var(--ink-2);line-height:1.75}
+.score-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:2rem}
+.score-card{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--radius);padding:1rem;text-align:center}
+.sc-label{font-size:10px;color:var(--ink-4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.3rem}
+.sc-value{font-family:'DM Serif Display',serif;font-size:28px;line-height:1;margin-bottom:.2rem}
+.sc-grade{font-size:11px;font-weight:500;padding:.2rem .5rem;border-radius:2px;display:inline-block;margin-bottom:.2rem}
+.sc-sub{font-size:10px;color:var(--ink-4)}
+.gap-warning{background:var(--red-light);border:1px solid #f5c5c5;border-left:3px solid var(--red);border-radius:0 var(--radius-lg) var(--radius-lg) 0;padding:1rem 1.15rem;margin-bottom:1.5rem}
+.gap-warning .adv-label{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-bottom:.4rem}
+.gap-warning .adv-text{font-size:13px;color:#5a1f1f;line-height:1.7}
+.advisory{background:var(--gold-pale);border:1px solid #f0d99a;border-left:3px solid var(--gold);border-radius:0 var(--radius-lg) var(--radius-lg) 0;padding:1rem 1.15rem;margin-bottom:1.5rem}
+.adv-label{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:.4rem}
+.adv-text{font-size:13px;color:var(--ink-2);line-height:1.7}
+.dim-note{background:#e8f0fe;border:1px solid #c5d8f8;border-left:3px solid var(--blue);border-radius:0 var(--radius-lg) var(--radius-lg) 0;padding:1rem 1.15rem;margin-bottom:1.5rem}
+.dim-note .adv-label{color:var(--blue)}
+.dim-note .adv-text{color:#1a3a6e}
+.matrix-section{margin-bottom:2rem}
+.block-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-4);margin-bottom:.9rem}
+.matrix-axes{font-size:10px;color:var(--ink-4);margin-bottom:.5rem}
+.matrix-scroll{overflow-x:auto}
+.matrix-table{width:100%;border-collapse:collapse;font-size:11px;min-width:400px}
+.matrix-table th{font-size:9px;font-weight:400;color:var(--ink-4);padding:.3rem .25rem .5rem;text-align:center;border-bottom:1px solid var(--paper-3)}
+.row-header{font-size:9px;color:var(--ink-4);white-space:nowrap;padding-right:.4rem;text-align:right;vertical-align:middle;font-weight:400}
+.m-cell{padding:.4rem .15rem;text-align:center;border:1px solid var(--paper-3);vertical-align:middle;cursor:default}
+.m-cell .ck{font-size:9px;font-weight:500;margin-bottom:1px}
+.m-cell .cn{font-size:8px;line-height:1.3}
+.m-cell.active-cell{outline:2px solid var(--gold);outline-offset:1px}
+
+/* ── 전략적/전술적 자산배분 섹션 ── */
+.alloc-section{margin-bottom:2rem}
+.alloc-strategy{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1rem}
+.alloc-strategy-header{padding:.75rem 1rem;border-bottom:1px solid var(--paper-3);display:flex;align-items:baseline;justify-content:space-between}
+.alloc-strategy-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.alloc-strategy-note{font-size:10px;color:var(--ink-4)}
+.alloc-body{padding:.85rem 1rem}
+.alloc-big-row{display:flex;align-items:center;gap:12px;margin-bottom:.75rem}
+.alloc-big-label{font-size:13px;color:var(--ink-2);width:70px;flex-shrink:0;font-weight:500}
+.alloc-big-track{flex:1;height:14px;background:var(--paper-3);border-radius:1px;overflow:hidden;position:relative}
+.alloc-big-fill{height:14px;border-radius:1px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.alloc-big-pct{font-size:14px;font-weight:500;color:var(--ink);width:36px;text-align:right}
+
+.tactical-section{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:2rem}
+.tactical-header{padding:.75rem 1rem;border-bottom:1px solid var(--paper-3);display:flex;align-items:baseline;justify-content:space-between}
+.tactical-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.tactical-body{padding:.85rem 1rem}
+.tactical-row{display:flex;align-items:center;gap:10px;margin-bottom:.6rem}
+.tactical-row:last-child{margin-bottom:0}
+.tactical-label{font-size:12px;color:var(--ink-2);width:70px;flex-shrink:0}
+.tactical-bar-wrap{flex:1;position:relative;height:28px;display:flex;align-items:center}
+.tactical-center-line{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--paper-3)}
+.tactical-base-mark{position:absolute;left:50%;top:4px;bottom:4px;width:3px;background:var(--ink-4);border-radius:1px;transform:translateX(-50%)}
+.tactical-range-bar{position:absolute;height:10px;top:9px;border-radius:1px}
+.tactical-plus-bar{left:50%;background:var(--teal);opacity:.55}
+.tactical-minus-bar{right:50%;background:var(--red);opacity:.45}
+.tactical-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-4);margin-top:2px}
+.tactical-nums{font-size:11px;color:var(--ink-3);white-space:nowrap}
+.tactical-legend{display:flex;gap:12px;margin-top:.85rem;padding-top:.65rem;border-top:1px solid var(--paper-3)}
+.t-leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink-4)}
+.t-leg-dot{width:10px;height:10px;border-radius:1px}
+.alloc-tactical-wrap{margin-bottom:2rem}
+.alloc-tactical-wrap .alloc-section{margin-bottom:0}
+.alloc-tactical-wrap .tactical-section{margin-bottom:0}
+.tactical-outer{display:flex;flex-direction:column}
+
+.checklist{list-style:none;margin-bottom:2rem}
+.checklist li{display:flex;align-items:flex-start;gap:.7rem;font-size:13px;color:var(--ink-2);line-height:1.65;padding:.55rem 0;border-bottom:1px solid var(--paper-3)}
+.checklist li:last-child{border-bottom:none}
+.check-icon{width:16px;height:16px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.check-icon::after{content:'';width:6px;height:4px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translateY(-1px);display:block}
+.re-section{margin-bottom:2rem}
+.re-intro{font-size:13px;color:var(--ink-3);line-height:1.7;margin-bottom:1rem;padding:.75rem 1rem;background:var(--paper-2);border-radius:var(--radius);border:1px solid var(--paper-3)}
+.re-intro strong{color:var(--ink-2);font-weight:500}
+.re-tabs{display:flex;gap:6px;margin-bottom:1rem}
+.re-tab{flex:1;padding:.5rem .4rem;border:1px solid var(--paper-3);border-radius:var(--radius);background:var(--paper);cursor:pointer;text-align:center;font-size:11px;color:var(--ink-3);transition:all .18s;line-height:1.35}
+.re-tab:hover{border-color:var(--gold);color:var(--ink)}
+.re-tab.active{background:var(--ink);border-color:var(--ink);color:var(--gold-light)}
+.re-tab .re-tab-label{display:block;font-weight:500;margin-bottom:1px}
+.re-tab .re-tab-range{display:block;font-size:10px;opacity:.75}
+.re-panel{display:none}
+.re-panel.active{display:block}
+.re-card{border:1px solid var(--paper-3);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:.75rem}
+.re-card-head{padding:.75rem 1rem;display:flex;align-items:center;gap:.6rem}
+.re-card-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.re-card-title{font-size:13px;font-weight:500;color:var(--ink)}
+.re-card-sub{font-size:11px;color:var(--ink-3)}
+.re-card-body{padding:.75rem 1rem;border-top:1px solid var(--paper-3)}
+.re-card-body p{font-size:13px;color:var(--ink-2);line-height:1.65;margin-bottom:.5rem}
+.re-card-body p:last-child{margin-bottom:0}
+.re-highlight{background:var(--gold-pale);border-left:2px solid var(--gold);padding:.5rem .75rem;border-radius:0 var(--radius) var(--radius) 0;font-size:12px;color:var(--amber);margin-top:.5rem;line-height:1.55}
+.re-link{display:inline-block;margin-top:.4rem;font-size:11px;color:var(--blue);text-decoration:none;border-bottom:1px solid transparent}
+.re-link:hover{border-color:var(--blue)}
+.re-source{font-size:10px;color:var(--ink-4);margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--paper-3);line-height:1.6}
+.result-footer{border-top:1px solid var(--paper-3);padding-top:1.5rem;margin-top:2rem;font-size:11px;color:var(--ink-4);line-height:1.7;text-align:center}
+.section-div{border:none;border-top:1px solid var(--paper-3);margin:1.75rem 0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .45s cubic-bezier(.4,0,.2,1) both}
+.fade-up-2{animation:fadeUp .45s cubic-bezier(.4,0,.2,1) .1s both}
+.fade-up-3{animation:fadeUp .45s cubic-bezier(.4,0,.2,1) .2s both}
+@media(max-width:540px){
+  .page{padding:1.25rem 1rem 4rem}
+  .result-name{font-size:26px}
+  .sc-value{font-size:22px}
+  .score-row{grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .sc-label{font-size:9px}
+  .scale-grid{grid-template-columns:1fr;gap:7px}
+  .scale-btn{flex-direction:row;align-items:center;padding:.65rem .85rem;text-align:left;gap:.75rem}
+  .scale-btn .num{font-size:20px;width:28px;flex-shrink:0;text-align:center}
+  .scale-btn .hint{display:block;font-size:12px;color:var(--ink-3);line-height:1.4;flex:1}
+  .scale-btn.selected .hint{color:rgba(255,255,255,.8)}
+  .scale-legend{display:none}
+  .re-tabs{flex-direction:column;gap:6px}
+  .re-tab{flex:none;display:flex;justify-content:space-between;align-items:center;padding:.6rem .85rem}
+  .re-tab .re-tab-label{display:inline;margin-bottom:0}
+  .re-tab .re-tab-range{display:inline;opacity:.6;margin-left:.5rem}
+  .site-header{margin-bottom:2rem}
+  .section-heading{font-size:17px}
+  .q-text{font-size:15px}
+}
+
+/* ── 결과 탭 ── */
+.result-tab-wrap{}
+.result-tabs{display:flex;gap:8px;margin-bottom:2rem}
+.result-tab{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:.65rem .75rem;border-radius:var(--radius);cursor:pointer;
+  font-size:12px;font-family:'Noto Sans KR',sans-serif;font-weight:400;
+  border:1px solid var(--paper-3);background:var(--paper);
+  color:var(--ink-3);transition:all .2s;letter-spacing:.02em;
+}
+.result-tab:hover{border-color:var(--gold);color:var(--ink)}
+.result-tab.active{background:var(--ink);border-color:var(--ink);color:var(--gold-light);font-weight:500}
+.rtab-icon{font-size:14px}
+.result-panel{display:none}
+.result-panel.active{display:block}
+.preview-intro{
+  font-size:13px;color:var(--ink-3);line-height:1.75;
+  padding:.75rem 1rem;background:var(--paper-2);
+  border-radius:var(--radius);border:1px solid var(--paper-3);
+  margin-bottom:1.5rem;
+}
+.preview-intro strong{color:var(--ink);font-weight:500}
+.preview-cta{width:100%;padding:.85rem;font-size:14px;margin-top:1.5rem}
+
+/* ── 인포그래픽 (크림/골드 무드) ── */
+.ig-wrap{
+  border:1px solid var(--paper-3);border-radius:var(--radius-lg);
+  overflow:hidden;background:var(--paper);margin-bottom:1rem;
+}
+.ig-hero{
+  background:var(--ink);padding:2rem 2rem 1.5rem;text-align:center;
+}
+.ig-sub{
+  font-size:10px;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;
+  font-weight:500;margin-bottom:.5rem;
+}
+.ig-title{
+  font-family:'DM Serif Display',serif;font-size:22px;color:#fff;line-height:1.35;
+}
+.ig-title span{color:var(--gold-light);font-style:italic}
+.ig-note{
+  margin-top:.85rem;font-size:11.5px;color:rgba(255,255,255,.48);line-height:1.65;
+  border-top:1px solid rgba(255,255,255,.12);padding-top:.85rem;
+}
+.ig-stages{display:flex;gap:0;border-bottom:1px solid var(--paper-3)}
+.ig-stage{
+  flex:1;padding:1.25rem 1rem;border-right:1px solid var(--paper-3);
+  background:var(--paper);
+}
+.ig-stage:last-child{border-right:none}
+.ig-badge{
+  display:inline-block;background:var(--ink);color:var(--gold-light);
+  font-size:9.5px;font-weight:500;border-radius:1px;padding:2px 9px;
+  letter-spacing:.08em;margin-bottom:.6rem;
+}
+.ig-stage-name{
+  font-family:'Noto Serif KR',serif;font-size:14px;font-weight:500;
+  color:var(--ink);margin-bottom:2px;
+}
+.ig-stage-sub{font-size:10px;color:var(--ink-4);margin-bottom:.75rem}
+.ig-icon{font-size:22px;margin:0 0 .65rem}
+.ig-bullets{list-style:none;padding:0;margin-bottom:0}
+.ig-bullets li{
+  font-size:10.5px;color:var(--ink-2);padding:2.5px 0 2.5px 13px;
+  position:relative;line-height:1.45;
+}
+.ig-bullets li::before{
+  content:'✓';position:absolute;left:0;color:var(--teal);font-size:9.5px;font-weight:500;
+}
+.ig-goal{
+  margin-top:.85rem;background:var(--gold-pale);border:1px solid var(--gold-light);
+  border-radius:var(--radius);padding:6px 8px;font-size:10px;
+  color:var(--amber);text-align:center;font-weight:500;line-height:1.4;
+}
+.ig-mid{padding:1.5rem 1.5rem 0}
+.ig-result-title{
+  font-family:'Noto Serif KR',serif;font-size:14px;font-weight:500;
+  color:var(--ink);margin-bottom:1.25rem;text-align:center;
+}
+.ig-result-title span{color:var(--gold)}
+.ig-compare{display:flex;gap:12px;margin-bottom:1.25rem}
+.ig-case{
+  flex:1;border:1px solid var(--paper-3);border-radius:var(--radius-lg);
+  overflow:hidden;background:var(--paper-2);
+}
+.ig-case-header{
+  padding:.6rem .85rem;background:var(--paper-3);
+  font-size:10px;color:var(--ink-3);font-weight:500;letter-spacing:.04em;
+}
+.ig-case-body{padding:.85rem}
+.ig-case-loss{font-size:12px;font-weight:500;margin-bottom:.75rem}
+.ig-case-loss.ok{color:var(--teal)}
+.ig-case-loss.bad{color:var(--red)}
+.ig-chart-wrap{
+  background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius);
+  padding:8px 8px 5px;margin-bottom:.75rem;
+}
+.ig-metrics{display:flex;gap:6px;margin-bottom:.75rem}
+.ig-metric{
+  flex:1;text-align:center;background:var(--paper);
+  border:1px solid var(--paper-3);border-radius:var(--radius);padding:6px 3px;
+}
+.ig-mi{font-size:13px;margin-bottom:2px}
+.ig-ml{font-size:9px;color:var(--ink-4);line-height:1.3}
+.ig-mv{font-size:9.5px;font-weight:500;margin-top:2px;line-height:1.3}
+.ig-mv.ok{color:var(--teal)}
+.ig-mv.bad{color:var(--red)}
+.ig-case-result{
+  text-align:center;font-size:10.5px;font-weight:500;
+  border-radius:var(--radius);padding:6px;
+}
+.ig-case-result.ok{background:#e8f5e9;color:#1b5e20;border:1px solid #c8e6c9}
+.ig-case-result.bad{background:var(--red-light);color:#7f1414;border:1px solid #f5c5c5}
+.ig-footer{
+  padding:1rem 1.5rem;background:var(--paper-2);
+  border-top:1px solid var(--paper-3);
+}
+.ig-rel-note{
+  font-size:11.5px;color:var(--ink-3);line-height:1.7;
+  padding:.65rem .9rem;background:var(--gold-pale);
+  border:1px solid var(--gold-light);border-radius:var(--radius);
+  margin-bottom:.85rem;text-align:center;
+}
+.ig-rel-note strong{color:var(--amber)}
+.ig-tagline{
+  display:flex;align-items:flex-start;gap:.75rem;
+  padding:.85rem 1rem;background:var(--ink);border-radius:var(--radius);
+}
+.ig-tagline-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.ig-tagline-text{font-size:12px;color:rgba(255,255,255,.78);line-height:1.75}
+.ig-tagline-text strong{color:var(--gold-light)}
+@media(max-width:540px){
+  .result-tabs{flex-direction:column}
+  .ig-stages{flex-direction:column}
+  .ig-stage{border-right:none;border-bottom:1px solid var(--paper-3)}
+  .ig-stage:last-child{border-bottom:none}
+  .ig-compare{flex-direction:column}
+}
+
+#print-wm{display:none}
+@media print{
+  @page{margin:10mm;size:A4}
+  #print-wm{display:block!important;position:fixed;top:0;left:0;width:100%;height:100%;z-index:999999;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='360'%3E%3Ctext x='260' y='180' font-family='Georgia,serif' font-size='58' fill='rgba(196,147,63,0.08)' text-anchor='middle' dominant-baseline='middle' transform='rotate(-40,260,180)'%3EIdentiFi%3C/text%3E%3C/svg%3E");background-repeat:repeat;background-size:520px 360px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:#fff;font-size:9px}
+  .page{padding:0}
+  /* 헤더 */
+  .site-header{position:static!important;border-bottom:1px solid #ccc;padding:.25rem .85rem;margin-bottom:.25rem}
+  .site-sub{display:none}
+  /* 기본 숨김 */
+  .result-tabs,.print-hide,.progress-section{display:none!important}
+  #panel-preview{display:none!important}
+  #panel-result{display:block!important}
+  .result-tab-wrap,.fade-up,.fade-up-2,.fade-up-3{animation:none}
+  /* 결과 상단 */
+  .result-top{padding-bottom:.4rem;margin-bottom:.4rem}
+  .result-name{font-size:22px}
+  .result-desc{font-size:11px;line-height:1.5;margin-bottom:.5rem}
+  .result-badges{margin-bottom:.4rem}
+  .result-badge{font-size:9px;padding:.15rem .5rem}
+  .result-type-label{font-size:9px;margin-bottom:.25rem}
+  /* 점수 카드 */
+  .score-row{gap:4px;margin-bottom:.4rem}
+  .score-card{padding:.35rem}
+  .sc-label{font-size:8.5px}
+  .sc-value{font-size:18px}
+  .sc-grade{font-size:9px;padding:.1rem .4rem}
+  .sc-sub{font-size:8.5px}
+  /* 괴리 경고 */
+  .gap-warning,.advisory.fade-up-2{margin-bottom:.35rem;padding:.5rem .75rem}
+  .gap-warning .adv-label,.advisory.fade-up-2 .adv-label{font-size:9px}
+  .gap-warning .adv-text,.advisory.fade-up-2 .adv-text{font-size:10px;line-height:1.5}
+  /* 구분선 */
+  .section-div{margin:.3rem 0}
+  /* 매트릭스 */
+  .matrix-section{margin-bottom:.4rem}
+  .block-label{font-size:8.5px;margin-bottom:.35rem}
+  .matrix-axes{font-size:8px;margin-bottom:.3rem}
+  .matrix-table{font-size:9px}
+  .matrix-table th{padding:.2rem .15rem .3rem}
+  .m-cell{padding:.2rem .1rem}
+  .m-cell .ck{font-size:8px}
+  .m-cell .cn{font-size:7px}
+  /* 자산배분 — 인쇄 시 2/3+1/3 좌우 배치 */
+  .alloc-tactical-wrap{display:flex;gap:8px;align-items:flex-start;margin-bottom:.4rem}
+  .alloc-tactical-wrap .alloc-section{flex:2;min-width:0;margin-bottom:0}
+  .alloc-tactical-wrap .tactical-outer{flex:1;min-width:0}
+  .alloc-section,.tactical-section{margin-bottom:.4rem}
+  .alloc-strategy-header,.tactical-header{padding:.35rem .75rem}
+  .alloc-strategy-title,.tactical-title{font-size:9.5px}
+  .alloc-strategy-note{font-size:8.5px}
+  .alloc-body{padding:.35rem .75rem}
+  .alloc-big-row{margin-bottom:.3rem}
+  .alloc-big-label{font-size:11px;width:56px}
+  .alloc-big-track{height:9px}
+  .alloc-big-fill{height:9px}
+  .alloc-big-pct{font-size:11px}
+  .tactical-body{padding:.35rem .75rem}
+  .tactical-row{margin-bottom:.25rem}
+  .tactical-label{font-size:10px;width:56px}
+  .tactical-bar-wrap{height:20px}
+  .tactical-range-bar{height:7px;top:6px}
+  .tactical-plus-bar{transform-origin:left center;transform:scaleX(5)}
+  .tactical-minus-bar{transform-origin:right center;transform:scaleX(5)}
+  .tactical-nums{font-size:9px}
+  .alloc-legend{flex-direction:column!important;gap:.3rem!important}
+  .tactical-legend{margin-top:.4rem;padding-top:.35rem;flex-direction:column;gap:3px}
+  .t-leg-item{font-size:8.5px;gap:3px}
+  /* 장기기대수익률 */
+  #print-page1{page-break-after:always;display:flex;flex-direction:column;min-height:238mm}
+  #returns-section{flex:1;display:flex;flex-direction:column;margin-bottom:0!important}
+  #returns-box{flex:1;padding:1rem 1.1rem!important;display:flex;flex-direction:column;justify-content:space-between}
+  /* 2페이지 — 전문가 조언·체크리스트 */
+  .advisory{padding:.5rem .75rem;margin-bottom:.5rem}
+  .advisory .adv-label{font-size:9px}
+  .advisory .adv-text{font-size:10px;line-height:1.5}
+  .checklist{margin-bottom:.65rem}
+  .checklist li{font-size:10px;padding:.3rem 0;gap:.5rem}
+  .check-icon{width:13px;height:13px;flex-shrink:0}
+  /* 2페이지 — 부동산 섹션 */
+  .re-tabs{display:none!important}
+  #re-mid{display:none!important}
+  #re-high,#re-low{display:block!important}
+  .re-section{margin-top:1rem;padding-top:.75rem;border-top:1px solid #ddd}
+  .re-section .block-label{margin-bottom:.5rem}
+  .re-intro{font-size:10px;padding:.45rem .7rem;margin-bottom:.65rem}
+  .re-card{margin-bottom:.45rem}
+  .re-card-head{padding:.45rem .7rem}
+  .re-card-body{padding:.45rem .7rem}
+  .re-card-body p{font-size:10px}
+  .re-card-title{font-size:11px}
+  .re-card-sub{font-size:9.5px}
+  .re-highlight{font-size:9.5px;padding:.35rem .55rem}
+  .re-source{font-size:8.5px;margin-top:.45rem;padding-top:.45rem}
+  /* 두 섹션 사이 구분 */
+  .re-print-label{display:block!important;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--ink);padding:.45rem .85rem;margin-bottom:.65rem;border-radius:2px}
+  #re-low{margin-top:1.75rem;padding-top:1.25rem;border-top:3px solid var(--paper-3)}
+  /* 면책 고지 */
+  .result-footer{margin-top:.75rem;padding-top:.6rem;font-size:8.5px;border-top:1px solid #ddd}
+}
+@media(max-width:768px){.mobile-hide{display:none!important}}
+</style>
+</head>
+<body>
+<div id="print-wm"></div>
+<div class="page">
+  <header class="site-header">
+    <div>
+      <div class="site-logo">Investment <span>Profile</span></div>
+      <div class="site-sub">2차원 투자성향 분석 도구</div>
+    </div>
+    <div class="site-logo" style="font-size:18px;opacity:.5;letter-spacing:.02em">Identi<span>Fi</span></div>
+  </header>
+  <div id="app"></div>
+</div>
+<script>
+/* ================================================================
+   2차원 투자성향 분석 시스템 v3.0
+   변경사항:
+   · A축 등급 레이블: 1→최하, 2→하, 3→중, 4→상, 5→최상
+   · 포트폴리오: 전략적 자산배분(위험자산/안전자산 2분류)
+   · 전술적 자산배분: ±% 밴드 표시
+================================================================ */
+
+const sectionA = {
+  key:'A', eyebrow:'A축 · 01 / 02',
+  heading:'위험감수능력 (Risk Capacity)',
+  desc:'객관적인 재무 상태를 측정합니다. 심리가 아닌 숫자와 사실로 답하세요. 소득의 안정성과 지속성, 자산 구조, 유동성을 종합적으로 평가합니다.',
+  questions:[
+    {text:'현재 주요 소득원의 안정성과 수준은?',weight:16,
+     hints:['무직·일용직·폐업 위기','프리랜서·계약직·불규칙 소득','중소기업 정규직','대기업 정규직','공무원·종신직·전문직·다수의 안정적 소득원']},
+    {text:'현재 주요 노동소득이 앞으로 얼마나 지속될 것으로 예상하나요?',weight:13,
+     hints:['이미 은퇴 또는 노동소득 없음','1~3년 내 은퇴·소득 단절 예정','3~7년 내 은퇴·직업 전환 예상','10년 이상 유지 예상','20년 이상 유지 또는 소득 증가 예상']},
+    {text:'노동소득이 끊기더라도 매월 들어올 것으로 예상되는 돈은 월 생활비의 몇 %를 충당할 것 같나요?',weight:12,
+     hints:['10% 미만 — 거의 없거나 전혀 예측 불가','10~30% — 일부만 충당','30~60% — 절반 수준','60~90% — 대부분 충당 가능','90% 이상 — 생활비 전액 또는 초과']},
+    {text:'이 투자 자금을 묶어둘 수 있는 기간은?',weight:9,
+     hints:['1년 미만','1~3년','3~5년','5~10년','10년 이상']},
+    {text:'전체 자산(부동산·금융자산·기타) 중 부채가 차지하는 비중은 어느 정도인가요?',weight:10,
+     hints:['80% 초과 — 자산 대부분이 빚','60~80% — 부채 부담이 매우 큰 편','40~60% — 부채와 자산이 비슷한 수준','20~40% — 자산 대비 부채가 적은 편','20% 미만 — 부채가 거의 없음']},
+    {text:'현재 보유한 부채의 주된 성격은 무엇인가요? (부채 없으면 마지막 선택)',weight:10,
+     hints:['고금리 신용대출·카드론·현금서비스 위주','중금리 신용대출·마이너스통장 위주','주택담보대출 위주 — 변동금리','주택담보대출 위주 — 고정금리','부채 없음 또는 보증금·전월세 수준의 소액만']},
+    {text:'비상금은 월 생활비 기준 몇 개월분인가요?',weight:12,
+     hints:['1개월 미만','1~2개월','3~5개월','6~11개월','1년 이상']},
+    {text:'향후 5년 내 큰 지출 계획(주택 구입, 자녀 교육 등)의 규모는?',weight:8,
+     hints:['연소득 초과 지출 예정','연소득의 50~100%','연소득의 20~50%','연소득의 20% 미만','없음 또는 이미 준비 완료']},
+    {text:'근로소득 외 현금흐름 자산(배당, 임대료, 사업소득 등)의 규모는?',weight:10,
+     hints:['없음 (근로소득만)','소득의 10% 미만','소득의 10~30%','소득의 30~50%','자본·임대소득이 근로소득과 유사하거나 초과']},
+    {text:'전적으로 부양해야 할 가족(배우자, 미성년 자녀, 부모)은?',weight:6,
+     hints:['4인 이상','3인','2인','1인','없음 (본인만)']}
+  ]
+};
+
+const sectionB = {
+  key:'B', eyebrow:'B축 · 02 / 02',
+  heading:'위험수용성향 (Risk Tolerance)',
+  desc:'심리적 성향과 실제 투자 행동 패턴을 측정합니다. 바람직한 답이 아니라 실제로 그렇게 행동할 것 같은 답을 선택하세요.',
+  questions:[
+    {text:'투자 자산이 –20% 하락한 것을 확인했습니다. 실제로 어떻게 행동할 것 같나요?',weight:25,
+     hints:['즉시 전량 매도하고 현금화','상당 부분 매도하여 손실 최소화','일단 지켜보며 관망','추가 매수를 조금 고려','적극적으로 추가 매수 (기회로 판단)']},
+    {text:'원금의 몇 %까지 손실을 감내할 수 있나요? (충분한 시간이 주어진다면)',weight:20,
+     hints:['원금 손실 절대 불가 (0%)','5% 이내','10~20%','30~40%','50% 이상도 감수 가능']},
+    {text:'기대하는 연간 수익률 목표는? (그에 따른 위험도 함께 고려해서)',weight:20,
+     hints:['시중 금리 수준 (원금 보전 우선)','금리+1~2% (안정 우선)','연 5~8% (시장 평균)','연 10~15% (변동성 감수)','연 20% 이상 (높은 위험 수용)']},
+    {text:'경제 위기 뉴스가 쏟아지고 주변에서 "다 팔아야 한다"고 할 때 나는?',weight:15,
+     hints:['즉시 전부 안전 자산으로 이동','매우 불안해서 일부 매도','전문가 조언 찾고 기다림','동요하지 않고 유지','오히려 추가 매수 준비']},
+    {text:'지금까지 직접 투자해 본 금융상품과 경험 수준은?',weight:10,
+     hints:['예적금·보험만 (경험 없음)','채권형 펀드·연금저축','주식·ETF 직접 투자','레버리지·해외 개별주·ELS','선물·옵션·코인·VC·구조화 상품']},
+    {text:'투자 의사결정을 할 때 주로 어떻게 하나요?',weight:5,
+     hints:['전문가·지인에 전적 의존','남들이 좋다는 것 따라함','공부하지만 확신 부족','본인 분석·기준으로 결정','확고한 투자 철학·원칙 보유']},
+    {text:'자금이 3~5년 묶여 현금화 불가 시 심리적 인내심은?',weight:5,
+     hints:['당장 불가하면 극도로 불안','1년이 한계','3년 정도는 버틸 수 있음','5년 이상 문제없음','목표 달성까지 기간 무관']},
+    {text:'현재 보유한 총 금융자산 중 주식·펀드·ETF·ELS 등 투자성 자산의 비중은?',weight:5,
+     hints:['20% 미만 또는 없음 (예적금·보험 위주)','20~40%','40~60%','60~80%','80% 이상 (대부분 투자성 자산)']}
+  ]
+};
+
+const sections=[sectionA,sectionB];
+
+/* ──────────────────────────────────────────────
+   A축 등급 레이블: 최하·하·중·상·최상
+────────────────────────────────────────────── */
+const aGradeLabels={1:'최하',2:'하',3:'중',4:'상',5:'최상'};
+const bGradeNames={1:'안정형',2:'안정추구형',3:'위험중립형',4:'적극투자형',5:'공격투자형'};
+
+function calcScore(answers,questions){
+  let total=0,maxTotal=0;
+  questions.forEach((q,i)=>{
+    const ans=answers[i]||0;
+    total+=((ans-1)/4)*q.weight;
+    maxTotal+=q.weight;
+  });
+  return Math.round(total/maxTotal*100);
+}
+
+function getGrade(score){
+  if(score>=80)return 5;
+  if(score>=65)return 4;
+  if(score>=45)return 3;
+  if(score>=25)return 2;
+  return 1;
+}
+
+function getFinalResult(aG,bG){
+  const diff=bG-aG;
+  if(diff>=2)return{grade:aG,type:'down'};
+  if(diff<=-2)return{grade:bG,type:'up'};
+  return{grade:Math.round((aG+bG)/2),type:'match'};
+}
+
+const gradeColors={
+  1:{bg:'#e8f5e9',border:'#2a7c6f',text:'#0a4d38',val:'#2a7c6f'},
+  2:{bg:'#e8f0fe',border:'#2b5ea7',text:'#0c3570',val:'#2b5ea7'},
+  3:{bg:'#fdf5e0',border:'#c4933f',text:'#7a4a00',val:'#c4933f'},
+  4:{bg:'#fdecd4',border:'#b86e1a',text:'#6b3c00',val:'#b86e1a'},
+  5:{bg:'#fae8e8',border:'#943030',text:'#5a1f1f',val:'#943030'}
+};
+
+/* ──────────────────────────────────────────────
+   포트폴리오 데이터 구조 변경:
+   · strategic: { risky: 위험자산%, safe: 안전자산% }
+   · tactical: { risky: ±%, safe: ±% }  전술적 변동폭
+   위험자산 = 주식, ETF, 성장주, 대체자산, 리츠 등
+   안전자산 = 채권, 예금, 단기채, 현금, 원금보장상품 등
+────────────────────────────────────────────── */
+const P={
+  '5-1':{name:'견고한 방어자',
+   returns:{low:2,high:4,note:'예금·채권 중심, 물가 상승률 수준'},
+   desc:'최상의 재무 능력을 보유하고 있지만 심리적으로 매우 보수적입니다. 자산을 지키는 것이 최우선이며, 능력에 비해 낮은 수익을 추구합니다. 인플레이션에 의한 실질 자산 침식이 가장 큰 리스크입니다.',
+   strategic:{risky:20,safe:80},
+   tactical:{risky:10,safe:10},
+   tacticalNote:'시장 급락 시 위험자산 최대 30%까지 확대, 과열 시 최소 10%로 축소 — ±10%p',
+   advice:'재무 능력은 충분하나 성향이 지나치게 보수적입니다. 금(Gold) ETF와 물가연동채로 인플레이션을 방어하고, 단계적 투자 교육을 통해 성향을 조금씩 넓혀가는 것을 권장합니다.',
+   checks:['금(Gold) ETF 15~20%로 실질 구매력 방어','물가연동국채(KTB) 편입 검토','연금저축·IRP 세액공제 한도 우선 활용']},
+  '4-1':{name:'안전 자산가',
+   returns:{low:2,high:4,note:'예금·채권 중심, 능력 대비 보수적 운용'},
+   desc:'안정적인 재무 기반을 갖추고 있으나 원금 보전을 절대 우선시합니다. 재무 능력에 비해 성향이 보수적이어서 인플레이션 방어에 취약할 수 있습니다.',
+   strategic:{risky:15,safe:85},
+   tactical:{risky:5,safe:5},
+   tacticalNote:'금리 상승기 안전자산 +5%p, 금리 하락기 위험자산 +5%p',
+   advice:'재무 능력 대비 성향이 한 단계 보수적입니다. 우량 채권 비중을 단계적으로 확대하며 변동성에 익숙해지는 과정이 필요합니다.',
+   checks:['ISA 원금보장형 상품 우선 편입','월지급식 채권형 펀드로 인컴 확보','5년 이상 장기 국채로 금리 확정']},
+  '3-1':{name:'신중한 저축가',
+   returns:{low:2,high:3,note:'예금·적금 중심, 물가 대응 어려움'},
+   desc:'보통 수준의 재무 상태와 매우 보수적인 성향의 조합입니다. 투자보다 저축과 원금 보전에 집중하는 것이 지금 단계에 맞습니다.',
+   strategic:{risky:10,safe:90},
+   tactical:{risky:5,safe:5},
+   tacticalNote:'비상금 완성 전 위험자산 확대 금지, 완성 후 +5%p',
+   advice:'재무 기반을 먼저 탄탄히 다지는 것이 우선입니다. 비상금 완성 후 채권 비중을 조금씩 늘려 투자 경험을 쌓아가세요.',
+   checks:['비상금 6개월분 완성 후 투자 시작','IRP·연금저축 세액공제 900만원 한도 채우기','고금리 부채 상환 우선']},
+  '2-1':{name:'생존 우선형',
+   returns:{low:2,high:3,note:'원금 보전 우선, 실질 수익 미미'},
+   desc:'재무 기반이 취약하며 심리도 보수적입니다. 지금은 투자보다 재무 구조 개선이 절대적으로 우선입니다.',
+   strategic:{risky:5,safe:95},
+   tactical:{risky:5,safe:5},
+   tacticalNote:'재무 기반 개선 전 위험자산 확대 금지',
+   advice:'투자보다 저축이 먼저입니다. 매월 자동이체로 저축 시스템을 만들고, 지출 구조를 점검해 저축률을 높이는 것이 가장 중요합니다.',
+   checks:['가계부 작성으로 불필요 지출 파악','비상금 3개월분 확보 목표 설정','ISA 개설 후 원금보장형 상품 편입']},
+  '1-1':{name:'절대 방어형',
+   returns:{low:2,high:3,note:'원금 보전이 목표'},
+   desc:'재무 기반이 매우 취약하며 손실 내성도 없습니다. 모든 자원을 원금 보장 상품에 집중하고 재무 구조 개선에 전념해야 합니다.',
+   strategic:{risky:0,safe:100},
+   tactical:{risky:0,safe:0},
+   tacticalNote:'전술적 조정 없음 — 원금 보전 최우선',
+   advice:'지금은 투자를 시작할 여건이 아닙니다. 고금리 부채 상환, 비상금 확보, 지출 절감이 최우선입니다. 서민금융진흥원 무료 상담(1397)을 활용하세요.',
+   checks:['신용카드·카드론 즉시 상환 계획 수립','소득의 10% 강제 저축 자동이체 설정','서민금융진흥원 무료 금융 상담 활용']},
+
+  '5-2':{name:'균형 자산가',
+   returns:{low:4,high:6,note:'채권·배당 인컴 + 우량주 성장'},
+   desc:'최상의 재무 능력과 안정추구 성향의 조합입니다. 은행 이자보다 높은 수익을 원하지만 큰 변동성은 피합니다. 인컴 중심의 안정적 성장 전략이 적합합니다.',
+   strategic:{risky:40,safe:60},
+   tactical:{risky:15,safe:15},
+   tacticalNote:'강세장·금리 하락 시 위험자산 최대 55%, 약세장 시 최소 25% — 재무 능력 최상, ±15%p',
+   advice:'재무 여력이 충분합니다. 고배당 ETF와 채권으로 인컴을 확보하고, 글로벌 ETF로 인플레이션을 방어하는 구조를 만드세요.',
+   checks:['월지급식 배당 ETF로 생활비 보조 구조 설계','미국 단기 국채 ETF로 달러 헤지','부동산 비중이 높다면 주택연금 시뮬레이션 검토']},
+  '4-2':{name:'안정 성장형',
+   returns:{low:4,high:6,note:'채권·주식 혼합(6:4)'},
+   desc:'안정적인 재무 기반에서 은행 이자 이상의 수익을 추구합니다. 채권 중심으로 일부 주식을 편입한 균형형 포트폴리오가 잘 맞습니다.',
+   strategic:{risky:35,safe:65},
+   tactical:{risky:10,safe:10},
+   tacticalNote:'밸류에이션 과열 시 위험자산 -10%p, 급락 후 회복 초기 +10%p',
+   advice:'6:4 혼합형 자산 배분이 적합합니다. 연 1~2회 리밸런싱으로 채권-주식 비중을 유지하고, ISA·연금 세제 혜택을 최대 활용하세요.',
+   checks:['ISA 연 2,000만원 납입 한도 활용','연금저축+IRP 세액공제 900만원 한도','연 1~2회 정기 리밸런싱 일정 고정']},
+  '3-2':{name:'표준 중산층',
+   returns:{low:4,high:6,note:'TDF·혼합형 펀드 기준'},
+   desc:'재무 능력과 성향이 균형 잡힌 일반적인 중산층 투자자입니다. 시장 평균보다 약간 보수적인 수준을 목표로 하며, TDF 같은 단순한 전략이 잘 맞습니다.',
+   strategic:{risky:35,safe:65},
+   tactical:{risky:5,safe:5},
+   tacticalNote:'경기 사이클에 따라 ±5%p 조정, 리밸런싱 연 1회',
+   advice:'TDF(타겟데이트펀드) 또는 글로벌 자산 배분 펀드 1~2개로 단순화를 권장합니다. 복잡한 전략보다 꾸준한 납입이 장기적으로 더 큰 차이를 만듭니다.',
+   checks:['TDF 또는 밸런스드 펀드 1개 핵심 구성','IRP·연금저축 한도 먼저 채우기','연 1회 포트폴리오 점검으로 충분']},
+  '2-2':{name:'성장 준비형',
+   returns:{low:3,high:5,note:'채권 중심, 소액 주식 병행'},
+   desc:'재무 기반은 아직 미흡하지만 안정적인 성장을 원합니다. 재무 기반 강화와 소액 투자를 병행하는 과도기 단계입니다.',
+   strategic:{risky:30,safe:70},
+   tactical:{risky:5,safe:5},
+   tacticalNote:'비상금 미완성 시 위험자산 확대 금지, 완성 후 ±5%p',
+   advice:'비상금과 저축률 확보를 먼저 완성하세요. 소액이라도 주식형 ETF에 월 정액 적립식(DCA)으로 투자 경험을 쌓아가는 것이 이 단계의 핵심입니다.',
+   checks:['비상금 3~6개월분 확보 후 투자 확대','월 자동이체 DCA 투자 시작 (소액부터)','부채 금리 > 기대 수익률이면 부채 상환 우선']},
+  '1-2':{name:'재무 재건형',
+   returns:{low:2,high:4,note:'원금 보전 우선, 재무 구조 정리 단계'},
+   desc:'재무 기반이 매우 취약합니다. 지금은 투자 확대보다 재무 구조 정리가 절대 우선입니다.',
+   strategic:{risky:10,safe:90},
+   tactical:{risky:5,safe:5},
+   tacticalNote:'재무 구조 개선 단계 — 위험자산 확대는 3단계 이후',
+   advice:'고금리 부채가 있다면 어떤 투자 수익보다 빠르게 자산을 잠식합니다. 재무 상담사와 함께 단계적 계획을 세우세요.',
+   checks:['금융 코치·재무 상담사 상담 적극 권장','신용 점수 관리로 대출 금리 인하 추진','소득 증대 방안(부업, 기술 습득) 병행']},
+
+  '5-3':{name:'균형 성장가',
+   returns:{low:5,high:8,note:'글로벌 주식 ETF 50% + 채권·배당'},
+   desc:'탄탄한 재무 능력과 균형 잡힌 위험 성향의 이상적인 조합입니다. 주식과 채권을 균형 있게 배분하며 시장 평균 수익률을 목표로 합니다. 금융투자협회 준칙 기준 3등급 위험중립형에 해당합니다.',
+   strategic:{risky:60,safe:40},
+   tactical:{risky:15,safe:15},
+   tacticalNote:'강세장 위험자산 최대 75%, 약세장 최소 45% — ±15%p',
+   advice:'Core-Satellite 전략이 적합합니다. 글로벌 지수 ETF를 핵심으로 하고, 배당주와 채권으로 인컴을 보완하세요. 재무 능력이 충분하므로 장기 복리 효과를 최대화하는 것이 목표입니다.',
+   checks:['글로벌 지수 ETF(S&P500·MSCI World) 핵심 50%','연 2회 리밸런싱으로 목표 비중 유지','세액공제 계좌 한도 최대 활용']},
+  '4-3':{name:'균형 투자자',
+   returns:{low:5,high:8,note:'주식·채권 5:4, 국민연금형 배분'},
+   desc:'안정적인 재무 기반에서 시장 평균 수익률을 추구합니다. 변동성을 이해하고 장기 투자를 지향하는 성숙한 투자자입니다.',
+   strategic:{risky:55,safe:45},
+   tactical:{risky:10,safe:10},
+   tacticalNote:'주식 밸류에이션(P/E) 과열 시 -10%p, VIX 급등 후 +10%p',
+   advice:'6:4 포트폴리오를 기반으로 운용하세요. 시장 하락 시 패닉 셀링을 하지 않는 것이 장기 성과를 결정짓는 가장 중요한 요소입니다.',
+   checks:['자동 적립식으로 감정 배제한 투자 시스템','하락장 대응 기준 사전 작성 (예: -20% 추가 매수)','은퇴 시점 역산하여 TDF 전환 타이밍 설계']},
+  '3-3':{name:'위험중립형 투자자',
+   returns:{low:5,high:7,note:'주식·채권 균형(50:50) 혼합'},
+   desc:'재무 능력과 성향 모두 중간 수준의 균형 잡힌 투자자입니다. 금융투자협회 표준투자권유준칙 기준 3등급(위험중립형)에 정확히 해당합니다.',
+   strategic:{risky:50,safe:50},
+   tactical:{risky:10,safe:10},
+   tacticalNote:'경기 확장기 위험자산 +10%p, 침체 신호 시 -10%p',
+   advice:'위험자산과 안전자산을 50:50으로 나누는 균형 포트폴리오가 가장 적합합니다. 지금 당장의 수익보다 10년·20년 복리 효과에 집중하세요.',
+   checks:['국내외 혼합형 인덱스 펀드 핵심 보유','IRP+연금저축 연간 900만원 세액공제 최대 활용','비상금 6개월분 별도 유지']},
+  '2-3':{name:'성장 지향가',
+   returns:{low:4,high:7,note:'주식 ETF 55%, 재무 기반 제약 반영'},
+   desc:'재무 기반은 중하 수준이지만 시장 수익률을 목표로 합니다. 성향이 능력보다 약간 앞서 있는 과도기적 유형입니다.',
+   strategic:{risky:45,safe:55},
+   tactical:{risky:10,safe:10},
+   tacticalNote:'비상금 확보 완료 전 ±5%p로 제한, 완료 후 ±10%p',
+   advice:'월 정액 적립식(DCA)으로 투자를 시작하세요. 투자 금액이 소득의 20%를 초과하지 않도록 관리하고, 비상금을 동시에 확보하세요.',
+   checks:['비상금과 투자를 분리하여 병행 관리','부채 금리 점검 후 상환 vs 투자 우선순위 결정','월 투자는 소득의 10~20% 이내로']},
+  '1-3':{name:'고위험 노출형 ⚠',
+   returns:{low:2,high:4,note:'능력 부족으로 보수적 운용 권고'},
+   desc:'재무 기반이 매우 취약하나 시장 평균 수익률을 목표로 합니다. 성향이 능력을 초과하는 불균형 상태입니다. 즉각적인 재무 구조 개선이 필요합니다.',
+   strategic:{risky:20,safe:80},
+   tactical:{risky:5,safe:5},
+   tacticalNote:'현재 단계 — 전술적 확대 자제, 안전자산 유지 우선',
+   advice:'현재 성향이 재무 능력을 크게 초과합니다. 투자 확대를 중단하고 비상금 확보와 부채 상환에 집중하세요. 재무 기반이 갖춰진 후 투자를 늘려도 늦지 않습니다.',
+   checks:['신규 투자 확대 중단, 고위험 상품 정리 검토','비상금 3개월분 확보를 최우선으로','금융 상담 통해 부채 구조조정 검토']},
+
+  '5-4':{name:'성장 선구자',
+   returns:{low:7,high:11,note:'글로벌 주식 ETF 65% + 성장 섹터'},
+   desc:'탄탄한 재무 능력과 적극적인 성향의 이상적인 조합입니다. 주식 중심 포트폴리오로 장기 성장을 추구하며, 시장 하락을 기회로 활용할 수 있습니다.',
+   strategic:{risky:70,safe:30},
+   tactical:{risky:20,safe:20},
+   tacticalNote:'강세장 최대 90%, 약세장 최소 50% — 재무 능력 최상, ±20%p 적극 활용',
+   advice:'높은 주식 비중이 장기적으로 최적입니다. 섹터 ETF와 개별 성장주는 전체의 20% 이내로 제한하고, 정기 리밸런싱을 신뢰하며 장기 보유하세요.',
+   checks:['글로벌 ETF 핵심 + 성장 섹터 위성 전략','연 2회 리밸런싱으로 비중 유지','레버리지 상품은 전체의 10% 이내로 엄격 제한']},
+  '4-4':{name:'적극 투자자',
+   returns:{low:6,high:10,note:'주식 ETF 65%, 채권·리츠 완충'},
+   desc:'안정적인 재무 기반과 적극적 성향이 잘 맞는 조합입니다. 주식 중심으로 운용하며 변동성을 인내하고 장기 수익을 극대화합니다. 금융투자협회 준칙 기준 4등급(적극투자형)에 해당합니다.',
+   strategic:{risky:65,safe:35},
+   tactical:{risky:15,safe:15},
+   tacticalNote:'VIX 30 초과 시 위험자산 +15%p 적극 확대, 과열 시 -15%p',
+   advice:'주식 중심 포트폴리오를 유지하되, 채권과 리츠로 변동성을 완충하세요. 시장 하락 시 추가 매수 여력을 항상 20% 확보해 두는 것이 핵심입니다.',
+   checks:['현금성 자산 20% 유지로 하락장 매수 여력 확보','해외 ETF 비중 확대로 환율 분산 효과','개별 주식은 리서치 역량 내에서만 편입']},
+  '3-4':{name:'위험 추구형',
+   returns:{low:5,high:9,note:'주식 60%, 재무 기반 일부 제약'},
+   desc:'중간 수준의 재무 능력에 적극적인 성향이 결합된 유형입니다. 성향이 능력을 한 단계 앞서 있어 재무 기반 강화를 병행해야 합니다.',
+   strategic:{risky:60,safe:40},
+   tactical:{risky:10,safe:10},
+   tacticalNote:'재무 기반 강화와 병행 — 공격적 확대는 A축 상승 후',
+   advice:'적극적 성향을 발휘하되 비상금과 연금 저축을 동시에 강화하세요. 재무 기반이 성향 수준까지 올라오면 주식 비중을 더 높일 수 있습니다.',
+   checks:['비상금 6개월분 확보와 적립식 투자 병행','레버리지·파생 상품은 지금 단계에서 자제','재무 기반 강화될수록 투자 비중 단계적 확대']},
+  '2-4':{name:'과잉 위험 노출형 ⚠',
+   returns:{low:3,high:6,note:'능력 초과 — 보수적 운용으로 강제 조정'},
+   desc:'재무 기반에 비해 성향이 과도하게 공격적입니다. 실제 손실 발생 시 대응할 여력이 부족한 위험한 조합입니다.',
+   strategic:{risky:35,safe:65},
+   tactical:{risky:5,safe:5},
+   tacticalNote:'전술적 확대 자제 — 재무 기반 개선이 우선',
+   advice:'마음은 공격적이지만 재무의 방패가 너무 얇습니다. 포트폴리오를 보수적으로 전환하고, 비상금과 저축률을 먼저 높이세요.',
+   checks:['현재 고위험 상품 비중 즉시 축소','비상금 확보가 최우선 — 투자 확대 중단','금융 코치 상담으로 현실적 투자 계획 수립']},
+  '1-4':{name:'도박적 위험 노출형 ⚠⚠',
+   returns:{low:2,high:4,note:'즉각 보수적 전환 필요'},
+   desc:'극히 취약한 재무 기반에서 매우 공격적인 성향을 보입니다. 재무적 위기로 이어질 가능성이 높습니다. 즉각적인 전문가 상담이 필요합니다.',
+   strategic:{risky:10,safe:90},
+   tactical:{risky:0,safe:0},
+   tacticalNote:'전술적 조정 없음 — 즉각 전문가 상담 필요',
+   advice:'지금 당장 모든 고위험 투자를 중단하세요. 재무 상담사와 함께 현실적인 계획을 세우는 것이 가장 시급합니다.',
+   checks:['고위험 투자 즉시 중단','전문 재무 상담사 상담 강력 권고','기본 생활비 확보 우선 — 투자는 나중 문제']},
+
+  '5-5':{name:'공격적 선구자',
+   returns:{low:8,high:15,note:'성장주·레버리지 포함, 변동성 높음'},
+   desc:'최상의 재무 능력과 공격적 성향이 완벽히 일치하는 이상적인 고성장 투자자입니다. 글로벌 성장 섹터와 레버리지 전략을 적극 활용할 수 있습니다. 금융투자협회 준칙 기준 1등급(공격투자형)에 해당합니다.',
+   strategic:{risky:80,safe:20},
+   tactical:{risky:15,safe:15,riskyDown:20},
+   tacticalNote:'강세장 최대 95%(+15%p), 약세장 최소 60%(−20%p) — 비대칭 전술 범위',
+   advice:'능력과 성향이 완벽히 일치합니다. 분산 투자를 전제로 섹터 집중을 허용하지만, 레버리지와 파생 상품은 전체의 20% 이내로 엄격히 통제하세요.',
+   checks:['글로벌 분산을 전제로 섹터·테마 집중 허용','레버리지 상품 20% 상한 엄수','연간 세전 수익률 기록 및 벤치마크 대비 평가']},
+  '4-5':{name:'공격적 성장가',
+   returns:{low:7,high:13,note:'성장주 70%, 일부 방어 자산'},
+   desc:'안정적인 재무 기반에서 최고의 수익을 추구합니다. 공격적 성향이 재무 능력을 약간 앞서 있어 일부 절제가 필요합니다.',
+   strategic:{risky:70,safe:30},
+   tactical:{risky:15,safe:15},
+   tacticalNote:'방어형 30%는 하락장 매수 재원 — 전술 확대 시 최대 85%, 축소 시 최소 55% (±15%p)',
+   advice:'공격적 성향이 재무 능력을 한 단계 초과합니다. 고위험 상품 비중을 70%로 절제하고, 나머지 30%는 방어형으로 유지하여 하락장 매수 재원으로 활용하세요.',
+   checks:['방어형 자산 30%는 하락장 추가 매수 재원','개별 종목 집중도 관리 (단일 종목 10% 이내)','레버리지는 전체 포트폴리오의 15% 이내']},
+  '3-5':{name:'공격 희망형 ⚠',
+   returns:{low:4,high:8,note:'재무 기반 제약으로 조정 운용'},
+   desc:'중간 수준의 재무 능력에 최대 공격 성향이 결합됩니다. 성향이 능력을 초과하는 불균형 상태로, 실제 손실 시 대응 여력이 부족합니다.',
+   strategic:{risky:55,safe:45},
+   tactical:{risky:10,safe:10},
+   tacticalNote:'재무 기반 강화 전 위험자산 65% 초과 금지',
+   advice:'공격적 성향을 지금 100% 발휘하기에는 재무 기반이 부족합니다. 재무 기반을 강화하면서 주식 비중을 단계적으로 높여가세요.',
+   checks:['재무 기반 강화 로드맵 수립 (3~5년)','고위험 파생·레버리지 현재 단계에서 제외','포트폴리오 –20% 시 대응 시나리오 사전 작성']},
+  '2-5':{name:'충동적 위험 노출형 ⚠⚠',
+   returns:{low:3,high:6,note:'능력 초과 — 보수적 강제 조정'},
+   desc:'취약한 재무 기반에서 최대 공격 성향을 보입니다. 한 번의 큰 손실이 재무 파탄으로 이어질 수 있는 위험한 상태입니다.',
+   strategic:{risky:30,safe:70},
+   tactical:{risky:5,safe:5},
+   tacticalNote:'전술적 확대 강력 자제 — 기반 구축 단계',
+   advice:'지금 당장의 공격적 투자 욕구를 자제해야 합니다. 5년 후 공격적 투자를 하기 위해 지금은 기반을 쌓는 시간입니다.',
+   checks:['모든 신용 투자·빚투 즉시 중단','비상금 확보를 투자의 전제 조건으로 설정','전문 재무 상담사 상담 강력 권고']},
+  '1-5':{name:'위기 상태 ⚠⚠⚠',
+   returns:{low:2,high:3,note:'투자 중단 — 원금 보전만'},
+   desc:'극히 취약한 재무 기반에서 극단적 공격 성향을 보입니다. 심각한 재무 위기가 발생할 가능성이 높습니다. 즉각적인 전문가 개입이 필요합니다.',
+   strategic:{risky:0,safe:100},
+   tactical:{risky:0,safe:0},
+   tacticalNote:'투자 중단 — 원금 보전 및 재무 위기 대응 최우선',
+   advice:'지금 당장 모든 투자를 중단하고 전문가를 만나세요. 서민금융진흥원(1397) 무료 금융 상담을 활용하세요.',
+   checks:['모든 투자 즉시 중단 — 현금 확보 최우선','서민금융진흥원 무료 상담 (1397) 활용','생활비·주거 안정화 후 재무 재건 단계별 시작']}
+};
+
+/* 매트릭스 배경색 */
+const MBG=[
+  ['#c8e8e2','#c8e8e2','#d4e2f5','#fdecd4','#fae8e8'],
+  ['#c8e8e2','#d4e2f5','#d4e2f5','#fdecd4','#fae8e8'],
+  ['#d4e2f5','#d4e2f5','#fdf5e0','#fdecd4','#fae8e8'],
+  ['#fdf5e0','#fdf5e0','#fdecd4','#fae8e8','#f7c1c1'],
+  ['#fdf5e0','#fdecd4','#fae8e8','#f7c1c1','#f09595']
+];
+
+let state={phase:'intro',sectionIdx:0,qIdx:0,answers:{A:[],B:[]}};
+
+function render(){
+  const app=document.getElementById('app');
+  if(state.phase==='intro')renderIntro(app);
+  else if(state.phase==='survey')renderSurvey(app);
+  else renderResult(app);
+}
+
+function renderIntro(app){
+  app.innerHTML=`
+    <div class="fade-up">
+      <div style="margin-bottom:2rem">
+        <div style="font-family:'Noto Serif KR',serif;font-size:22px;font-weight:500;color:var(--ink);line-height:1.45;margin-bottom:.75rem">
+          은행 창구에서 받은<br>투자성향 결과, 믿으셨나요?
+        </div>
+        <div style="font-size:14px;color:var(--ink-3);line-height:1.8">
+          사실 국내 금융기관의 투자성향 분석에는 구조적 한계가 있습니다.
+        </div>
+      </div>
+      <div style="background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--radius-lg);padding:1.25rem 1.25rem 1rem;margin-bottom:1.25rem">
+        <div style="font-size:11px;color:var(--ink-4);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.85rem">기존 방식의 문제</div>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <div style="display:flex;align-items:flex-start;gap:.75rem">
+            <div style="width:22px;height:22px;border-radius:50%;background:var(--red-light);border:1px solid #f5c5c5;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;color:var(--red);font-weight:500">✕</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:.2rem">"돈을 굴릴 여유가 있는가"와 "손실을 버틸 배짱이 있는가"를 한 점수로 합칩니다</div>
+              <div style="font-size:12px;color:var(--ink-3);line-height:1.6">예금 10억이 있는 보수적인 60대와, 월급 300만원의 공격적인 30대가 같은 등급이 나올 수 있습니다.</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:.75rem">
+            <div style="width:22px;height:22px;border-radius:50%;background:var(--red-light);border:1px solid #f5c5c5;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;color:var(--red);font-weight:500">✕</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:.2rem">모든 질문이 같은 배점이라 중요한 항목이 묻힙니다</div>
+              <div style="font-size:12px;color:var(--ink-3);line-height:1.6">실제로 가장 중요한 "손실 발생 시 행동"보다 연령이나 직업 하나가 결과를 바꾸기도 합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--gold-pale);border:1px solid #f0d99a;border-radius:var(--radius-lg);padding:1.25rem 1.25rem 1rem;margin-bottom:2rem">
+        <div style="font-size:11px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.85rem">이 도구의 접근 방식</div>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <div style="display:flex;align-items:flex-start;gap:.75rem">
+            <div style="width:22px;height:22px;border-radius:50%;background:#f0d99a;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;color:#7a4a00;font-weight:500">✓</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:.2rem"><strong>재무 능력</strong>과 <strong>심리적 성향</strong>을 완전히 분리해서 측정합니다</div>
+              <div style="font-size:12px;color:var(--ink-3);line-height:1.6">통장 잔고·소득이 아무리 많아도, 심리가 버티지 못하면 실제로는 보수형입니다. 두 가지를 따로 보아야 진짜 위치가 보입니다.</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:.75rem">
+            <div style="width:22px;height:22px;border-radius:50%;background:#f0d99a;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;color:#7a4a00;font-weight:500">✓</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:.2rem">중요한 질문에 더 높은 배점을 줍니다</div>
+              <div style="font-size:12px;color:var(--ink-3);line-height:1.6">실제 하락 시 행동(25점), 손실 감내 수준(20점) 등 핵심 항목에 집중 배점하여 결과의 정확도를 높였습니다.</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:.75rem">
+            <div style="width:22px;height:22px;border-radius:50%;background:#f0d99a;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;color:#7a4a00;font-weight:500">✓</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:.2rem">5×5 매트릭스로 25가지 유형을 정밀 분류합니다</div>
+              <div style="font-size:12px;color:var(--ink-3);line-height:1.6">기존 5등급 체계보다 5배 세밀하게 나뉘어, 비슷해 보이는 사람도 서로 다른 전략을 받게 됩니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--ink-3);line-height:1.75;margin-bottom:2rem;padding:.75rem 1rem;background:var(--paper-2);border-radius:var(--radius);border:1px solid var(--paper-3)">
+        총 <strong style="color:var(--ink)">18문항</strong> · 약 <strong style="color:var(--ink)">5~7분</strong> 소요<br>
+        앞 10문항은 <strong style="color:var(--ink)">숫자와 사실</strong>로 / 뒤 8문항은 <strong style="color:var(--ink)">심리와 행동</strong>으로 답하세요.<br>
+        <span style="font-size:11px;color:var(--ink-4)">바람직한 답은 없습니다. 솔직하게 답할수록 결과가 정확합니다.</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:.85rem;font-size:14px" onclick="startSurvey()">분석 시작하기 →</button>
+    </div>`;
+}
+
+function startSurvey(){state.phase='survey';render();}
+
+function renderSurvey(app){
+  const sec=sections[state.sectionIdx];
+  const q=sec.questions[state.qIdx];
+  const totalQ=18;
+  const aLen=sectionA.questions.length;
+  const doneQ=state.sectionIdx===0 ? state.qIdx : aLen+state.qIdx;
+  const progress=Math.round(doneQ/totalQ*100);
+  const ans=state.answers[sec.key][state.qIdx];
+  const qPerSec=sec.questions.length;
+  app.innerHTML=`
+    <div class="progress-section fade-up">
+      <div class="progress-meta">
+        <span class="progress-label">${sec.eyebrow}</span>
+        <span class="progress-count">${doneQ+1} / ${totalQ}</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div>
+    </div>
+    <div class="fade-up-2">
+      <div class="section-eyebrow">${sec.key}축 — ${sec.key==='A'?'위험감수능력':'위험수용성향'}</div>
+      <div class="section-heading">${sec.heading}</div>
+      <div class="section-desc">${sec.desc}</div>
+    </div>
+    <div class="fade-up-3">
+      <div class="q-meta">
+        <span class="q-number">질문 ${state.qIdx+1} / ${qPerSec}</span>
+        
+      </div>
+      <div class="q-text">${q.text}</div>
+      <div class="scale-legend"><span>← ${sec.key==='A'?'능력 낮음':'보수적'}</span><span>${sec.key==='A'?'능력 높음':'공격적'} →</span></div>
+      <div class="scale-grid">
+        ${[1,2,3,4,5].map(i=>`
+          <button class="scale-btn${ans===i?' selected':''}" onclick="selectAnswer(${i})">
+            <span class="num">${i}</span>
+            <span class="hint">${q.hints[i-1]}</span>
+          </button>`).join('')}
+      </div>
+      <div class="nav-row">
+        <button class="btn btn-outline" onclick="goBack()" ${doneQ===0?'disabled':''}>← 이전</button>
+        <button class="btn btn-primary" id="btn-next" onclick="goNext()" ${ans==null?'disabled':''}>
+          ${doneQ===totalQ-1?'결과 보기':'다음 →'}
+        </button>
+      </div>
+    </div>`;
+}
+
+function selectAnswer(val){
+  const sec=sections[state.sectionIdx];
+  state.answers[sec.key][state.qIdx]=val;
+  document.querySelectorAll('.scale-btn').forEach((btn,i)=>{
+    btn.classList.toggle('selected',i+1===val);
+  });
+  document.getElementById('btn-next').disabled=false;
+}
+
+function goNext(){
+  const sec=sections[state.sectionIdx];
+  if(state.answers[sec.key][state.qIdx]==null)return;
+  if(state.qIdx<sec.questions.length-1){state.qIdx++;}
+  else if(state.sectionIdx<sections.length-1){state.sectionIdx++;state.qIdx=0;}
+  else{state.phase='result';}
+  render();
+}
+
+function goBack(){
+  if(state.qIdx>0){state.qIdx--;}
+  else if(state.sectionIdx>0){state.sectionIdx--;state.qIdx=sections[state.sectionIdx].questions.length-1;}
+  else{state.phase='intro';}
+  render();
+}
+
+function renderResult(app){
+  const aScore=calcScore(state.answers.A,sectionA.questions);
+  const bScore=calcScore(state.answers.B,sectionB.questions);
+  const aG=getGrade(aScore);
+  const bG=getGrade(bScore);
+  const{grade:finalG,type:gapType}=getFinalResult(aG,bG);
+  const pKey=`${aG}-${bG}`;
+  const p=P[pKey]||P['3-3'];
+  const gc=gradeColors[finalG];
+  const gcA=gradeColors[aG];
+  const gcB=gradeColors[bG];
+  const diff=Math.abs(aG-bG);
+
+  /* 5x5 매트릭스 — A축 레이블: 최하·하·중·상·최상 */
+  const aRowLabels=['최상','상','중','하','최하'];
+  const matHTML=`
+    <table class="matrix-table">
+      <thead><tr>
+        <th style="text-align:right;padding-right:.4rem;font-size:8px">능력↓ 성향→</th>
+        ${[1,2,3,4,5].map(b=>`<th>B${b}<br><span style="font-size:7px;opacity:.7">${['안정','안정추구','중립','적극','공격'][b-1]}</span></th>`).join('')}
+      </tr></thead>
+      <tbody>
+        ${[5,4,3,2,1].map((a,ri)=>`
+          <tr>
+            <td class="row-header">A${a}<br><span style="font-size:8px;opacity:.85;font-weight:500">${aRowLabels[ri]}</span></td>
+            ${[1,2,3,4,5].map((b,ci)=>{
+              const isActive=a===aG&&b===bG;
+              const bg=isActive?'#1a1814':MBG[ri][ci];
+              return`<td class="m-cell${isActive?' active-cell':''}" style="background:${bg}">
+                <div class="ck" style="color:${isActive?'#f0d99a':'#3d3a35'}">${a}-${b}</div>
+                <div class="cn" style="color:${isActive?'rgba(255,255,255,.65)':'#7a776f'}">${bGradeNames[b].replace('형','').replace('추구','')}</div>
+              </td>`;
+            }).join('')}
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+
+  /* 괴리 메시지 */
+  let gapHTML='';
+  if(diff>=2){
+    if(bG>aG){
+      gapHTML=`<div class="gap-warning fade-up-2">
+        <div class="adv-label">⚠ Kitces 원칙 적용 — 성향이 능력을 ${diff}등급 초과</div>
+        <div class="adv-text">심리적으로는 <strong>${bGradeNames[bG]}</strong>이지만 실제 재무 능력은 <strong>${aGradeLabels[aG]}(A${aG})</strong> 수준입니다.<br>
+        마음은 용맹하나 가계의 방패가 얇습니다. 실제 운용은 <strong>A${aG}등급(위험감수능력 ${aGradeLabels[aG]})</strong> 기준으로 보수적으로 조정하고, 재무 기반을 강화한 후 단계적으로 공격성을 높여가세요.</div>
+      </div>`;
+    } else {
+      gapHTML=`<div class="advisory fade-up-2">
+        <div class="adv-label">재무 능력이 성향을 ${diff}등급 초과</div>
+        <div class="adv-text">재무 기반은 <strong>${aGradeLabels[aG]}(A${aG})</strong> 수준이지만 심리는 <strong>${bGradeNames[bG]}</strong>에 머물러 있습니다.<br>
+        능력에 비해 지나치게 보수적으로 운용하면 인플레이션에 의해 실질 자산이 침식됩니다. 투자 교육과 소액 경험을 통해 성향을 점진적으로 넓혀가세요.</div>
+      </div>`;
+    }
+  }
+
+  /* ── 전략적 자산배분 바 ── */
+  const risky=p.strategic.risky;
+  const safe=p.strategic.safe;
+  const tRisky=p.tactical.risky;
+  const tSafe=p.tactical.safe;
+  const tRiskyDown=p.tactical.riskyDown||tRisky;
+  const riskyColor='#943030';
+  const safeColor='#2a7c6f';
+
+  /* 전술적 바 너비 계산 (50%가 0선) */
+  const tacRiskyPct=tRisky/2; /* 전체 바 중 % */
+  const tacRiskyDownPct=tRiskyDown/2;
+  const tacSafePct=tSafe/2;
+
+  app.innerHTML=`
+    <div class="result-tab-wrap fade-up">
+      <div class="result-tabs">
+        <button class="result-tab active" id="tab-preview" onclick="switchTab('preview')">
+          <span class="rtab-icon">📄</span> 투자전략 참고자료
+        </button>
+        <button class="result-tab" id="tab-result" onclick="switchTab('result')">
+          <span class="rtab-icon">📊</span> 나의 분석 결과 보기
+        </button>
+      </div>
+
+      <!-- 인포그래픽 패널 -->
+      <div id="panel-preview" class="result-panel active">
+        <div class="preview-intro">
+          아래 자료는 <strong>자산 규모에 따른 투자 전략 변화</strong>를 설명합니다.<br>
+          분석 결과를 보기 전, 먼저 확인해 보세요.
+        </div>
+
+        <div class="ig-wrap">
+          <div class="ig-hero">
+            <div class="ig-sub">Investment Strategy Guide</div>
+            <div class="ig-title">자산이 커질수록 <span>투자 전략도 달라져야</span> 합니다</div>
+            <div class="ig-note">익숙한 전략을 그대로 반복하면, 자산이 커질수록 회복도 어려워지고 인생 전체가 흔들릴 수 있습니다.</div>
+          </div>
+
+          <div class="ig-stages">
+            <div class="ig-stage">
+              <div class="ig-badge">STAGE 1</div>
+              <div class="ig-stage-name">자산 형성기</div>
+              <div class="ig-stage-sub">공격적으로 자산 증식</div>
+              <div class="ig-icon">🌱</div>
+              <ul class="ig-bullets">
+                <li>고위험·고수익 전략 가능</li>
+                <li>레버리지, 테마, 단타도 시도</li>
+                <li>잃어도 회복이 빠름</li>
+              </ul>
+              <div class="ig-goal">수익률 극대화 · 경험 축적</div>
+            </div>
+            <div class="ig-stage">
+              <div class="ig-badge">STAGE 2</div>
+              <div class="ig-stage-name">자산 증식 초기</div>
+              <div class="ig-stage-sub">성장과 안정의 균형</div>
+              <div class="ig-icon">⚖️</div>
+              <ul class="ig-bullets">
+                <li>분산 투자 시작</li>
+                <li>하락에 대한 리스크 관리 필요</li>
+                <li>변동성에 멘탈 흔들리기 시작</li>
+              </ul>
+              <div class="ig-goal">안정적인 성장 · 리스크 관리</div>
+            </div>
+            <div class="ig-stage">
+              <div class="ig-badge">STAGE 3</div>
+              <div class="ig-stage-name">자산 증식 성숙기</div>
+              <div class="ig-stage-sub">보존이 핵심, 성장 보조</div>
+              <div class="ig-icon">🔒</div>
+              <ul class="ig-bullets">
+                <li>원금 보존이 최우선</li>
+                <li>큰 손실은 인생 계획 전체에 영향</li>
+                <li>지속 가능한 현금흐름 중요</li>
+              </ul>
+              <div class="ig-goal">자산 보존 · 복리 유지 · 현금흐름</div>
+            </div>
+          </div>
+
+          <div class="ig-mid">
+            <div class="ig-result-title">같은 전략을 그대로 유지하면 생기는 <span>결과 차이</span></div>
+            <div class="ig-compare">
+              <div class="ig-case">
+                <div class="ig-case-header">예시 1 — 자산 형성기 (3,000만원)</div>
+                <div class="ig-case-body">
+                  <div class="ig-case-loss ok">-50% 손실 → 1,500만원</div>
+                  <div class="ig-chart-wrap">
+                    <svg viewBox="0 0 280 72" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:66px;display:block">
+                      <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#2a7c6f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+                      <text x="4" y="13" font-size="9.5" fill="#7a776f" font-family="Noto Sans KR,sans-serif">3,000만원</text>
+                      <text x="4" y="51" font-size="9.5" fill="#943030" font-family="Noto Sans KR,sans-serif">1,500만원</text>
+                      <text x="190" y="13" font-size="9.5" fill="#2a7c6f" font-family="Noto Sans KR,sans-serif">회복 가능!</text>
+                      <line x1="212" y1="16" x2="220" y2="24" stroke="rgba(42,124,111,0.35)" stroke-width="0.8" stroke-dasharray="3,2"/>
+                      <polyline points="12,20 105,44 218,22" fill="none" stroke="#2a7c6f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#a1)"/>
+                      <circle cx="12" cy="20" r="3" fill="#2a7c6f"/>
+                      <circle cx="105" cy="44" r="3" fill="#943030" opacity=".7"/>
+                      <line x1="12" y1="57" x2="224" y2="57" stroke="#e8e4db" stroke-width="0.8"/>
+                      <text x="12" y="68" font-size="8.5" fill="#b5b2a9" font-family="Noto Sans KR,sans-serif">투자 시작</text>
+                      <text x="82" y="68" font-size="8.5" fill="#b5b2a9" font-family="Noto Sans KR,sans-serif">손실 발생</text>
+                      <text x="178" y="68" font-size="8.5" fill="#b5b2a9" font-family="Noto Sans KR,sans-serif">1~2년 후</text>
+                    </svg>
+                  </div>
+                  <div class="ig-metrics">
+                    <div class="ig-metric"><div class="ig-mi">⏰</div><div class="ig-ml">회복 시간</div><div class="ig-mv ok">1~2년</div></div>
+                    <div class="ig-metric"><div class="ig-mi">🧠</div><div class="ig-ml">심리 충격</div><div class="ig-mv ok">상대적 적음</div></div>
+                    <div class="ig-metric"><div class="ig-mi">🎯</div><div class="ig-ml">인생 계획</div><div class="ig-mv ok">영향 제한적</div></div>
+                  </div>
+                  <div class="ig-case-result ok">다시 일어나기 쉽다</div>
+                </div>
+              </div>
+              <div class="ig-case">
+                <div class="ig-case-header">예시 2 — 자산 증식 성숙기 (5억원)</div>
+                <div class="ig-case-body">
+                  <div class="ig-case-loss bad">-50% 손실 → 2.5억원</div>
+                  <div class="ig-chart-wrap">
+                    <svg viewBox="0 0 280 72" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:66px;display:block">
+                      <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#943030" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+                      <text x="4" y="13" font-size="9.5" fill="#7a776f" font-family="Noto Sans KR,sans-serif">5억원</text>
+                      <text x="4" y="57" font-size="9.5" fill="#943030" font-family="Noto Sans KR,sans-serif">2.5억원</text>
+                      <text x="176" y="13" font-size="9.5" fill="#943030" font-family="Noto Sans KR,sans-serif">인생이</text>
+                      <text x="160" y="24" font-size="9.5" fill="#943030" font-family="Noto Sans KR,sans-serif">흔들릴 수 있다!</text>
+                      <line x1="198" y1="27" x2="212" y2="46" stroke="rgba(148,48,48,0.3)" stroke-width="0.8" stroke-dasharray="3,2"/>
+                      <polyline points="12,20 105,48 218,54" fill="none" stroke="#943030" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#a2)"/>
+                      <circle cx="12" cy="20" r="3" fill="#b5b2a9"/>
+                      <circle cx="105" cy="48" r="3" fill="#943030" opacity=".7"/>
+                      <line x1="12" y1="57" x2="224" y2="57" stroke="#e8e4db" stroke-width="0.8"/>
+                      <text x="12" y="68" font-size="8.5" fill="#b5b2a9" font-family="Noto Sans KR,sans-serif">투자 시작</text>
+                      <text x="82" y="68" font-size="8.5" fill="#b5b2a9" font-family="Noto Sans KR,sans-serif">손실 발생</text>
+                      <text x="178" y="68" font-size="8.5" fill="#b5b2a9" font-family="Noto Sans KR,sans-serif">5년 이상</text>
+                    </svg>
+                  </div>
+                  <div class="ig-metrics">
+                    <div class="ig-metric"><div class="ig-mi">⏰</div><div class="ig-ml">회복 시간</div><div class="ig-mv bad">5년 이상</div></div>
+                    <div class="ig-metric"><div class="ig-mi">🧠</div><div class="ig-ml">심리 충격</div><div class="ig-mv bad">불안·후회·두려움</div></div>
+                    <div class="ig-metric"><div class="ig-mi">⚠️</div><div class="ig-ml">인생 계획</div><div class="ig-mv bad">모든 계획에 영향</div></div>
+                  </div>
+                  <div class="ig-case-result bad">회복도 어렵고, 인생 전체가 흔들린다</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ig-footer">
+            <div class="ig-rel-note">
+              위 금액은 <strong>예시</strong>입니다. 단계 진입 시점은 소득·지출·가족 상황·목표에 따라 사람마다 다릅니다.<br>
+              <strong>절대적인 숫자보다 지금 나의 자산 단계가 어디인지</strong>가 더 중요합니다.
+            </div>
+            <div class="ig-tagline">
+              <div class="ig-tagline-icon">⭐</div>
+              <div class="ig-tagline-text">투자의 목적은 <strong>'더 많이 버는 것'</strong>이 아니라 <strong>'잃지 않고, 오래, 꾸준히 가는 것'</strong>입니다.<br>자산이 커질수록 전략을 업그레이드하는 사람이 진짜 부를 지켜냅니다.</div>
+            </div>
+          </div>
+        </div><!-- /ig-wrap -->
+
+        <button class="btn btn-primary preview-cta" onclick="switchTab('result')">
+          나의 분석 결과 보기 →
+        </button>
+      </div><!-- /panel-preview -->
+
+      <!-- 결과 패널 -->
+      <div id="panel-result" class="result-panel">
+    <div class="print-hide" style="display:flex;justify-content:flex-end;margin-bottom:1.25rem">
+      <button onclick="_mPrint(function(){var _t=document.title;document.title='IdentiFi_InvestmentProfile';window.print();document.title=_t;})" style="display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.35rem;border-radius:2px;cursor:pointer;font-size:13px;font-family:'Noto Sans KR',sans-serif;font-weight:400;background:var(--ink);border:1px solid var(--ink);color:var(--gold-light);transition:all .18s;letter-spacing:.02em" onmouseover="this.style.background='var(--ink-2)'" onmouseout="this.style.background='var(--ink)'">🖨 인쇄 / 저장</button>
+    </div>
+    <div id="print-page1">
+    <div class="result-top fade-up">
+      <div class="result-type-label">2차원 투자성향 분석 결과</div>
+      <div class="result-name">${p.name}</div>
+      <div class="result-badges">
+        <span class="result-badge badge-dark">${pKey} 유형</span>
+        <span class="result-badge" style="background:${gc.bg};border:1px solid ${gc.border};color:${gc.text}">최종 운용: ${bGradeNames[finalG]}</span>
+        <span class="result-badge" style="background:${gcA.bg};border:1px solid ${gcA.border};color:${gcA.text}">능력 ${aGradeLabels[aG]}</span>
+        ${gapType!=='match'?`<span class="result-badge" style="background:#e8f0fe;border:1px solid #c5d8f8;color:#1a3a6e">Kitces ${gapType==='down'?'하향 적용':'상향 권고'}</span>`:''}
+      </div>
+      <div class="result-desc">${p.desc}</div>
+    </div>
+
+    <div class="score-row fade-up-2">
+      <div class="score-card">
+        <div class="sc-label">위험감수능력 (A)</div>
+        <div class="sc-value" style="color:${gcA.val}">${aScore}</div>
+        <span class="sc-grade" style="background:${gcA.bg};color:${gcA.text}">${aGradeLabels[aG]}</span>
+        <div class="sc-sub">/ 100점 · A${aG}등급</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-label">위험수용성향 (B)</div>
+        <div class="sc-value" style="color:${gcB.val}">${bScore}</div>
+        <span class="sc-grade" style="background:${gcB.bg};color:${gcB.text}">${bGradeNames[bG]}</span>
+        <div class="sc-sub">/ 100점 · B${bG}등급</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-label">최종 운용 등급</div>
+        <div class="sc-value" style="color:${gc.val}">${finalG}등급</div>
+        <span class="sc-grade" style="background:${gc.bg};color:${gc.text}">${bGradeNames[finalG]}</span>
+        <div class="sc-sub">준칙 기준 등급</div>
+      </div>
+    </div>
+
+    ${gapHTML}
+
+    <hr class="section-div">
+
+    <div class="matrix-section fade-up-3">
+      <div class="block-label">5 × 5 투자성향 매트릭스 — 현재 위치</div>
+      <div class="matrix-axes">A축(위험감수능력: 최하~최상) × B축(위험수용성향) · 25개 유형 · 진한 셀 = 현재 위치</div>
+      <div class="matrix-scroll">${matHTML}</div>
+    </div>
+
+    <hr class="section-div">
+
+    <!-- 전략적/전술적 자산배분 -->
+    <div class="alloc-tactical-wrap fade-up-3">
+    <div class="alloc-section">
+      <div class="block-label">전략적 자산배분 (Strategic Asset Allocation)</div>
+      <div class="alloc-strategy">
+        <div class="alloc-strategy-header">
+          <span class="alloc-strategy-title">목표 비중 — 장기 기준선</span>
+          <span class="alloc-strategy-note">리밸런싱 기준점</span>
+        </div>
+        <div class="alloc-body">
+          <div class="alloc-big-row">
+            <div class="alloc-big-label" style="color:${riskyColor}">위험자산</div>
+            <div class="alloc-big-track">
+              <div class="alloc-big-fill" style="width:${risky}%;background:${riskyColor}"></div>
+            </div>
+            <div class="alloc-big-pct">${risky}%</div>
+          </div>
+          <div class="alloc-big-row" style="margin-bottom:.25rem">
+            <div class="alloc-big-label" style="color:${safeColor}">안전자산</div>
+            <div class="alloc-big-track">
+              <div class="alloc-big-fill" style="width:${safe}%;background:${safeColor}"></div>
+            </div>
+            <div class="alloc-big-pct">${safe}%</div>
+          </div>
+          <div class="alloc-legend" style="margin-top:.85rem;padding-top:.65rem;border-top:1px solid var(--paper-3);display:flex;gap:1.5rem">
+            <div style="font-size:11px;color:var(--ink-4)">
+              <span style="display:inline-block;width:8px;height:8px;background:${riskyColor};border-radius:1px;margin-right:4px;opacity:.7;vertical-align:middle"></span>
+              위험자산: 주식·ETF·성장주·리츠·대체자산
+            </div>
+            <div style="font-size:11px;color:var(--ink-4)">
+              <span style="display:inline-block;width:8px;height:8px;background:${safeColor};border-radius:1px;margin-right:4px;opacity:.7;vertical-align:middle"></span>
+              안전자산: 채권·예금·단기채·현금·원금보장상품
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tactical-outer">
+      <div class="block-label">전술적 자산배분 (Tactical Asset Allocation)</div>
+      <div class="tactical-section">
+        <div class="tactical-header">
+          <span class="tactical-title">시장 상황 따라 단기 조정</span>
+          <span class="alloc-strategy-note">리밸런싱 기준점</span>
+        </div>
+        <div class="tactical-body">
+        ${tRisky>0 ? `
+        <div class="tactical-row">
+          <div class="tactical-label" style="color:${riskyColor};font-size:12px;font-weight:500">위험자산</div>
+          <div class="tactical-bar-wrap">
+            <div class="tactical-center-line"></div>
+            <div class="tactical-base-mark"></div>
+            <div class="tactical-range-bar tactical-plus-bar" style="width:${tacRiskyPct}%"></div>
+            <div class="tactical-range-bar tactical-minus-bar" style="width:${tacRiskyDownPct}%"></div>
+          </div>
+          <div class="tactical-nums" style="color:${riskyColor}">−${tRiskyDown}% / +${tRisky}%</div>
+        </div>
+        <div class="tactical-row" style="margin-bottom:.5rem">
+          <div class="tactical-label" style="color:${safeColor};font-size:12px;font-weight:500">안전자산</div>
+          <div class="tactical-bar-wrap">
+            <div class="tactical-center-line"></div>
+            <div class="tactical-base-mark"></div>
+            <div class="tactical-range-bar tactical-plus-bar" style="width:${tacRiskyDownPct}%;background:${safeColor};opacity:.45"></div>
+            <div class="tactical-range-bar tactical-minus-bar" style="width:${tacSafePct}%;background:${riskyColor};opacity:.45"></div>
+          </div>
+          <div class="tactical-nums" style="color:${safeColor}">−${tSafe}% / +${tRiskyDown}%</div>
+        </div>` : `<div style="font-size:13px;color:var(--ink-3);padding:.25rem 0">전술적 조정 없음 — 현재 단계에서는 목표 비중 유지</div>`}
+        <div class="print-hide" style="margin-top:.85rem;padding-top:.65rem;border-top:1px solid var(--paper-3)">
+          <div style="font-size:12px;color:var(--ink-2);line-height:1.65">${p.tacticalNote}</div>
+        </div>
+        ${tRisky>0?`<div class="tactical-legend">
+          <div class="t-leg-item"><div class="t-leg-dot" style="background:var(--teal);opacity:.55"></div>확대 가능 구간 (+)</div>
+          <div class="t-leg-item"><div class="t-leg-dot" style="background:${riskyColor};opacity:.45"></div>축소 가능 구간 (−)</div>
+          <div class="t-leg-item"><div class="t-leg-dot" style="background:var(--ink-4)"></div>전략적 기준선</div>
+        </div>`:''}
+        </div>
+      </div><!-- /tactical-section -->
+    </div><!-- /tactical-outer -->
+    </div><!-- /alloc-tactical-wrap -->
+
+    <div class="fade-up-3" id="returns-section" style="margin-bottom:2rem">
+      <div class="block-label">장기 기대수익률 범위</div>
+      <div id="returns-box" style="background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--radius-lg);padding:1.1rem 1.25rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
+          <div>
+            <div style="font-family:'DM Serif Display',serif;font-size:32px;color:var(--ink);line-height:1">
+              <span style="color:${gc.val}">${p.returns.low}</span>
+              <span style="font-size:18px;color:var(--ink-3);margin:0 4px">~</span>
+              <span style="color:${gc.val}">${p.returns.high}</span>
+              <span style="font-size:16px;color:var(--ink-3);margin-left:4px">%</span>
+            </div>
+            <div style="font-size:11px;color:var(--ink-4);margin-top:.3rem">연평균 장기 기대수익률 (명목, 세전)</div>
+          </div>
+          <div style="background:${gc.bg};border:1px solid ${gc.border};border-radius:var(--radius);padding:.5rem .85rem;font-size:12px;color:${gc.text};line-height:1.5;max-width:200px">
+            ${p.returns.note}
+          </div>
+        </div>
+        <div style="margin-top:.85rem;padding-top:.75rem;border-top:1px solid var(--paper-3);font-size:11px;color:var(--ink-4);line-height:1.7">
+          이 범위는 권장 포트폴리오의 장기(10년 이상) 연평균 기대수익률입니다. 단기 실제 수익률은 시장 상황에 따라 크게 달라질 수 있으며, 수익률이 높을수록 하락 구간의 폭도 커집니다. 과거 수익률이 미래를 보장하지 않습니다.
+        </div>
+      </div>
+    </div>
+    </div><!-- /print-page1 -->
+
+    <div class="advisory fade-up-3">
+      <div class="adv-label">전문가 조언</div>
+      <div class="adv-text">${p.advice}</div>
+    </div>
+
+    <div class="fade-up-3">
+      <div class="block-label">포트폴리오 체크리스트</div>
+      <ul class="checklist">
+        ${p.checks.map(c=>`<li><span class="check-icon"></span>${c}</li>`).join('')}
+      </ul>
+    </div>
+
+    <hr class="section-div">
+
+    <div class="re-section fade-up-3">
+      <div class="block-label">한국 부동산 비중별 추가 안내</div>
+      <div class="re-intro">
+        <strong>통계청 2024 가계금융복지조사</strong> 기준, 한국 가계 자산의 평균 <strong>75%가 부동산</strong>에 집중되어 있습니다(65세 이상은 80~90%). 부동산 비중이 높을수록 A축(위험감수능력) 점수를 실질적으로 낮춰서 해석해야 합니다.
+      </div>
+      <div class="re-tabs">
+        <button class="re-tab active" onclick="showRP('high',this)">
+          <span class="re-tab-label">부동산 과다형</span>
+          <span class="re-tab-range">80% 이상</span>
+        </button>
+        <button class="re-tab" onclick="showRP('mid',this)">
+          <span class="re-tab-label">균형형</span>
+          <span class="re-tab-range">50~79%</span>
+        </button>
+        <button class="re-tab" onclick="showRP('low',this)">
+          <span class="re-tab-label">금융자산 중심형</span>
+          <span class="re-tab-range">50% 미만</span>
+        </button>
+      </div>
+      <div id="re-high" class="re-panel active">
+        <div class="re-print-label" style="display:none">🏠 부동산 과다형 — 실물자산 비중 80% 이상</div>
+        <div class="re-card">
+          <div class="re-card-head" style="background:#fdf5e0"><div class="re-card-icon" style="background:#f0d99a;color:#7a4a00">🏠</div><div><div class="re-card-title">A축 점수 하향 조정 필요</div><div class="re-card-sub">부동산은 즉시 현금화 불가 — 실질 투자 능력 재평가</div></div></div>
+          <div class="re-card-body"><p>총자산이 크더라도 현금화 가능한 금융자산이 부족하면, 위 분석의 A축 등급을 <strong>한 단계 낮게</strong> 재조정하세요. 은퇴기에는 자산의 크기보다 현금흐름이 핵심입니다.</p></div>
+        </div>
+        <div class="re-card">
+          <div class="re-card-head" style="background:#e1f5ee"><div class="re-card-icon" style="background:#9fe1cb;color:#0a4d38">📋</div><div><div class="re-card-title">주택연금 활용 검토</div><div class="re-card-sub">한국주택금융공사 | 국가 보증</div></div></div>
+          <div class="re-card-body">
+            <p>만 55세 이상, 공시가 12억원 이하 주택이라면 내 집에 살면서 평생 월 연금 수령 가능합니다.</p>
+            <div class="re-highlight">예시: 70세·시세 3억원 → 월 약 92만원 / 7억원 → 월 약 215만원 (종신지급·정액형)</div>
+            <a class="re-link" href="https://www.hf.go.kr/ko/sub03/sub03_02_02.do" target="_blank">한국주택금융공사 예상연금 조회 →</a>
+          </div>
+        </div>
+        <div class="re-source">출처: 통계청 「2024 가계금융·복지조사」 / 한국주택금융공사 / 정책브리핑 「부동산 집중 가계자산 구조」(2024)</div>
+      </div>
+      <div id="re-mid" class="re-panel">
+        <div class="re-card">
+          <div class="re-card-head" style="background:#e1f5ee"><div class="re-card-icon" style="background:#9fe1cb;color:#0a4d38">⚖️</div><div><div class="re-card-title">Core-Satellite 전략</div><div class="re-card-sub">인컴 60% + 성장 40%</div></div></div>
+          <div class="re-card-body">
+            <p><strong>핵심(60%):</strong> 고배당 ETF·월지급식 채권으로 생활비 보조</p>
+            <p><strong>위성(40%):</strong> 글로벌 지수 ETF·리츠로 인플레이션 방어</p>
+            <div class="re-highlight">금융자산 수익으로 보유세·관리비 충당 구조를 먼저 만드세요.</div>
+          </div>
+        </div>
+        <div class="re-card">
+          <div class="re-card-head" style="background:#faeeda"><div class="re-card-icon" style="background:#fac775;color:#633806">💰</div><div><div class="re-card-title">절세계좌 3대장</div><div class="re-card-sub">ISA · 연금저축 · IRP</div></div></div>
+          <div class="re-card-body">
+            <p><strong>ISA:</strong> 연 2,000만원, 수익 200만원 비과세 + 초과분 9.9% 분리과세</p>
+            <p><strong>연금저축+IRP:</strong> 연간 합산 최대 900만원 세액공제</p>
+          </div>
+        </div>
+        <div class="re-source">출처: 통계청 「2024 가계금융·복지조사」 / 금융위원회 ISA 제도 / 기획재정부 연금계좌 세액공제 규정</div>
+      </div>
+      <div id="re-low" class="re-panel">
+        <div class="re-print-label" style="display:none">📊 금융자산 중심형 — 실물자산 비중 50% 미만</div>
+        <div class="re-card">
+          <div class="re-card-head" style="background:#d4e2f5"><div class="re-card-icon" style="background:#b5d4f4;color:#0c447c">📈</div><div><div class="re-card-title">부동산 대체 투자 편입</div><div class="re-card-sub">리츠·인프라 펀드</div></div></div>
+          <div class="re-card-body">
+            <p>직접 부동산 없이 리츠(REITs)·인프라 펀드로 임대 수익과 자산 상승의 과실을 누릴 수 있습니다.</p>
+            <div class="re-highlight">권장: 위험자산 60% : 안전자산 40% 구조에서 리츠 15% 이내 포함</div>
+          </div>
+        </div>
+        <div class="re-card">
+          <div class="re-card-head" style="background:#f2efe9"><div class="re-card-icon" style="background:#d3d1c7;color:#3d3a35">🛡️</div><div><div class="re-card-title">인플레이션·환율 헤지</div><div class="re-card-sub">실질 구매력 보호</div></div></div>
+          <div class="re-card-body"><p>금(Gold) ETF 또는 달러 자산을 전체의 10~15%로 보유하세요. 부동산 미보유자는 주거비 상승 리스크에 특히 취약합니다.</p></div>
+        </div>
+        <div class="re-source">출처: 한국경제인협회·서울시립대 「주요국 가계 자산 구성 비교」(2024) / 통계청 「2024 가계금융·복지조사」</div>
+      </div>
+    </div>
+
+    <div class="result-footer fade-up-3">
+      본 분석은 Kitces(2012) 2차원 위험 분리 모델 및 금융투자협회 표준투자권유준칙을 참고하여 설계되었습니다.<br>
+      재무 상담의 참고 자료이며, 구체적인 투자 결정은 반드시 전문 재무설계사와 상담하시기 바랍니다.
+    </div>
+    <div class="print-hide" style="display:flex;gap:8px;margin-top:.75rem">
+      <button class="btn btn-ghost" style="flex:1" onclick="restart()">↺ 다시 시작하기</button>
+      <button class="btn btn-primary" style="flex:1" onclick="_mPrint(function(){var _t=document.title;document.title='IdentiFi_InvestmentProfile';window.print();document.title=_t;})">🖨 인쇄 / 저장</button>
+    </div>
+      </div><!-- /panel-result -->
+    </div><!-- /result-tab-wrap -->
+  `;
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.result-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.result-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+function showRP(id,btn){
+  document.querySelectorAll('.re-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.re-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('re-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function restart(){
+  state={phase:'intro',sectionIdx:0,qIdx:0,answers:{A:[],B:[]}};
+  render();
+}
+
+render();
+function _mPrint(fn){
+  if(window.matchMedia('(max-width:768px)').matches){
+    var t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:14px 22px;border-radius:10px;font-size:14px;z-index:9999;text-align:center;max-width:280px;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+    t.innerHTML='🖨️ 출력·PDF 저장은<br><b>PC 웹 브라우저</b>에서 이용해 주세요.';
+    document.body.appendChild(t);
+    setTimeout(function(){t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(function(){t.remove();},400);},3000);
+    return;
+  }
+  fn();
+}
+</script>
+</body>
+</html>

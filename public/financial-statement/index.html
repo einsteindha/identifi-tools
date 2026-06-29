@@ -1,0 +1,2396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1814">
+<title>IdentiFi — 나의 재무 현황 자가진단</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<style>
+:root{
+  --ink:#1a1814; --ink-2:#3d3a35; --ink-3:#7a776f; --ink-4:#b5b2a9;
+  --paper:#faf8f4; --paper-2:#f2efe9; --paper-3:#e8e4db;
+  --gold:#c4933f; --gold-light:#f0d99a; --gold-pale:#fdf5e0;
+  --teal:#2a7c6f; --amber:#b86e1a; --red:#943030; --blue:#2b5ea7;
+  /* 기존 변수명 유지 (JS 호환) */
+  --P:#3d3a35; --PL:#1a1814; --PD:#1a1814;
+  --A:#c4933f; --AL:#f0d99a; --AD:#b86e1a;
+  --bg:#faf8f4; --card:#faf8f4; --border:#e8e4db;
+  --text:#1a1814; --muted:#7a776f; --light:#b5b2a9;
+  --ok:#2a7c6f; --warn:#b86e1a; --bad:#943030;
+  --ok-bg:#e8f5e9; --warn-bg:#fdf5e0; --bad-bg:#fae8e8;
+  --ok-b:#c8e8e2; --warn-b:#f0d99a; --bad-b:#f5c5c5;
+  --r:4px; --r2:2px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6}
+
+/* ── 헤더 ── */
+.hd{background:var(--paper);padding:0 32px;border-bottom:1px solid var(--paper-3)}
+.hd-inner{max-width:1200px;margin:0 auto;display:flex;align-items:baseline;justify-content:space-between;padding:1.5rem 0}
+.brand{display:flex;align-items:baseline;gap:8px}
+.brand-name{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;letter-spacing:0;color:var(--ink)}
+.brand-name span{color:var(--gold);font-style:italic}
+.brand-by{font-size:11px;color:var(--ink-4);font-weight:400}
+.brand-cfp{font-size:11px;font-weight:500;color:var(--ink-3);background:var(--paper-2);border:1px solid var(--paper-3);border-radius:2px;padding:2px 10px;margin-left:2px;letter-spacing:.04em}
+.hd-right{display:flex;align-items:baseline;gap:8px}
+.hd-tag{font-size:10px;color:var(--ink-4);letter-spacing:.12em;text-transform:uppercase}
+
+/* ── 네비 ── */
+.nav{background:var(--paper-2);position:sticky;top:0;z-index:100;border-bottom:1px solid var(--paper-3)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;padding:0 20px;overflow-x:auto}
+.ntab{background:none;border:none;color:var(--ink-3);padding:13px 18px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:6px;letter-spacing:.04em}
+.ntab:hover{color:var(--ink)}
+.ntab.on{color:var(--ink);border-bottom-color:var(--gold)}
+.ntab .step-dot{width:18px;height:18px;border-radius:50%;background:var(--paper-3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--ink-4)}
+.ntab.on .step-dot{background:var(--ink);color:var(--gold-light)}
+.ntab.done .step-dot{background:var(--teal);color:#fff}
+
+/* ── 레이아웃 ── */
+.main{max-width:1200px;margin:0 auto;padding:28px 20px}
+.pane{display:none}.pane.on{display:block}
+
+/* ── 카드 ── */
+.card{background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--r);padding:24px 28px;margin-bottom:20px;box-shadow:none}
+.card-sm{padding:16px 20px}
+.ch{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--paper-3)}
+.ch-icon{width:30px;height:30px;border-radius:var(--r);background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ch-text h3{font-family:'Noto Serif KR',serif;font-size:15px;font-weight:500;color:var(--ink)}
+.ch-text p{font-size:11px;color:var(--ink-4);margin-top:1px}
+
+/* ── 그리드 ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* ── 폼 ── */
+.f{margin-bottom:14px}
+.f label{display:block;font-size:11px;font-weight:500;color:var(--ink-3);margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
+.f .hint{font-size:11px;color:var(--ink-4);margin-top:3px}
+.f input,.f select,.f textarea{width:100%;border:1px solid var(--paper-3);border-radius:var(--r2);padding:9px 12px;font-size:13px;font-family:inherit;color:var(--ink);background:var(--paper);transition:border .15s}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(196,147,63,.12)}
+.f input[type=number]{text-align:right}
+.f input[readonly]{background:var(--paper-2);color:var(--ink-4);cursor:default;font-size:12px}
+
+/* ── 툴팁 ── */
+.tip{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:var(--paper-3);color:var(--ink-3);font-size:9px;font-weight:700;cursor:help;margin-left:4px;vertical-align:middle;position:relative}
+.tip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:0;transform:none;background:var(--ink);color:#fff;font-size:11px;font-weight:400;padding:6px 10px;border-radius:var(--r);white-space:normal;width:220px;z-index:999;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+
+/* ── 재무제표 테이블 ── */
+.ft{width:100%;border-collapse:collapse;font-size:13px}
+.ft th,.ft td{padding:8px 12px;border-bottom:1px solid var(--paper-3)}
+.ft th{background:var(--paper-2);font-weight:500;color:var(--ink-3);font-size:11px;text-align:left;border-bottom:1px solid var(--paper-3);letter-spacing:.06em;text-transform:uppercase}
+.ft .cat td{background:var(--paper-2);font-weight:600;color:var(--ink-2);font-size:11px;padding:7px 12px;letter-spacing:.04em}
+.ft .sub td:first-child{padding-left:24px;color:var(--ink-3)}
+.ft .sub:hover{background:var(--paper-2)}
+.ft .sum td{background:var(--paper-2);font-weight:600;border-top:1px solid var(--paper-3);color:var(--ink-2)}
+.ft .tot td{background:var(--ink);color:#fff;font-weight:600;font-size:13px}
+.ft .net td{background:var(--gold);color:var(--ink);font-weight:700;font-size:14px}
+.ft .sav td{background:var(--ok-bg);font-weight:700;color:var(--teal);border:1px solid var(--ok-b)}
+.ft .memo td{padding:5px 12px 5px 24px;font-size:11px;color:var(--ink-4);background:var(--paper-2);font-style:italic}
+.ft td.r{text-align:right;font-variant-numeric:tabular-nums}
+.ft input.il{width:100%;border:1px solid var(--paper-3);border-radius:2px;background:var(--paper-2);text-align:right;font-size:13px;font-family:inherit;color:var(--ink);padding:2px 4px;outline:none}
+.ft input.il:focus{background:var(--gold-pale);border-color:var(--gold);box-shadow:0 0 0 2px rgba(196,147,63,.12)}
+.ft input.ro{background:transparent;color:var(--ink-3);font-size:11px;text-align:right;border:none;width:100%;padding:0;cursor:default}
+.ft .unit{font-size:10px;color:var(--ink-4);font-weight:400}
+.ko-label{font-size:9px;color:var(--ink-4);text-align:right;line-height:1.3;margin-top:1px}
+
+/* ── 버튼 ── */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.btn{padding:9px 20px;border:none;border-radius:var(--r2);cursor:pointer;font-size:12px;font-family:inherit;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:6px;letter-spacing:.04em}
+.btn-p{background:var(--ink);color:var(--gold-light)}.btn-p:hover{background:var(--ink-2)}
+.btn-s{background:var(--paper);border:1px solid var(--paper-3);color:var(--ink-3)}.btn-s:hover{background:var(--paper-2);color:var(--ink)}
+.btn-a{background:var(--gold);color:var(--ink)}.btn-a:hover{background:var(--amber);color:#fff}
+.btn-ok{background:var(--teal);color:#fff}
+
+/* ── 요약 박스 ── */
+.kpi-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.kpi{flex:1;min-width:160px;background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--r);padding:16px 20px;text-align:center}
+.kpi-l{font-size:10px;color:var(--ink-4);font-weight:500;text-transform:uppercase;letter-spacing:.08em}
+.kpi-v{font-family:'DM Serif Display',serif;font-size:24px;margin-top:4px;color:var(--ink)}
+.kpi-v.ok{color:var(--teal)}.kpi-v.bad{color:var(--red)}
+
+/* ── 진단 카드 ── */
+.rx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.rx{border-radius:var(--r);padding:18px;position:relative;overflow:hidden;border:1px solid}
+.rx.ok{background:var(--ok-bg);border-color:var(--ok-b)}
+.rx.warn{background:var(--warn-bg);border-color:var(--warn-b)}
+.rx.bad{background:var(--bad-bg);border-color:var(--bad-b)}
+.rx::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:var(--r) 0 0 var(--r)}
+.rx.ok::before{background:var(--teal)}.rx.warn::before{background:var(--amber)}.rx.bad::before{background:var(--red)}
+.rx-q{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.rx-v{font-family:'DM Serif Display',serif;font-size:26px;font-weight:400;line-height:1.1;margin:6px 0}
+.rx.ok .rx-v{color:var(--teal)}.rx.warn .rx-v{color:var(--amber)}.rx.bad .rx-v{color:var(--red)}
+.rx-bar{background:rgba(0,0,0,.06);border-radius:2px;height:4px;margin:8px 0}
+.rx-fill{height:4px;border-radius:2px;max-width:100%}
+.rx.ok .rx-fill{background:var(--teal)}.rx.warn .rx-fill{background:var(--amber)}.rx.bad .rx-fill{background:var(--red)}
+.rx-bench{font-size:11px;color:var(--ink-4);margin-bottom:4px}
+.rx-why{font-size:11px;color:var(--ink-3);margin-top:6px;line-height:1.6;padding-top:6px;border-top:1px solid rgba(0,0,0,.06)}
+.rx-st{font-size:12px;font-weight:600;margin-top:4px}
+.rx.ok .rx-st{color:var(--teal)}.rx.warn .rx-st{color:var(--amber)}.rx.bad .rx-st{color:var(--red)}
+.rx-grp-hd{grid-column:1/-1;font-size:13px;font-weight:700;color:var(--ink);padding:10px 0 6px;margin-top:6px;border-bottom:2px solid var(--paper-3);display:flex;align-items:center;gap:6px}
+.rx-grp-hd:first-child{margin-top:0}
+
+/* ── 건강점수 ── */
+.score-wrap{display:flex;align-items:center;gap:24px;padding:24px 28px;background:var(--ink);border-radius:var(--r);color:#fff;margin-bottom:20px}
+.score-num{font-family:'DM Serif Display',serif;font-size:64px;font-weight:400;line-height:1;color:var(--gold-light)}
+.score-label{font-size:10px;font-weight:500;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.12em}
+.score-msg{font-family:'Noto Serif KR',serif;font-size:18px;font-weight:500;margin-top:4px}
+.score-bar-wrap{flex:1;background:rgba(255,255,255,.1);border-radius:2px;height:3px}
+.score-bar{height:3px;border-radius:2px;background:var(--gold-light);transition:width .6s}
+
+/* ── 가이드라인 토글 ── */
+.gl-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.gl-row span{font-size:10px;font-weight:500;color:var(--ink-4);text-transform:uppercase;letter-spacing:.08em}
+.glbtn{padding:6px 14px;border-radius:2px;border:1px solid var(--paper-3);cursor:pointer;font-size:12px;font-weight:500;background:var(--paper);font-family:inherit;transition:all .15s;color:var(--ink-3)}
+.glbtn.on{background:var(--ink);color:var(--gold-light);border-color:var(--ink)}
+
+/* ── 진단 메시지 ── */
+.dx{border-radius:var(--r2);padding:14px 16px;margin-bottom:10px;font-size:13px;border-left:3px solid}
+.dx.ok{background:var(--ok-bg);border-color:var(--teal);color:#0a4d38}
+.dx.warn{background:var(--warn-bg);border-color:var(--amber);color:#7a4a00}
+.dx.bad{background:var(--bad-bg);border-color:var(--red);color:#5a1f1f}
+.dx h4{font-family:'Noto Serif KR',serif;font-weight:500;margin-bottom:5px}
+
+/* ── 안내 박스 ── */
+.info-box{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--r2);padding:12px 16px;font-size:12px;color:var(--ink-3);margin-bottom:14px;display:flex;gap:8px}
+.warn-box{background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:var(--r2);padding:12px 16px;font-size:12px;color:var(--amber);margin-bottom:14px}
+
+/* ── 목표 카드 ── */
+.goal-card{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--r);padding:18px;margin-bottom:12px}
+
+/* ── 바 차트 ── */
+.bc-row{margin-bottom:12px}
+.bc-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--ink-2)}
+.bc-bg{background:var(--paper-3);border-radius:2px;height:6px}
+.bc-fill{height:6px;border-radius:2px;transition:width .4s}
+
+/* ── 한국 태그 ── */
+.kr{display:inline-block;background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:2px;padding:0 5px;font-size:9px;color:var(--amber);font-weight:600;vertical-align:middle;margin-left:3px}
+
+/* ── 주거 카드 ── */
+.housing-card{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--r);padding:16px 20px;margin-bottom:14px}
+
+/* ── 모바일 ── */
+@media(max-width:600px){
+  .hd{padding:0 14px}
+  .hd-inner{padding:1rem 0;flex-wrap:wrap;gap:4px}
+  .brand-name{font-size:18px}
+  .brand-cfp{font-size:10px;padding:1px 8px}
+  .hd-tag{display:none}
+  .hd-right{display:none}
+
+  .nav-inner{padding:0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .nav-inner::-webkit-scrollbar{display:none}
+  .ntab{padding:10px 11px;font-size:11px;gap:4px}
+  .ntab .step-dot{width:16px;height:16px;font-size:8px}
+
+  .main{padding:14px 10px}
+  .card{padding:14px 12px;border-radius:var(--r);margin-bottom:14px}
+
+  .ft{font-size:12px}
+  .f input,.f select,.f textarea{font-size:16px!important;padding:10px 12px}
+  .ft input.il{font-size:15px!important;padding:3px 6px!important}
+
+  .btn{padding:11px 14px;font-size:12px;min-height:44px}
+  .btn-row{gap:7px}
+
+  .kpi-row{gap:8px}
+  .kpi{min-width:calc(50% - 4px);padding:12px 10px}
+  .kpi-v{font-size:20px}
+
+  .score-wrap{flex-direction:column;align-items:flex-start;gap:14px;padding:18px 16px}
+  .score-num{font-size:48px}
+  .score-msg{font-size:15px}
+  .score-bar-wrap{width:100%}
+
+  .rx-grid{grid-template-columns:1fr}
+  .rx{padding:14px 14px 14px 18px}
+
+  .dx{font-size:12px;padding:12px 12px}
+
+  .tip:hover::after{white-space:normal;width:180px;left:0;transform:none}
+
+  .gl-row{gap:6px}
+  .glbtn{padding:5px 12px;font-size:11px}
+
+  .goal-card{padding:12px 10px}
+  .info-box,.warn-box{font-size:11px;padding:10px 12px}
+  .housing-card{padding:12px 14px}
+  .bc-top{font-size:11px}
+}
+
+/* ── 카드 가져오기 ── */
+.imp-drop{border:1px dashed var(--paper-3);border-radius:var(--r);padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;color:var(--ink-4);background:var(--paper-2)}
+.imp-drop:hover,.imp-drop.drag{border-color:var(--gold);background:var(--gold-pale);color:var(--amber)}
+.ci-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--paper-2);border-radius:var(--r2);margin-bottom:7px;flex-wrap:wrap}
+.ci-sel{flex:1;min-width:160px;padding:6px 10px;border:1px solid var(--paper-3);border-radius:var(--r2);font-family:inherit;font-size:12px;background:var(--paper)}
+.ci-cnt{font-size:11px;color:var(--ink-4);white-space:nowrap}
+.ci-amt{font-weight:600;font-size:13px;margin-left:auto;white-space:nowrap;color:var(--ink)}
+.ci-sample{width:100%;font-size:10px;color:var(--ink-4);padding:2px 4px 0}
+.ci-skip{opacity:.4}
+
+/* ── 인쇄 ── */
+@media print{
+  .nav,.btn-row,.gl-row,.no-print{display:none!important}
+  .pane{display:block!important}
+  .main{padding:0;max-width:100%}
+  .card{box-shadow:none;page-break-inside:avoid;border-radius:0}
+  .score-wrap{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* 탭별 페이지 구분 */
+  #pane-balance,#pane-cashflow,#pane-diag,#pane-goal{page-break-before:always}
+  /* 글자·여백 압축 */
+  body{font-size:10px}
+  .ft td,.ft th{padding:2px 4px;font-size:10px}
+  .ft input.il,.ft input.ro{font-size:10px;padding:1px 3px}
+  .card{padding:10px 12px;margin-bottom:8px}
+  .ch h3{font-size:12px}.ch p{font-size:10px}
+  .kpi-row{gap:6px}.kpi-box{padding:8px 10px}
+  .kpi-val{font-size:20px}.kpi-lbl{font-size:9px}
+  .rx{padding:10px 12px}.rx-v{font-size:18px}
+  .rx-grid{gap:8px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .info-box{font-size:10px;padding:8px 10px}
+  .g2{grid-template-columns:1fr 1fr;gap:8px}
+}
+
+/* ── 섹션 헤더 ── */
+.sec-hd{font-family:'Noto Serif KR',serif;font-size:14px;font-weight:600;color:var(--ink);padding:14px 0 10px;margin-top:8px;margin-bottom:14px;border-bottom:2px solid var(--ink);display:flex;align-items:center;gap:10px}
+.sec-num{width:24px;height:24px;background:var(--ink);color:var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'Noto Sans KR',sans-serif}
+/* ── 내러티브 분석 카드 ── */
+.na-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:14px}
+.na{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--r);padding:16px 18px}
+.na-title{font-size:10px;font-weight:600;color:var(--ink-4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.na-body{font-size:13px;color:var(--ink-2);line-height:1.85}
+.na-body strong{color:var(--ink)}
+.tag-ok{color:var(--teal);font-weight:600}
+.tag-warn{color:var(--amber);font-weight:600}
+.tag-bad{color:var(--red);font-weight:600}
+.na-sub{font-size:11px;color:var(--ink-4);margin-top:8px;padding-top:8px;border-top:1px solid var(--paper-3);line-height:1.6}
+.cf-sub-hd{font-size:11px;font-weight:600;color:var(--ink-3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--paper-3)}
+.del-fixed-btn{background:none;border:none;cursor:pointer;color:transparent;font-size:10px;padding:1px 4px;border-radius:2px;margin-left:auto;flex-shrink:0;line-height:1;transition:color .15s}
+tr.sub:hover .del-fixed-btn{color:var(--ink-4)}
+.del-fixed-btn:hover{color:var(--red)!important}
+@media(max-width:560px){.na-grid{grid-template-columns:1fr}}
+@media print{.sec-hd{border-bottom-color:var(--ink);margin-top:4px}.na{padding:10px 12px;page-break-inside:avoid}.na-body{font-size:11px}#pane-diag .sec-hd~.sec-hd{page-break-before:always}}
+/* ── 다음 단계 도구 카드 ── */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:20px}
+a.tool-card{background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--r);padding:20px;text-decoration:none;color:inherit;display:block;transition:border-color .2s,box-shadow .2s,transform .15s}
+a.tool-card:hover{border-color:var(--gold);box-shadow:0 2px 12px rgba(196,147,63,.15);transform:translateY(-2px)}
+.tool-featured{border:1.5px solid var(--gold-light)!important;background:var(--gold-pale)!important}
+.tool-featured:hover{box-shadow:0 4px 16px rgba(196,147,63,.2)!important}
+.tool-icon{font-size:26px;margin-bottom:10px}
+.tool-name{font-family:'Noto Serif KR',serif;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:5px}
+.tool-desc{font-size:12px;color:var(--ink-3);line-height:1.7}
+.tool-arrow{margin-top:12px;font-size:12px;color:var(--gold);font-weight:600}
+.step-flow{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-4);margin-bottom:20px;flex-wrap:wrap}
+.step-flow .sf-here{background:var(--ink);color:var(--gold-light);padding:3px 10px;border-radius:2px;font-weight:600}
+.step-flow .sf-item{padding:3px 8px;background:var(--paper-2);border:1px solid var(--paper-3);border-radius:2px}
+.step-flow .sf-arrow{color:var(--ink-4)}
+@media(max-width:600px){.tool-grid{grid-template-columns:1fr}.step-flow{display:none}}
+@media print{#pane-goal{display:none!important}}
+@media print{.print-hide{display:none!important}}
+@media(max-width:768px){.mobile-hide{display:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ══ 헤더 ══ -->
+<header class="hd">
+  <div class="hd-inner">
+    <div class="brand">
+      <a href="https://identifi.co.kr" target="_blank" style="text-decoration:none"><div class="brand-name">Identi<span>Fi</span></div></a>
+    </div>
+    <div class="hd-right">
+      <span class="hd-tag">나의 재무 현황 자가진단</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══ 네비 ══ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <button class="ntab on" onclick="sw('info')"><span class="step-dot">1</span>기본정보</button>
+    <button class="ntab" onclick="sw('balance')"><span class="step-dot">2</span>자산·부채</button>
+    <button class="ntab" onclick="sw('cashflow')"><span class="step-dot">3</span>수입·지출</button>
+    <button class="ntab" onclick="sw('diag')"><span class="step-dot">4</span>재무 현황 진단</button>
+    <button class="ntab" onclick="sw('goal')"><span class="step-dot">5</span>다음 단계</button>
+  </div>
+</nav>
+
+<div class="main">
+  <!-- 툴바 -->
+  <div class="btn-row no-print">
+    <button class="btn btn-p mobile-hide" onclick="saveData()">💾 저장</button>
+    <button class="btn btn-s mobile-hide" onclick="loadData()">📂 불러오기</button>
+    <button class="btn btn-s" onclick="_mPrint(function(){var _t=document.title;document.title='IdentiFi_FinancialStatement';window.print();document.title=_t;})">🖨️ 인쇄·PDF</button>
+    <button class="btn btn-s" onclick="resetData()">🔄 초기화</button>
+    <button class="btn btn-a" onclick="sw('diag');calcAll()">📊 진단 실행</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 1  기본정보
+  ══════════════════════════════════════════ -->
+  <div id="pane-info" class="pane on">
+    <div class="info-box">
+      💡 입력하신 정보는 이 기기에만 저장되며, 외부로 전송되지 않습니다. 솔직하게 입력할수록 정확한 진단이 나옵니다.
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><div class="ch-icon">👤</div><div class="ch-text"><h3>내 기본정보</h3><p>나이에 맞는 재무 기준을 적용하기 위해 사용됩니다</p></div></div>
+        <div class="g2">
+          <div class="f"><label>이름</label><input type="text" id="c_name" placeholder="홍길동"></div>
+          <div class="f">
+            <label>생년월일</label>
+            <input type="text" id="c_birth" placeholder="1990-01-15" maxlength="10" oninput="maskDate(this)" onchange="calcAge()">
+            <div class="hint">숫자만 입력하면 자동으로 형식이 맞춰집니다</div>
+          </div>
+          <div class="f"><label>만 나이</label><input type="number" id="c_age" readonly placeholder="자동계산"></div>
+          <div class="f"><label>성별</label><select id="c_gender"><option value="">선택</option><option>남성</option><option>여성</option></select></div>
+          <div class="f">
+            <label>직업 유형</label>
+            <select id="c_job">
+              <option value="">선택해주세요</option>
+              <option>직장인 (근로소득자)</option>
+              <option>자영업자·사업자</option>
+              <option>전문직 (의사·변호사 등)</option>
+              <option>공무원·교사</option>
+              <option>프리랜서</option>
+              <option>전업주부</option>
+              <option>은퇴자</option>
+              <option>기타</option>
+            </select>
+          </div>
+          <div class="f"><label>가족 수 (본인 포함)</label><input type="number" id="c_family" placeholder="3" min="1"><div class="hint">재무 계획의 규모를 파악합니다</div></div>
+        </div>
+        <div class="f"><label>작성일</label><input type="date" id="c_date" value="2026-06-22"></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><div class="ch-icon">💑</div><div class="ch-text"><h3>배우자·자녀 정보</h3><p>맞벌이 여부와 부양 규모 파악에 사용됩니다</p></div></div>
+        <div class="g2">
+          <div class="f"><label>배우자 이름</label><input type="text" id="s_name" placeholder="(없으면 비워두세요)"></div>
+          <div class="f">
+            <label>배우자 생년월일</label>
+            <input type="text" id="s_birth" placeholder="1990-01-15" maxlength="10" oninput="maskDate(this)" onchange="calcSpouseAge()">
+          </div>
+          <div class="f"><label>배우자 만 나이</label><input type="number" id="s_age" readonly placeholder="자동계산"></div>
+          <div class="f">
+            <label>배우자 직업</label>
+            <select id="s_job"><option value="">없음·해당없음</option><option>직장인</option><option>자영업자</option><option>전문직</option><option>공무원</option><option>주부</option><option>기타</option></select>
+          </div>
+          <div class="f"><label>자녀 수</label><input type="number" id="c_children" placeholder="0" min="0"></div>
+          <div class="f"><label>부양하는 가족 수 (자녀 제외)</label><input type="number" id="c_parents" placeholder="0" min="0"></div>
+        </div>
+        <div class="f"><label>특이사항·메모</label><textarea id="c_memo" rows="2" placeholder="건강 문제, 계획 중인 이벤트 등 재무에 영향을 줄 것들을 적어두세요" style="resize:vertical"></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><div class="ch-icon">🏠</div><div class="ch-text"><h3>지금 어디에 살고 계신가요?</h3><p>주거 형태에 따라 자산·부채가 달라집니다</p></div></div>
+      <div class="housing-card">
+        <div class="g3">
+          <div class="f">
+            <label>주거 형태</label>
+            <select id="c_housing" onchange="toggleHousing()">
+              <option value="">선택해주세요</option>
+              <option value="own">🏡 내 집 (자가)</option>
+              <option value="jeonse">🔑 전세</option>
+              <option value="wolse">📋 월세</option>
+              <option value="public">🏢 공공임대</option>
+              <option value="family">👨‍👩‍👧 가족 집에 거주</option>
+            </select>
+          </div>
+          <div class="f" id="hj_wrap" style="display:none">
+            <label>전세보증금 <span class="kr">자산 자동반영</span></label>
+            <input type="number" id="h_jeonse" placeholder="0" oninput="autoSync()">
+            <div class="hint">만원 단위로 입력하세요 (예: 3억 → 30000)</div>
+          </div>
+          <div class="f" id="hw_wrap" style="display:none">
+            <label>월세</label>
+            <input type="number" id="h_wolse" placeholder="0" oninput="autoSync()">
+            <div class="hint">만원/월 단위</div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <button class="btn btn-p" onclick="sw('balance')">다음 단계: 자산·부채 입력 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 2  자산·부채 (재무상태표)
+  ══════════════════════════════════════════ -->
+  <div id="pane-balance" class="pane">
+    <div id="bs_kpi" class="kpi-row"></div>
+    <div class="info-box">
+      💡 <strong>자산</strong>은 내가 가진 모든 것(부동산·예금·투자·연금 등)이고, <strong>부채</strong>는 갚아야 할 모든 빚입니다. <strong>순자산 = 자산 − 부채</strong>가 클수록 재무 체력이 강합니다.
+    </div>
+    <div class="info-box no-print" style="flex-direction:column;align-items:flex-start;gap:5px">
+      <b>📱 자산·부채 조회 방법</b>
+      <span><b>마이데이터 — 뱅크샐러드</b> 추천 ★ — 계좌·증권·보험·대출을 한 화면에 연동, 순자산 추적·자산배분 파악에 강점. 재무상태표 작성에 가장 적합</span>
+      <span><b>마이데이터 — 토스</b> — 연동 속도가 빠르고 UI 직관적. 계좌·대출·보험 현황을 빠르게 확인할 때 편리</span>
+      <span><b>각 금융기관 앱</b> — 은행·증권사·보험사 앱에서 잔액·평가금액·대출 잔액 직접 확인 (마이데이터 누락 항목 보완용)</span>
+      <span><b>연금</b> — 통합연금포털(100lifeplan.fss.or.kr)에서 국민·퇴직·개인연금 한번에 조회 | 국민연금공단 <em>내 연금 알아보기</em></span>
+      <span><b>부동산 시세</b> — 네이버부동산·국토교통부 실거래가 공개시스템(rt.molit.go.kr)에서 최근 실거래가 확인</span>
+      <span><b>가상자산</b> — 업비트·빗썸·코인원 등 각 거래소 앱에서 현재 평가금액 확인 (마이데이터 미연동, 직접 입력 필요)</span>
+      <span><b>기타</b> — 금융감독원 <em>금융소비자정보포털(파인)</em> | 주택금융공사(대출 잔액)</span>
+      <span style="font-size:11px;color:var(--ink-4)">⚠️ 예금·적금은 해지환급금, 펀드·주식은 현재 평가금액, 아파트는 실거래가 기준으로 입력하세요</span>
+    </div>
+
+    <div class="g2">
+      <!-- 자산 -->
+      <div class="card">
+        <div class="ch"><div class="ch-icon">📈</div><div class="ch-text"><h3>내가 가진 것 (자산)</h3><p>금액은 현재 시세·해지금액 기준으로 입력하세요</p></div></div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="ft" style="min-width:320px">
+          <thead><tr><th>항목</th><th style="width:130px;text-align:right">금액 (만원)</th></tr></thead>
+          <tbody>
+            <tr class="cat"><td colspan="2">💵 현금성 자산 — 지금 바로 꺼낼 수 있는 돈</td></tr>
+            <tr class="sub"><td>현금</td><td class="r"><input class="il" type="number" id="a_cash" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>보통예금·입출금통장</td><td class="r"><input class="il" type="number" id="a_demand" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>CMA·MMF·파킹통장</td><td class="r"><input class="il" type="number" id="a_cma" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr id="aliq_add_tr" class="no-print"><td colspan="2" style="padding:4px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('aliq')" style="font-size:10px;padding:3px 10px;min-height:0">＋ 현금성 항목 추가</button></td></tr>
+
+            <tr class="cat"><td colspan="2">🏦 저축성 자산 — 만기가 있는 저축</td></tr>
+            <tr class="sub"><td>정기적금</td><td class="r"><input class="il" type="number" id="a_savings" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>정기예금</td><td class="r"><input class="il" type="number" id="a_fixedep" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>연금보험 해약환급금</td><td class="r"><input class="il" type="number" id="a_pensionins" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>주택청약종합저축 <span class="kr">한국</span></td><td class="r"><input class="il" type="number" id="a_sub" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr id="asav_add_tr" class="no-print"><td colspan="2" style="padding:4px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('asav')" style="font-size:10px;padding:3px 10px;min-height:0">＋ 저축성 항목 추가</button></td></tr>
+
+            <tr class="cat"><td colspan="2">📊 투자 자산 — 수익을 목적으로 운용 중인 돈</td></tr>
+            <tr class="sub"><td>주식·ETF (국내)</td><td class="r"><input class="il" type="number" id="a_stock" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>해외주식·해외ETF</td><td class="r"><input class="il" type="number" id="a_fund" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>채권·신탁·펀드</td><td class="r"><input class="il" type="number" id="a_bond" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>연금저축·IRP <span class="kr">한국</span><span class="tip" data-tip="세액공제 받는 은퇴 적립 계좌. 연간 최대 900만원 공제 가능">?</span></td><td class="r"><input class="il" type="number" id="a_pension_acc" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>ISA <span class="kr">한국</span><span class="tip" data-tip="개인종합자산관리계좌. 연 2,000만원 한도, 비과세 혜택. 내부 편입 자산에 따라 투자자산으로 분류">?</span></td><td class="r"><input class="il" type="number" id="a_isa" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>가상자산 (코인 등)</td><td class="r"><input class="il" type="number" id="a_crypto" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr id="ainv_add_tr" class="no-print"><td colspan="2" style="padding:4px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('ainv')" style="font-size:10px;padding:3px 10px;min-height:0">＋ 투자 항목 추가</button></td></tr>
+            <tr class="sum"><td>금융자산 합계</td><td class="r" id="a_fin_total">0</td></tr>
+
+            <tr class="cat"><td colspan="2">🏠 부동산 자산 — 현재 시세 기준</td></tr>
+            <tr class="sub"><td>내 집 (아파트·주택)</td><td class="r"><input class="il" type="number" id="a_home" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>수익용 부동산 (임대)</td><td class="r"><input class="il" type="number" id="a_rentprop" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>토지</td><td class="r"><input class="il" type="number" id="a_land" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr id="are_add_tr" class="no-print"><td colspan="2" style="padding:4px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('are')" style="font-size:10px;padding:3px 10px;min-height:0">＋ 부동산 항목 추가</button></td></tr>
+
+            <tr class="cat"><td colspan="2">🔑 기타 자산</td></tr>
+            <tr class="sub"><td>전세보증금 <span class="kr">임차인</span><span class="tip" data-tip="임차인(세입자)이라면 집주인에게 맡긴 보증금은 내 자산입니다. 임대인(집주인)으로서 보증금을 받아 예금·투자로 운용 중이라면 해당 금액은 각 자산 항목에 입력하고, 반환 의무는 부채의 '임대보증금 반환의무'에 기재하세요.">?</span></td><td class="r"><input class="il" type="number" id="a_jeonse" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>자동차 (현재 시세)</td><td class="r"><input class="il" type="number" id="a_car" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>퇴직연금 DB형 예상금액</td><td class="r"><input class="il" type="number" id="a_retiredb" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>기타 보험 해약환급금</td><td class="r"><input class="il" type="number" id="a_insother" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>기타</td><td class="r"><input class="il" type="number" id="a_etc" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr id="aetc_add_tr" class="no-print"><td colspan="2" style="padding:4px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('aetc')" style="font-size:10px;padding:3px 10px;min-height:0">＋ 기타 항목 추가</button></td></tr>
+            <tr class="tot" id="a_tot_tr"><td>총 자산</td><td class="r" id="a_total">0</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <!-- 부채 -->
+      <div class="card">
+        <div class="ch"><div class="ch-icon">📉</div><div class="ch-text"><h3>갚아야 할 것 (부채)</h3><p>남은 잔액 기준으로 입력하세요</p></div></div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="ft" style="min-width:300px">
+          <thead><tr><th>항목</th><th style="width:130px;text-align:right">잔액 (만원)</th></tr></thead>
+          <tbody>
+            <tr class="cat"><td colspan="2">⚡ 단기 부채 — 1년 내 갚아야 할 것</td></tr>
+            <tr class="sub"><td>마이너스통장 잔액</td><td class="r"><input class="il" type="number" id="l_minus" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>신용카드 미결제 잔액</td><td class="r"><input class="il" type="number" id="l_card" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>단기 대출</td><td class="r"><input class="il" type="number" id="l_short" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>임대보증금 반환의무 <span class="kr">임대인</span><span class="tip" data-tip="세입자에게 돌려줘야 할 전세·보증금은 내 부채입니다">?</span></td><td class="r"><input class="il" type="number" id="l_jeonse_recv" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr id="lcur_add_tr" class="no-print"><td colspan="2" style="padding:4px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('lcur')" style="font-size:10px;padding:3px 10px;min-height:0">＋ 단기부채 항목 추가</button></td></tr>
+            <tr class="sum"><td>단기부채 소계</td><td class="r" id="l_cur_total">0</td></tr>
+
+            <tr class="cat"><td colspan="2">🏗️ 장기 부채 — 1년 이상 남은 빚</td></tr>
+            <tr class="sub"><td>주택담보대출</td><td class="r"><input class="il" type="number" id="l_mortgage" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>전세자금대출 <span class="kr">한국</span></td><td class="r"><input class="il" type="number" id="l_jeonse_loan" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>신용대출 (장기)</td><td class="r"><input class="il" type="number" id="l_credit" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>자동차 할부 잔액</td><td class="r"><input class="il" type="number" id="l_car" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>학자금 대출</td><td class="r"><input class="il" type="number" id="l_student" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>사업 관련 대출</td><td class="r"><input class="il" type="number" id="l_biz" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr class="sub"><td>기타 장기 부채</td><td class="r"><input class="il" type="number" id="l_other" placeholder="0" oninput="calcBS()"></td></tr>
+            <tr id="lncur_add_tr" class="no-print"><td colspan="2" style="padding:4px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('lncur')" style="font-size:10px;padding:3px 10px;min-height:0">＋ 장기부채 항목 추가</button></td></tr>
+            <tr class="sum"><td>장기부채 소계</td><td class="r" id="l_ncur_total">0</td></tr>
+            <tr class="tot" id="l_tot_tr"><td>총 부채</td><td class="r" id="l_total">0</td></tr>
+            <tr class="net"><td>✨ 나의 순자산 (자산 − 부채)</td><td class="r" id="net_worth">0</td></tr>
+          </tbody>
+        </table></div>
+
+        <div style="margin-top:16px;padding:14px;background:#F8FAFC;border-radius:var(--r2);font-size:12px;color:var(--muted);line-height:1.8">
+          <strong style="color:var(--P)">📌 자산 분류 참고</strong><br>
+          전세 <b>세입자</b>: 전세보증금 → 자산<br>
+          전세 <b>집주인</b>: 보증금 반환의무 → 부채<br>
+          자산 평가: 예금·적금은 해지금액, 주식은 현재 시가, 아파트는 실거래가 기준
+        </div>
+
+        <div style="margin-top:14px;text-align:right">
+          <button class="btn btn-p" onclick="sw('cashflow')">다음 단계: 수입·지출 입력 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 3  수입·지출 (현금흐름표)
+  ══════════════════════════════════════════ -->
+  <div id="pane-cashflow" class="pane">
+    <div id="cf_kpi" class="kpi-row"></div>
+
+    <!-- 입력 단위 토글 -->
+    <div class="gl-row" style="margin-bottom:12px">
+      <span>✏️ 입력 단위:</span>
+      <button class="glbtn on" id="cfm_y" onclick="setCFMode('yearly')">📅 연간 입력</button>
+      <button class="glbtn" id="cfm_m" onclick="setCFMode('monthly')">🗓️ 월간 입력</button>
+      <span id="cf_mode_hint" style="font-size:11px;color:var(--muted)">연간 금액을 입력하면 월 평균이 자동 표시됩니다</span>
+    </div>
+
+    <div class="info-box no-print" style="flex-direction:column;align-items:flex-start;gap:5px">
+      <b>📱 수입·지출 자동 파악 앱</b>
+      <span><b>토스</b> 추천 ★ — 생활비 분석 UI가 직관적이고 월별 소비 패턴·소비 알림이 뛰어남. 카드·계좌를 통합해 현금흐름을 한눈에 파악하기 좋음</span>
+      <span><b>뱅크샐러드</b> — 카드+계좌 자동 분류 정확도가 높고, 카테고리 수정 시 학습됨. 항목별로 정밀하게 분석하려는 경우에 적합</span>
+      <span style="font-size:11px;color:var(--ink-4)">💡 위 앱에서 연간·월평균 금액을 확인한 뒤 아래 항목에 입력하세요</span>
+    </div>
+
+    <div class="warn-box no-print" id="cf_warn">
+      📌 <strong>작성 원칙:</strong>
+      수입은 세금·4대보험 뗀 <b>실수령액</b> 기준입니다 (직장인: 실제 통장 입금액) |
+      <span id="cf_mode_desc">금액은 <b>연간 합계(만원)</b>로 입력하면 옆에 월 평균이 자동 표시됩니다</span> |
+      대출 <b>원금 상환</b>은 지출이 아닌 <b>저축·투자</b>로 분류합니다
+    </div>
+
+    <!-- ── AI 프롬프트 배너 ── -->
+    <div class="card no-print" style="border:1.5px solid var(--A);margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="ch-icon" style="background:linear-gradient(135deg,#E8A020,#B07818)">🤖</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#92610E">AI 분석 프롬프트</div>
+        <div style="font-size:11px;color:var(--ink-3);margin-top:2px">계좌 입출금내역 또는 카드 지출내역을 ChatGPT·Gemini에 첨부하고 아래 프롬프트를 붙여넣으세요</div>
+      </div>
+      <button class="btn btn-s" id="copy_prompt_btn" onclick="copyAIPrompt()" style="font-size:11px;padding:4px 14px;min-height:0;flex-shrink:0">📋 프롬프트 복사</button>
+    </div>
+
+    <!-- ── 카드 내역 가져오기 ── -->
+    <div class="card no-print" style="border:1.5px solid var(--A);margin-bottom:20px">
+      <div class="ch" onclick="toggleImport()" style="cursor:pointer;margin-bottom:0;padding-bottom:0;border-bottom:none;user-select:none">
+        <div class="ch-icon" style="background:linear-gradient(135deg,#E8A020,#B07818)">📥</div>
+        <div class="ch-text">
+          <h3 style="color:#92610E">카드 지출 내역 가져오기 <span style="font-size:11px;font-weight:400;color:var(--muted)">(선택사항)</span></h3>
+          <p>카드사 엑셀·CSV 업로드 → 가맹점별 자동 분류 → 지출 항목 자동 입력</p>
+        </div>
+        <div style="margin-left:auto;font-size:20px;font-weight:900;color:var(--A)" id="import_arr">＋</div>
+      </div>
+      <div id="import_body" style="display:none">
+        <div style="height:2px;background:var(--border);margin:16px 0"></div>
+        <!-- STEP 1: 파일 선택 -->
+        <div id="ci_s1">
+          <div id="ci_s1_drop">
+            <div class="info-box" style="flex-direction:column;align-items:flex-start;gap:5px;margin-bottom:14px">
+              <b>💡 사용 방법</b>
+              <span>① 카드사 앱·홈페이지 → 이용내역 → <b>엑셀(xlsx), CSV, 또는 PDF 다운로드</b></span>
+              <span>② 아래에 파일 업로드 → 자동 분류 확인 → 반영</span>
+              <span style="color:var(--muted);font-size:11px">⚠️ 계좌 입출금 내역은 내부 이체 중복 문제가 있어요. 카드 이용내역 위주로 사용하세요.</span>
+              <span style="color:var(--muted);font-size:11px">지원: 삼성·현대·신한·KB국민·롯데·우리·하나 등 주요 카드사 / 카카오뱅크 PDF (비밀번호: 생년월일 8자리)</span>
+            </div>
+            <div class="imp-drop" id="imp_drop"
+                 onclick="$('ci_file').click()"
+                 ondragover="event.preventDefault();this.classList.add('drag')"
+                 ondragleave="this.classList.remove('drag')"
+                 ondrop="event.preventDefault();this.classList.remove('drag');handleCardFile(event.dataTransfer.files[0])">
+              <div style="font-size:40px;margin-bottom:8px">📂</div>
+              <div style="font-weight:800;margin-bottom:4px">파일을 드래그하거나 클릭해서 선택</div>
+              <div style="font-size:12px;color:var(--muted)">.xlsx / .xls / .csv / .pdf 지원</div>
+            </div>
+            <input type="file" id="ci_file" accept=".xlsx,.xls,.csv,.pdf" style="display:none"
+                   onchange="handleCardFile(this.files[0])">
+          </div>
+          <div id="ci_s1_picker" style="display:none"></div>
+        </div>
+        <!-- STEP 2: 미리보기 -->
+        <div id="ci_s2" style="display:none">
+          <div id="ci_summary"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <!-- 수입 -->
+      <div class="card">
+        <div class="ch"><div class="ch-icon">💵</div><div class="ch-text"><h3>I. 수입</h3><p>세금 제외 후 실제 받은 금액 기준, 연간 합계 입력</p></div></div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="ft" style="min-width:420px">
+          <thead><tr><th>항목</th><th class="cf-th-y" style="width:120px;text-align:right">연간 (만원)</th><th class="cf-th-m" style="width:80px;text-align:right;color:var(--muted)">월평균</th></tr></thead>
+          <tbody>
+            <tr class="cat"><td colspan="3">근로·사업 소득</td></tr>
+            <tr class="sub"><td>내 근로소득 (실수령 합계)</td>
+              <td class="r"><input class="il" type="number" id="i_my_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="i_my_m" readonly></td></tr>
+            <tr class="sub"><td>배우자 근로소득 (실수령 합계)</td>
+              <td class="r"><input class="il" type="number" id="i_sp_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="i_sp_m" readonly></td></tr>
+            <tr class="sub"><td>사업소득 (매출−비용 순이익)</td>
+              <td class="r"><input class="il" type="number" id="i_biz_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="i_biz_m" readonly></td></tr>
+            <tr class="sub"><td>상여금·성과급·인센티브</td>
+              <td class="r"><input class="il" type="number" id="i_bonus_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r" style="color:var(--muted);font-size:11px;text-align:right">연 단위</td></tr>
+            <tr id="iearn_add_tr" class="no-print"><td colspan="3" style="padding:4px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('iearn')" style="font-size:10px;padding:3px 10px;min-height:0">＋ 근로·사업소득 추가</button></td></tr>
+            <tr class="cat"><td colspan="3">금융·임대·기타 소득</td></tr>
+            <tr class="sub"><td>이자·배당 소득</td>
+              <td class="r"><input class="il" type="number" id="i_int_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="i_int_m" readonly></td></tr>
+            <tr class="sub"><td>임대 소득</td>
+              <td class="r"><input class="il" type="number" id="i_rent_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="i_rent_m" readonly></td></tr>
+            <tr class="sub"><td>연금 수령 (국민·퇴직·개인)</td>
+              <td class="r"><input class="il" type="number" id="i_pen_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="i_pen_m" readonly></td></tr>
+            <tr class="sub"><td>기타 소득</td>
+              <td class="r"><input class="il" type="number" id="i_oth_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="i_oth_m" readonly></td></tr>
+            <tr id="iother_add_tr" class="no-print"><td colspan="3" style="padding:4px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('iother')" style="font-size:10px;padding:3px 10px;min-height:0">＋ 금융·임대·기타소득 추가</button></td></tr>
+            <tr class="tot" id="i_tot_tr"><td>총 수입 (I)</td><td class="r" id="i_tot_y">0</td><td class="r" id="i_tot_m" style="opacity:.75">0</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <!-- 지출·저축 -->
+      <div class="card">
+        <div class="ch"><div class="ch-icon">💳</div><div class="ch-text"><h3>II·III. 지출 &amp; IV. 저축·투자</h3><p>연간 합계 입력 → 옆에 월 평균 자동표시</p></div></div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="ft" style="min-width:420px">
+          <thead><tr><th>항목</th><th class="cf-th-y" style="width:120px;text-align:right">연간 (만원)</th><th class="cf-th-m" style="width:80px;text-align:right;color:var(--muted)">월평균</th></tr></thead>
+          <tbody>
+            <tr class="cat"><td colspan="3">II. 변동지출 — 생활비</td></tr>
+            <tr class="memo"><td colspan="3">가족 구성원별·항목별로 나누어 입력하면 파악이 쉬워요</td></tr>
+            <tr class="sub"><td>내 생활비 (용돈·의류·미용 등)</td>
+              <td class="r"><input class="il" type="number" id="e_my_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_my_m" readonly></td></tr>
+            <tr class="sub"><td>배우자 생활비</td>
+              <td class="r"><input class="il" type="number" id="e_sp_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_sp_m" readonly></td></tr>
+            <tr class="sub"><td>자녀 보육비·사교육비</td>
+              <td class="r"><input class="il" type="number" id="e_kid_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_kid_m" readonly></td></tr>
+            <tr class="sub"><td>부모님 용돈·생활비 지원</td>
+              <td class="r"><input class="il" type="number" id="e_par_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_par_m" readonly></td></tr>
+            <tr class="sub"><td>식비 (장보기·외식 포함)</td>
+              <td class="r"><input class="il" type="number" id="e_food_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_food_m" readonly></td></tr>
+            <tr class="sub"><td>교통비 (대중교통·주유)</td>
+              <td class="r"><input class="il" type="number" id="e_trans_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_trans_m" readonly></td></tr>
+            <tr class="sub"><td>통신비 (휴대폰·인터넷)</td>
+              <td class="r"><input class="il" type="number" id="e_comm_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_comm_m" readonly></td></tr>
+            <tr class="sub"><td>의료비</td>
+              <td class="r"><input class="il" type="number" id="e_med_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_med_m" readonly></td></tr>
+            <tr class="sub"><td>여가·문화·여행</td>
+              <td class="r"><input class="il" type="number" id="e_lei_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_lei_m" readonly></td></tr>
+            <tr class="sub"><td>경조사·선물</td>
+              <td class="r"><input class="il" type="number" id="e_gift_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_gift_m" readonly></td></tr>
+            <tr class="sub"><td>기타 생활비</td>
+              <td class="r"><input class="il" type="number" id="e_voth_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_voth_m" readonly></td></tr>
+            <tr id="ve_add_tr" class="no-print"><td colspan="3" style="padding:5px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('ve')" style="font-size:11px;padding:4px 12px;min-height:0">＋ 변동지출 항목 추가</button></td></tr>
+            <tr class="sum" id="ve_sum_tr"><td>변동지출 소계 (II)</td><td class="r" id="e_var_y">0</td><td class="r" id="e_var_m" style="opacity:.75">0</td></tr>
+
+            <tr class="cat"><td colspan="3">III. 고정지출 — 매달 고정으로 나가는 돈</td></tr>
+            <tr class="sub"><td>보험료 (생명·실손·종신 등)</td>
+              <td class="r"><input class="il" type="number" id="e_ins_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_ins_m" readonly></td></tr>
+            <tr class="sub"><td>주택담보대출 이자</td>
+              <td class="r"><input class="il" type="number" id="e_mint_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_mint_m" readonly></td></tr>
+            <tr class="sub"><td>기타 대출 이자</td>
+              <td class="r"><input class="il" type="number" id="e_oint_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_oint_m" readonly></td></tr>
+            <tr class="sub"><td>주택담보대출 원금 상환 <span class="tip" data-tip="고정지출로 표시되지만 빚이 줄어 순자산이 늘어납니다. 저축성향 비율 계산 시 저축으로 반영됩니다. 원금상환 비중이 클수록 유동자산은 늘지 않아 단기 유동성이 낮아질 수 있어요.">?</span></td>
+              <td class="r"><input class="il" type="number" id="s_mprin_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="s_mprin_m" readonly></td></tr>
+            <tr class="sub"><td>기타 대출 원금 상환 <span class="tip" data-tip="고정지출로 표시되지만 빚이 줄어 순자산이 늘어납니다. 저축성향 비율 계산 시 저축으로 반영됩니다. 원금상환 비중이 클수록 유동자산은 늘지 않아 단기 유동성이 낮아질 수 있어요.">?</span></td>
+              <td class="r"><input class="il" type="number" id="s_oprin_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="s_oprin_m" readonly></td></tr>
+            <tr class="cat"><td colspan="3">💳 대출 원리금 상환 — 원금·이자 구분이 어려울 때</td></tr>
+            <tr class="sub"><td>주택담보대출 원리금 상환 <span class="tip" data-tip="월 납입 총액(원금+이자)은 알지만 원금과 이자를 구분하기 어려울 때 입력하세요. 원금·이자를 각각 알고 있다면 위의 '이자'·'원금 상환' 항목에 분리 입력하세요. 비율 계산 시 전액 반영됩니다.">?</span></td>
+              <td class="r"><input class="il" type="number" id="s_mamort_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="s_mamort_m" readonly></td></tr>
+            <tr class="sub"><td>기타 대출 원리금 상환 <span class="tip" data-tip="월 납입 총액(원금+이자)은 알지만 원금과 이자를 구분하기 어려울 때 입력하세요. 원금·이자를 각각 알고 있다면 위의 '이자'·'원금 상환' 항목에 분리 입력하세요. 비율 계산 시 전액 반영됩니다.">?</span></td>
+              <td class="r"><input class="il" type="number" id="s_oamort_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="s_oamort_m" readonly></td></tr>
+            <tr class="sub"><td>월세 <span class="kr">한국</span></td>
+              <td class="r"><input class="il" type="number" id="e_wolse_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_wolse_m" readonly></td></tr>
+            <tr class="sub"><td>관리비·공과금 (전기·가스·수도)</td>
+              <td class="r"><input class="il" type="number" id="e_util_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_util_m" readonly></td></tr>
+            <tr class="sub"><td>기타 고정지출</td>
+              <td class="r"><input class="il" type="number" id="e_foth_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="e_foth_m" readonly></td></tr>
+            <tr id="fe_mon_add_tr" class="no-print"><td colspan="3" style="padding:5px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('fe_mon')" style="font-size:11px;padding:4px 12px;min-height:0">＋ 월정액 고정지출 추가</button></td></tr>
+            <tr class="cat"><td colspan="3">연간 비정기 지출 — 월환산 없이 연간으로만 입력</td></tr>
+            <tr class="memo"><td colspan="3">재산세·종부세·자동차세·자동차보험료 등 연 1회성 지출</td></tr>
+            <tr class="sub"><td>세금 합계 <span class="tip" data-tip="재산세·종합부동산세·자동차세 등 연간 납부 세금 합산 입력">?</span></td>
+              <td class="r"><input class="il" type="number" id="e_tax_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r" style="color:var(--muted);font-size:11px;text-align:right">연 단위</td></tr>
+            <tr class="sub"><td>자동차보험료</td>
+              <td class="r"><input class="il" type="number" id="e_carins_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r" style="color:var(--muted);font-size:11px;text-align:right">연 단위</td></tr>
+            <tr class="sub"><td>기타 연간 비정기 지출</td>
+              <td class="r"><input class="il" type="number" id="e_annual_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r" style="color:var(--muted);font-size:11px;text-align:right">연 단위</td></tr>
+            <tr id="fe_add_tr" class="no-print"><td colspan="3" style="padding:5px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('fe')" style="font-size:11px;padding:4px 12px;min-height:0">＋ 연간 비정기 지출 추가</button></td></tr>
+            <tr class="sum" id="fe_sum_tr"><td>고정지출 소계 (III)</td><td class="r" id="e_fix_y">0</td><td class="r" id="e_fix_m" style="opacity:.75">0</td></tr>
+
+            <tr class="sav"><td>💚 저축 여력 (I − II − III)</td><td class="r" id="sv_y">0</td><td class="r" id="sv_m" style="opacity:.75">0</td></tr>
+
+            <tr class="cat"><td colspan="3">IV. 저축·투자 — 미래를 위해 모으는 돈</td></tr>
+            <tr class="sub"><td>정기적금·예금</td>
+              <td class="r"><input class="il" type="number" id="s_dep_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="s_dep_m" readonly></td></tr>
+            <tr class="sub"><td>펀드·ETF 적립</td>
+              <td class="r"><input class="il" type="number" id="s_fund_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="s_fund_m" readonly></td></tr>
+            <tr class="sub"><td>연금저축·IRP 납입 <span class="kr">한국</span></td>
+              <td class="r"><input class="il" type="number" id="s_pen_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="s_pen_m" readonly></td></tr>
+            <tr class="sub"><td>ISA 납입 <span class="kr">한국</span></td>
+              <td class="r"><input class="il" type="number" id="s_isa_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="s_isa_m" readonly></td></tr>
+            <tr class="sub"><td>청약저축 납입 <span class="kr">한국</span></td>
+              <td class="r"><input class="il" type="number" id="s_sub_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="s_sub_m" readonly></td></tr>
+            <tr class="sub"><td>기타 저축·투자</td>
+              <td class="r"><input class="il" type="number" id="s_oth_y" placeholder="0" oninput="calcCF()"></td>
+              <td class="r"><input class="ro" id="s_oth_m" readonly></td></tr>
+            <tr id="sv_add_tr" class="no-print"><td colspan="3" style="padding:5px 12px;border-bottom:none"><button class="btn btn-s" onclick="addCustomRow('sv')" style="font-size:11px;padding:4px 12px;min-height:0">＋ 저축·투자 항목 추가</button></td></tr>
+            <tr class="sum" id="sv_sum_tr"><td>저축·투자 소계 (IV)</td><td class="r" id="s_tot_y">0</td><td class="r" id="s_tot_m" style="opacity:.75">0</td></tr>
+
+            <tr class="net"><td>🎯 순현금흐름 (I−II−III−IV)</td><td class="r" id="cf_net_y">0</td><td class="r" id="cf_net_m" style="opacity:.85">0</td></tr>
+            <tr class="sav" id="extra_sav_tr" style="opacity:.7"><td>　➕ 추가 저축 여력</td><td class="r" id="extra_sav_y">—</td><td class="r" id="extra_sav_m" style="opacity:.75">—</td></tr>
+          </tbody>
+        </table></div>
+        <div style="margin-top:14px;text-align:right">
+          <button class="btn btn-p" onclick="sw('diag');calcAll()">진단 실행하기 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 4  재무 현황 진단
+  ══════════════════════════════════════════ -->
+  <div id="pane-diag" class="pane">
+    <!-- 건강 점수 -->
+    <!-- ① 재무상태표 기본분석 -->
+    <div class="sec-hd"><div class="sec-num">1</div>재무상태표 기본분석</div>
+    <div id="bs_analysis"><div class="info-box">💡 자산·부채 데이터를 입력하고 진단을 실행하세요.</div></div>
+    <div class="card">
+      <div class="ch"><div class="ch-icon">📦</div><div class="ch-text"><h3>내 자산 구성</h3><p>어디에 얼마나 분산되어 있나요?</p></div></div>
+      <div id="asset_chart"></div>
+    </div>
+
+    <!-- ② 현금흐름표 기본분석 -->
+    <div class="sec-hd"><div class="sec-num">2</div>현금흐름표 기본분석</div>
+    <div id="cf_analysis"><div class="info-box">💡 수입·지출 데이터를 입력하고 진단을 실행하세요.</div></div>
+    <div class="card">
+      <div class="ch"><div class="ch-icon">📤</div><div class="ch-text"><h3>수입의 활용 현황</h3><p>버는 돈이 어떻게 쓰이고 있나요?</p></div></div>
+      <div id="exp_chart"></div>
+    </div>
+
+    <!-- ③ 재무비율 분석 -->
+    <div class="sec-hd"><div class="sec-num">3</div>재무비율 분석</div>
+    <div class="info-box no-print" style="flex-direction:column;gap:4px">
+      <b>📐 재무비율은 참고 지표입니다</b>
+      <span>숫자가 기준을 충족하는 것보다 중요한 건, <b>내 인생 계획과 돈 관리의 방향이 일치하는가</b>입니다. 재무비율은 현재 상태를 객관적으로 파악하는 도구일 뿐이며, 목표·가치관·생애주기에 따라 기준과 다른 선택이 얼마든지 합리적일 수 있습니다.</span>
+    </div>
+    <div id="ratio_summary" class="no-print" style="display:none;font-size:12px;color:var(--ink-3);padding:6px 4px 14px;font-weight:500"></div>
+    <!-- 가이드라인 기준 선택 -->
+    <div class="gl-row no-print">
+      <span>📐 기준:</span>
+      <button class="glbtn on" id="gl_book" onclick="setGL('book')">재무설계 원론 (CFP Board)</button>
+      <button class="glbtn" id="gl_yang" onclick="setGL('yang')">양세정 교수 한국형 기준</button>
+      <button class="glbtn" id="gl_sgw" onclick="setGL('sgw')">서민금융진흥원 기준</button>
+      <span style="margin-left:8px">나이대:</span>
+      <select id="r_age_sel" onchange="calcAll()" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:20px">
+        <option value="">자동 감지</option>
+        <option value="20">20대</option><option value="30">30대</option>
+        <option value="40">40대</option><option value="50">50대</option><option value="55">55세 이상</option>
+      </select>
+    </div>
+    <!-- 비율 카드 -->
+    <div class="card">
+      <div class="ch"><div class="ch-icon">🩺</div><div class="ch-text"><h3>항목별 진단 결과</h3><p>각 비율별 현황과 기준 대비 평가</p></div></div>
+      <div class="rx-grid" id="rx_grid"></div>
+    </div>
+
+    <!-- ④ 종합진단 -->
+    <div class="sec-hd"><div class="sec-num">4</div>종합진단</div>
+    <div class="card">
+      <div class="ch"><div class="ch-icon">📋</div><div class="ch-text"><h3>강점 · 약점 분석 &amp; 실행제안</h3><p>재무비율 분석 결과를 바탕으로 한 종합 진단</p></div></div>
+      <div id="diag_area"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 5  다음 단계
+  ══════════════════════════════════════════ -->
+  <div id="pane-goal" class="pane">
+
+    <!-- 전체 흐름 위치 표시 -->
+    <div class="step-flow">
+      <a href="https://einsteindha.github.io/life-planning/" target="_blank" class="sf-item" style="text-decoration:none;color:inherit">① 재무목표 설정</a>
+      <span class="sf-arrow">→</span>
+      <a href="https://einsteindha.github.io/financial-statement/" target="_blank" class="sf-here" style="text-decoration:none">② 재무 현황 파악</a>
+      <span class="sf-arrow">→</span>
+      <span class="sf-item">③ 성향·투자 검증</span>
+      <span class="sf-arrow">→</span>
+      <span class="sf-item">④ 시뮬레이션</span>
+      <span class="sf-arrow">→</span>
+      <span class="sf-item">⑤ 세부점검·간단계산</span>
+    </div>
+
+    <!-- 이전 단계 확인 -->
+    <div class="info-box" style="margin-bottom:16px;border-left:3px solid var(--gold)">
+      💡 <b>재무목표를 먼저 정리하셨나요?</b> 숫자보다 방향이 먼저입니다. 아직 안 하셨다면 <a href="https://einsteindha.github.io/life-planning/" target="_blank" style="color:var(--amber);font-weight:600">① 라이프 플래닝 →</a> 에서 가치 기반으로 인생 목표를 먼저 정리하세요.
+    </div>
+
+    <!-- ③ 성향·투자 검증 -->
+    <div class="sec-hd"><div class="sec-num">③</div>성향·투자 검증 — 종합 현재 상태</div>
+    <div class="info-box" style="margin-bottom:16px">현재 재무 현황을 파악했다면, 내 투자 성향과 보유 자산의 특성을 함께 확인해 현재 상태를 종합적으로 파악하세요.</div>
+    <div class="tool-grid">
+      <a href="https://einsteindha.github.io/investment-profile/" target="_blank" class="tool-card tool-featured">
+        <div class="tool-icon">🧭</div>
+        <div class="tool-name">투자성향 분석</div>
+        <div class="tool-desc">리스크 허용 범위·투자 목적·심리적 성향을 파악합니다. 목적자금이나 은퇴 준비를 시작하기 전 먼저 확인하세요.</div>
+        <div class="tool-arrow">시작하기 →</div>
+      </a>
+      <a href="https://einsteindha.github.io/asset-allocation-backtest/" target="_blank" class="tool-card">
+        <div class="tool-icon">📊</div>
+        <div class="tool-name">자산배분 백테스트</div>
+        <div class="tool-desc">주식·채권·대안자산 비중별 과거 수익률과 변동성을 검증합니다. 포트폴리오 설계 전 기대수익률 근거를 확인하세요.</div>
+        <div class="tool-arrow">백테스트 →</div>
+      </a>
+      <a href="https://einsteindha.github.io/portfolio-backtest/" target="_blank" class="tool-card">
+        <div class="tool-icon">🗂️</div>
+        <div class="tool-name">포트폴리오 백테스트</div>
+        <div class="tool-desc">실제 보유하거나 고려 중인 포트폴리오의 과거 성과를 시뮬레이션합니다.</div>
+        <div class="tool-arrow">백테스트 →</div>
+      </a>
+    </div>
+
+    <!-- ④ 시뮬레이션 -->
+    <div class="sec-hd"><div class="sec-num">④</div>시뮬레이션 — 앞으로의 계획</div>
+    <div class="info-box" style="margin-bottom:16px">현재 상태와 성향을 바탕으로, 목표를 이루기 위한 구체적인 수치와 시나리오를 시뮬레이션하세요.</div>
+    <div class="tool-grid">
+      <a href="https://einsteindha.github.io/goal-simulator/" target="_blank" class="tool-card">
+        <div class="tool-icon">🎯</div>
+        <div class="tool-name">목적자금 시뮬레이터</div>
+        <div class="tool-desc">교육비·주택·차량 등 목적자금 적립 시뮬레이션. 몬테카를로 분석 + 주택대출·증여세·전세·월세 비교까지.</div>
+        <div class="tool-arrow">시뮬레이션 →</div>
+      </a>
+      <a href="https://einsteindha.github.io/retirement-simulator/" target="_blank" class="tool-card">
+        <div class="tool-icon">🏖️</div>
+        <div class="tool-name">은퇴 인출 시뮬레이터</div>
+        <div class="tool-desc">몬테카를로 10,000회로 은퇴 후 자산 고갈 확률 분석. 공적연금·생애 단계별 생활비·상속 목표 반영.</div>
+        <div class="tool-arrow">시뮬레이션 →</div>
+      </a>
+    </div>
+
+    <!-- ⑤ 세부점검 또는 간단계산 -->
+    <div class="sec-hd"><div class="sec-num">⑤</div>세부점검 또는 간단계산</div>
+    <div class="tool-grid">
+      <a href="https://einsteindha.github.io/Insurance-guide/" target="_blank" class="tool-card">
+        <div class="tool-icon">🛡️</div>
+        <div class="tool-name">보험 점검</div>
+        <div class="tool-desc">현재 보험 구조의 중복·과부족을 점검합니다. 리스크 구조를 파악한 뒤 설계사 제안서를 검토하세요.</div>
+        <div class="tool-arrow">점검하기 →</div>
+      </a>
+      <a href="https://einsteindha.github.io/pension-tax/" target="_blank" class="tool-card">
+        <div class="tool-icon">📋</div>
+        <div class="tool-name">연금계좌 세금 정리</div>
+        <div class="tool-desc">연금저축·IRP·퇴직연금의 세금 구조를 정리합니다. 인출 전략 수립 시 참고하세요.</div>
+        <div class="tool-arrow">확인하기 →</div>
+      </a>
+      <a href="https://einsteindha.github.io/pension-calc/" target="_blank" class="tool-card">
+        <div class="tool-icon">🏦</div>
+        <div class="tool-name">연금 계산기</div>
+        <div class="tool-desc">목표 월 수령액을 입력하면 지금부터 필요한 납입액을 역산. 증액저축·구간별 수익률 반영.</div>
+        <div class="tool-arrow">계산하기 →</div>
+      </a>
+      <a href="https://einsteindha.github.io/FIRE-Calculator/" target="_blank" class="tool-card">
+        <div class="tool-icon">🔥</div>
+        <div class="tool-name">파이어 계산기</div>
+        <div class="tool-desc">조기 은퇴(FIRE)를 진지하게 고민하는 분을 위한 시뮬레이터. 저축률별 은퇴까지 소요 기간 계산.</div>
+        <div class="tool-arrow">계산하기 →</div>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── 유틸 ────────────────────────────────────────────────
+const $=id=>document.getElementById(id);
+const v=id=>parseFloat($(id)?.value)||0;
+const fmt=n=>Math.round(n).toLocaleString('ko-KR');
+const pct=(n,d=1)=>isFinite(n)&&!isNaN(n)?(n*100).toFixed(d)+'%':'-';
+const koNum=n=>{n=Math.round(n);if(!n||n<=0)return'';const uk=Math.floor(n/10000),man=n%10000;const p=[];if(uk>0)p.push(uk.toLocaleString('ko-KR')+'억');if(man>0)p.push(man.toLocaleString('ko-KR')+'만');return p.join(' ')+'원';};
+
+// 생년월일 자동 하이픈
+function maskDate(el){
+  let d=el.value.replace(/\D/g,'');
+  if(d.length>4)d=d.slice(0,4)+'-'+d.slice(4);
+  if(d.length>7)d=d.slice(0,7)+'-'+d.slice(7);
+  el.value=d.slice(0,10);
+}
+
+function calcAge(){
+  const b=$('c_birth').value; if(!b||b.length<10)return;
+  const t=new Date(),d=new Date(b);
+  if(isNaN(d))return;
+  let a=t.getFullYear()-d.getFullYear();
+  if(t.getMonth()<d.getMonth()||(t.getMonth()===d.getMonth()&&t.getDate()<d.getDate()))a--;
+  $('c_age').value=a>0?a:'';
+}
+function calcSpouseAge(){
+  const b=$('s_birth').value; if(!b||b.length<10)return;
+  const t=new Date(),d=new Date(b);
+  if(isNaN(d))return;
+  let a=t.getFullYear()-d.getFullYear();
+  if(t.getMonth()<d.getMonth()||(t.getMonth()===d.getMonth()&&t.getDate()<d.getDate()))a--;
+  $('s_age').value=a>0?a:'';
+}
+
+function toggleHousing(){
+  const val=$('c_housing').value;
+  $('hj_wrap').style.display=val==='jeonse'?'':'none';
+  $('hw_wrap').style.display=val==='wolse'?'':'none';
+}
+function autoSync(){
+  if($('c_housing').value==='jeonse'){$('a_jeonse').value=$('h_jeonse').value;calcBS();}
+  if($('c_housing').value==='wolse'){$('e_wolse_y').value=($('h_wolse').value*12)||'';calcCF();}
+}
+
+// ─── 탭 전환 ─────────────────────────────────────────────
+function sw(name){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));
+  $('pane-'+name).classList.add('on');
+  const tabs=['info','balance','cashflow','diag','goal'];
+  document.querySelectorAll('.ntab').forEach((b,i)=>{if(tabs[i]===name)b.classList.add('on');});
+  // 모바일 하단 탭 동기화
+  document.querySelectorAll('.mob-nav button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===name);});
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(name==='diag')calcAll();
+  if(name==='balance')calcBS();
+  if(name==='cashflow')calcCF();
+}
+
+// ─── 재무상태표 ──────────────────────────────────────────
+function calcBS(){
+  const aLiq=v('a_cash')+v('a_demand')+v('a_cma');
+  const aSav=v('a_savings')+v('a_fixedep')+v('a_pensionins')+v('a_sub');
+  const aInv=v('a_stock')+v('a_fund')+v('a_bond')+v('a_pension_acc')+v('a_isa')+v('a_crypto');
+  const sumCust=sec=>Array.from(document.querySelectorAll(`tr.custom-row[data-section="${sec}"] .cust-val`)).reduce((s,el)=>s+(parseFloat(el.value)||0),0);
+  const aFin=aLiq+aSav+aInv+sumCust('aliq')+sumCust('asav')+sumCust('ainv');
+  let aRE=v('a_home')+v('a_rentprop')+v('a_land')+sumCust('are');
+  let aEtc=v('a_jeonse')+v('a_car')+v('a_retiredb')+v('a_insother')+v('a_etc')+sumCust('aetc');
+  const aTotal=aFin+aRE+aEtc;
+  let lCur=v('l_minus')+v('l_card')+v('l_short')+v('l_jeonse_recv')+sumCust('lcur');
+  let lNCur=v('l_mortgage')+v('l_jeonse_loan')+v('l_credit')+v('l_car')+v('l_student')+v('l_biz')+v('l_other')+sumCust('lncur');
+  const lTotal=lCur+lNCur;
+  const nw=aTotal-lTotal;
+
+  $('a_fin_total').textContent=fmt(aFin);
+  $('a_total').textContent=fmt(aTotal);
+  $('l_cur_total').textContent=fmt(lCur);
+  $('l_ncur_total').textContent=fmt(lNCur);
+  $('l_total').textContent=fmt(lTotal);
+  $('net_worth').textContent=fmt(nw)+(nw<0?' ⚠️':'');
+
+  const kpi=$('bs_kpi');
+  if(kpi)kpi.innerHTML=`
+    <div class="kpi"><div class="kpi-l">총 자산</div><div class="kpi-v">${fmt(aTotal)}<small style="font-size:12px">만원</small></div></div>
+    <div class="kpi"><div class="kpi-l">총 부채</div><div class="kpi-v bad">${fmt(lTotal)}<small style="font-size:12px">만원</small></div></div>
+    <div class="kpi"><div class="kpi-l">순 자산</div><div class="kpi-v ${nw>=0?'ok':'bad'}">${fmt(nw)}<small style="font-size:12px">만원</small></div></div>
+    <div class="kpi"><div class="kpi-l">부채비율</div><div class="kpi-v ${aTotal>0&&lTotal/aTotal<=0.4?'ok':'bad'}">${aTotal>0?pct(lTotal/aTotal):'-'}</div></div>
+  `;
+  // 한글 금액 표시
+  document.querySelectorAll('#pane-balance input.il[type="number"]').forEach(inp=>{
+    const val=parseFloat(inp.value)||0;
+    let lbl=inp.parentNode.querySelector('.ko-label');
+    if(!lbl){lbl=document.createElement('div');lbl.className='ko-label';inp.parentNode.appendChild(lbl);}
+    lbl.textContent=val>0?koNum(val):'';
+  });
+  return{aLiq,aSav,aInv,aFin,aRE,aEtc,aTotal,lCur,lNCur,lTotal,nw};
+}
+
+// ─── 현금흐름표 ──────────────────────────────────────────
+let cfMode='yearly';
+const CF_KEYS=['i_my','i_sp','i_biz','i_int','i_rent','i_pen','i_oth',
+  'e_my','e_sp','e_kid','e_par','e_food','e_trans','e_comm','e_med','e_lei','e_gift','e_voth',
+  'e_ins','e_mint','e_oint','e_wolse','e_util','e_foth',
+  's_mprin','s_oprin','s_mamort','s_oamort','s_dep','s_fund','s_pen','s_isa','s_sub','s_oth'];
+// 연간 비정기 지출 항목 (월간 모드에서도 연간 입력 유지)
+const CF_ANNUAL_FIX=['e_tax_y','e_carins_y','e_annual_y'];
+
+function gY(k){
+  if(cfMode==='monthly') return (parseFloat(document.getElementById(k+'_m')?.value)||0)*12;
+  return parseFloat(document.getElementById(k+'_y')?.value)||0;
+}
+
+function mAvg(id){
+  const el=$(id);
+  if(el&&el.readOnly){const y=v(id.replace(/_m$/,'_y'));el.value=y?(y/12).toFixed(1):'';}
+}
+
+function setCFMode(mode){
+  if(cfMode===mode) return;
+  // 값 변환
+  CF_KEYS.forEach(k=>{
+    const yEl=$(k+'_y'), mEl=$(k+'_m');
+    if(!yEl||!mEl) return;
+    if(mode==='monthly'){
+      const yv=parseFloat(yEl.value)||0;
+      mEl.value=yv?(yv/12).toFixed(1):'';
+    } else {
+      const mv=parseFloat(mEl.value)||0;
+      yEl.value=mv?Math.round(mv*12):'';
+    }
+  });
+  cfMode=mode;
+  // 입력/읽기 전환
+  CF_KEYS.forEach(k=>{
+    const yEl=$(k+'_y'), mEl=$(k+'_m');
+    if(!yEl||!mEl) return;
+    if(mode==='monthly'){
+      yEl.readOnly=true;  yEl.className='ro';
+      mEl.readOnly=false; mEl.className='il';
+    } else {
+      mEl.readOnly=true;  mEl.className='ro';
+      yEl.readOnly=false; yEl.className='il';
+    }
+  });
+  // 버튼
+  $('cfm_y').classList.toggle('on',mode==='yearly');
+  $('cfm_m').classList.toggle('on',mode==='monthly');
+  // 헤더 텍스트
+  document.querySelectorAll('.cf-th-y').forEach(th=>{
+    th.textContent=mode==='monthly'?'연간 합계 (만원)':'연간 (만원)';
+    th.style.color=mode==='monthly'?'var(--muted)':'';
+    th.style.fontWeight=mode==='monthly'?'400':'700';
+  });
+  document.querySelectorAll('.cf-th-m').forEach(th=>{
+    th.textContent=mode==='monthly'?'월간 (만원)':'월평균';
+    th.style.color=mode==='monthly'?'':'var(--muted)';
+    th.style.fontWeight=mode==='monthly'?'700':'400';
+  });
+  // 안내 문구
+  const hint=$('cf_mode_hint');
+  const desc=$('cf_mode_desc');
+  if(hint) hint.textContent=mode==='monthly'?'월간 금액을 입력하면 연간 합계가 자동 표시됩니다':'연간 금액을 입력하면 월 평균이 자동 표시됩니다';
+  if(desc) desc.innerHTML=mode==='monthly'?'금액은 <b>월간(만원)</b>으로 입력하면 옆에 연간 합계가 자동 표시됩니다':'금액은 <b>연간 합계(만원)</b>로 입력하면 옆에 월 평균이 자동 표시됩니다';
+  // 커스텀 현금흐름 행 모드 전환
+  document.querySelectorAll('tr.custom-row[data-section="iearn"],tr.custom-row[data-section="iother"],tr.custom-row[data-section="ve"],tr.custom-row[data-section="fe"],tr.custom-row[data-section="sv"]').forEach(tr=>{
+    const yEl=tr.querySelector('.cust-y'),mEl=tr.querySelector('.cust-m');
+    if(!yEl||!mEl)return;
+    if(mode==='monthly'){
+      const yv=parseFloat(yEl.value)||0;
+      mEl.value=yv?(yv/12).toFixed(1):'';
+      yEl.readOnly=true;yEl.className='ro cust-y';
+      mEl.readOnly=false;mEl.className='il cust-m';
+    } else {
+      const mv=parseFloat(mEl.value)||0;
+      yEl.value=mv?Math.round(mv*12):'';
+      mEl.readOnly=true;mEl.className='ro cust-m';
+      yEl.readOnly=false;yEl.className='il cust-y';
+    }
+  });
+  calcCF();
+}
+
+function gCustY(sec){
+  let t=0;
+  document.querySelectorAll(`tr.custom-row[data-section="${sec}"]`).forEach(tr=>{
+    t+=cfMode==='monthly'?(parseFloat(tr.querySelector('.cust-m')?.value)||0)*12:(parseFloat(tr.querySelector('.cust-y')?.value)||0);
+  });
+  return t;
+}
+function calcCF(){
+  const annualFixY=CF_ANNUAL_FIX.reduce((s,k)=>s+v(k),0);
+  const iY=gY('i_my')+gY('i_sp')+gY('i_biz')+gY('i_int')+gY('i_rent')+gY('i_pen')+gY('i_oth')+v('i_bonus_y')+gCustY('iearn')+gCustY('iother');
+  const iM=iY/12;
+  const varY=gY('e_my')+gY('e_sp')+gY('e_kid')+gY('e_par')+gY('e_food')+gY('e_trans')+gY('e_comm')+gY('e_med')+gY('e_lei')+gY('e_gift')+gY('e_voth')+gCustY('ve');
+  const princY=gY('s_mprin')+gY('s_oprin');
+  const amortY=gY('s_mamort')+gY('s_oamort');
+  const fixY=gY('e_ins')+gY('e_mint')+gY('e_oint')+gY('e_wolse')+gY('e_util')+gY('e_foth')+annualFixY+gCustY('fe_mon')+gCustY('fe')+princY+amortY;
+  const savY=gY('s_dep')+gY('s_fund')+gY('s_pen')+gY('s_isa')+gY('s_sub')+gY('s_oth')+gCustY('sv');
+  const svY=iY-varY-fixY, netY=svY-savY;
+
+  if(cfMode==='yearly'){
+    CF_KEYS.forEach(k=>mAvg(k+'_m'));
+    // 커스텀 행 월평균 업데이트
+    ['iearn','iother','ve','fe','sv'].forEach(sec=>{
+      document.querySelectorAll(`tr.custom-row[data-section="${sec}"] .cust-m`).forEach(mEl=>{
+        if(mEl.readOnly){const yv=parseFloat(mEl.closest('tr').querySelector('.cust-y')?.value)||0;mEl.value=yv?(yv/12).toFixed(1):'';}
+      });
+    });
+  } else {
+    // 월간 모드: _y(연간합계) 를 readonly 표시
+    CF_KEYS.forEach(k=>{
+      const yEl=$(k+'_y');
+      if(yEl&&yEl.readOnly){
+        const mv=parseFloat($(k+'_m')?.value)||0;
+        yEl.value=mv?Math.round(mv*12):'';
+      }
+    });
+  }
+
+  $('i_tot_y').textContent=fmt(iY); $('i_tot_m').textContent=cfMode==='yearly'?fmt(iM):fmt(iM);
+  $('e_var_y').textContent=fmt(varY); $('e_var_m').textContent=fmt(varY/12);
+  $('e_fix_y').textContent=fmt(fixY); $('e_fix_m').textContent=fmt(fixY/12);
+  $('sv_y').textContent=fmt(svY);    $('sv_m').textContent=fmt(svY/12);
+  $('s_tot_y').textContent=fmt(savY);$('s_tot_m').textContent=fmt(savY/12);
+  $('cf_net_y').textContent=fmt(netY);$('cf_net_m').textContent=fmt(netY/12);
+  const extraY=Math.max(netY,0);
+  $('extra_sav_y').textContent=extraY>0?fmt(extraY):'—';
+  $('extra_sav_m').textContent=extraY>0?fmt(extraY/12):'—';
+  $('extra_sav_tr').style.opacity=extraY>0?'1':'.4';
+
+  const varM=varY/12,fixM=fixY/12,savM=savY/12,princM=princY/12,amortM=amortY/12,svM=svY/12,netM=netY/12;
+  const kpi=$('cf_kpi');
+  if(kpi)kpi.innerHTML=`
+    <div class="kpi"><div class="kpi-l">연 총수입</div><div class="kpi-v">${fmt(iY)}<small style="font-size:12px">만원</small></div><div style="font-size:11px;color:var(--ink-3);margin-top:3px">월 ${fmt(iM)}<small style="font-size:10px">만원</small></div></div>
+    <div class="kpi"><div class="kpi-l">저축여력 (월)</div><div class="kpi-v ${svM>=0?'ok':'bad'}">${fmt(svM)}<small style="font-size:12px">만원</small></div></div>
+    <div class="kpi"><div class="kpi-l">저축·투자 (월)</div><div class="kpi-v ok">${fmt(savM)}<small style="font-size:12px">만원</small></div>${princM>0?`<div style="font-size:11px;color:var(--ink-3);margin-top:3px">+원금상환 ${fmt(princM)}<small style="font-size:10px">만원</small></div>`:''}${amortM>0?`<div style="font-size:11px;color:var(--ink-3);margin-top:2px">+원리금상환 ${fmt(amortM)}<small style="font-size:10px">만원</small></div>`:''}</div>
+    <div class="kpi"><div class="kpi-l">순현금흐름 (월)</div><div class="kpi-v ${netM>=0?'ok':'bad'}">${fmt(netM)}<small style="font-size:12px">만원</small></div></div>
+  `;
+  return{iM,iY,varM,fixM,savM,princM,amortM,svM,netM,totExpM:varM+fixM,expRatio:iM>0?(varM+fixM)/iM:0};
+}
+
+// ─── 카드 내역 가져오기 ──────────────────────────────────
+let _cTxns=[], _cGroups={}, _cUnit=10000;
+
+const CC_CATS=[
+  {f:'e_food_y',  l:'🍚 식비'},
+  {f:'e_trans_y', l:'🚗 교통비'},
+  {f:'e_med_y',   l:'💊 의료비'},
+  {f:'e_lei_y',   l:'🎬 여가·문화·여행'},
+  {f:'e_comm_y',  l:'📱 통신비'},
+  {f:'e_my_y',    l:'🛍️ 내 생활비·쇼핑'},
+  {f:'e_sp_y',    l:'💑 배우자 생활비'},
+  {f:'e_kid_y',   l:'👶 자녀 교육·보육'},
+  {f:'e_par_y',   l:'🤝 부모님 지원'},
+  {f:'e_gift_y',  l:'🎁 경조사·선물'},
+  {f:'e_ins_y',   l:'🛡️ 보험료 (카드납)'},
+  {f:'e_util_y',  l:'💡 관리비·공과금 (카드납)'},
+  {f:'e_voth_y',  l:'📦 기타 생활비'},
+  {f:'skip',      l:'⏭️ 제외 (이체·저축 등)'},
+];
+
+const CC_KW=[
+  {kw:['이마트','홈플러스','롯데마트','코스트코','하나로마트','킴스클럽'],f:'e_food_y'},
+  {kw:['스타벅스','커피빈','투썸','할리스','빽다방','이디야','폴바셋','메가커피','카페베네'],f:'e_food_y'},
+  {kw:['맥도날드','버거킹','롯데리아','KFC','맘스터치','서브웨이','쉐이크쉑'],f:'e_food_y'},
+  {kw:['배달의민족','요기요','쿠팡이츠','배민'],f:'e_food_y'},
+  {kw:['GS25','지에스25','씨유','CU오금','CU포레','CU강','CU서울','CU역','세븐일레븐','이마트24','미니스톱'],f:'e_food_y'},
+  {kw:['카페','커피숍','커피','coffee'],f:'e_food_y'},
+  {kw:['SK에너지','GS칼텍스','S-OIL','현대오일뱅크','알뜰주유','주유소'],f:'e_trans_y'},
+  {kw:['코레일','KTX','SRT','SR주식','무궁화','고속버스','시외버스'],f:'e_trans_y'},
+  {kw:['서울교통공사','인천교통공사','지하철','호선역','T-money','티머니'],f:'e_trans_y'},
+  {kw:['주차','한국도로공사','톨게이트','하이패스'],f:'e_trans_y'},
+  {kw:['카카오T','카카오_택시','카카오택시','우버','택시미터','타다'],f:'e_trans_y'},
+  {kw:['병원','의원','한의원','치과','안과','피부과','이비인후과','정형외과','산부인과','비뇨기과','내과','외과','통증','마취','신경과','정신과','재활'],f:'e_med_y'},
+  {kw:['약국','드럭스토어','온누리약국'],f:'e_med_y'},
+  {kw:['CGV','롯데시네마','메가박스'],f:'e_lei_y'},
+  {kw:['헬스클럽','피트니스','수영장','요가','필라테스','크로스핏','스포츠센터'],f:'e_lei_y'},
+  {kw:['대한항공','아시아나','제주항공','진에어','에어부산','티웨이','이스타항공'],f:'e_lei_y'},
+  {kw:['호텔','리조트','펜션','야놀자','여기어때','에어비앤비'],f:'e_lei_y'},
+  {kw:['교보문고','알라딘','YES24','영풍문고'],f:'e_lei_y'},
+  {kw:['넷플릭스','유튜브멤버십','유튜브프리미엄','왓챠','티빙','웨이브','디즈니플러스','애플TV','스포티파이'],f:'e_lei_y'},
+  {kw:['APPLE','애플스토어','앱스토어','구글페이먼트','GooglePay','구글플레이'],f:'e_lei_y'},
+  {kw:['SKT','SK텔레콤','KT올레','LG유플러스','LGU+','SK브로드밴드'],f:'e_comm_y'},
+  {kw:['올리브영','CJ올리브'],f:'e_my_y'},
+  {kw:['미용실','헤어샵','네일','왁싱','뷰티'],f:'e_my_y'},
+  {kw:['쿠팡','11번가','G마켓','옥션','위메프','티몬','SSG','롯데온','무신사','29CM','에이블리'],f:'e_my_y'},
+  {kw:['자라','유니클로','H&M','ABC마트','나이키','아디다스'],f:'e_my_y'},
+  {kw:['학원','교습소','이투스','메가스터디','강남대성','공무원'],f:'e_kid_y'},
+  {kw:['유치원','어린이집','키즈','아이돌봄'],f:'e_kid_y'},
+  {kw:['삼성생명','한화생명','교보생명','미래에셋생명','동양생명','흥국생명','DB생명','신한라이프','삼성화재','현대해상','DB손보','KB손보','메리츠화재','메리츠손해'],f:'e_ins_y'},
+  {kw:['한국전력','한전','도시가스','서울가스','코원에너지','수도사업소','관리비'],f:'e_util_y'},
+  {kw:['달러박스','MMF박스','세이프박스','파킹박스','저금통','자유적금','코인'],f:'skip'},
+  {kw:['ATM출금','ATM입금','페이충전','포인트충전'],f:'skip'},
+  {kw:['이체','출금이체','자동이체','저축','적금','CMA','MMF','펀드입금'],f:'skip'},
+];
+
+function ccKwCat(merchant){
+  const m=merchant.replace(/[\s\(\)\[\]]/g,'');
+  for(const r of CC_KW){
+    if(r.kw.some(kw=>m.includes(kw.replace(/\s/g,'')))) return r.f;
+  }
+  return 'e_voth_y';
+}
+
+function toggleImport(){
+  const b=$('import_body'),a=$('import_arr');
+  const open=b.style.display!=='none';
+  b.style.display=open?'none':'block';
+  a.textContent=open?'＋':'−';
+}
+
+function handleCardFile(file){
+  if(!file) return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(['xlsx','xls'].includes(ext)){
+    if(typeof XLSX==='undefined'){
+      alert('엑셀 파싱 라이브러리를 불러오는 중이에요. 인터넷 연결을 확인하고 잠시 후 다시 시도해주세요.');return;
+    }
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        parseCardRows(rows);
+      }catch(err){alert('파일 읽기 실패:\n'+err.message);}
+    };
+    reader.readAsArrayBuffer(file);
+  } else if(ext==='pdf'){
+    parsePDFFile(file);
+  } else if(['csv','txt'].includes(ext)||!ext){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const buf=new Uint8Array(e.target.result);
+      let text;
+      if(buf[0]===0xEF&&buf[1]===0xBB&&buf[2]===0xBF){
+        text=new TextDecoder('utf-8').decode(buf.slice(3));
+      } else {
+        text=new TextDecoder('utf-8').decode(buf);
+        if(text.includes('�')) text=new TextDecoder('euc-kr').decode(buf);
+      }
+      const rows=text.split(/\r?\n/).map(line=>{
+        const fields=[];let cur='',inQ=false;
+        for(const ch of line){
+          if(ch==='"')inQ=!inQ;
+          else if(ch===','&&!inQ){fields.push(cur.trim());cur='';}
+          else cur+=ch;
+        }
+        fields.push(cur.trim());
+        return fields;
+      }).filter(r=>r.some(c=>c));
+      parseCardRows(rows);
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    alert('지원하지 않는 파일 형식이에요.\n.xlsx / .xls / .csv 파일을 선택해주세요.');
+  }
+}
+
+async function parsePDFFile(file){
+  if(typeof pdfjsLib==='undefined'){
+    alert('PDF 파싱 라이브러리를 불러오는 중이에요. 인터넷 연결을 확인하고 잠시 후 다시 시도해주세요.');return;
+  }
+  const buf=await file.arrayBuffer();
+  await _parsePDFData(new Uint8Array(buf),'');
+}
+
+async function _parsePDFData(data,password){
+  try{
+    const pdf=await pdfjsLib.getDocument({data:data,password:password}).promise;
+    const allRows=[];
+    for(let p=1;p<=pdf.numPages;p++){
+      const page=await pdf.getPage(p);
+      const tc=await page.getTextContent();
+      const yMap={};
+      tc.items.forEach(item=>{
+        if(!item.str.trim())return;
+        const y=Math.round(item.transform[5]);
+        if(!yMap[y])yMap[y]=[];
+        yMap[y].push({x:item.transform[4],w:item.width||0,text:item.str.trim()});
+      });
+      Object.keys(yMap).sort((a,b)=>Number(b)-Number(a)).forEach(y=>{
+        // X 간격(gap)으로 인접 글자를 열로 묶기 (Markany 등 글자별 분리 PDF 대응)
+        const sorted=yMap[y].sort((a,b)=>a.x-b.x);
+        const cols=[];let cur='',curEnd=null;
+        for(const it of sorted){
+          const gap=curEnd!==null?it.x-curEnd:0;
+          if(curEnd!==null&&gap>8){if(cur.trim())cols.push(cur.trim());cur=it.text;}
+          else{cur+=it.text;}
+          curEnd=it.x+(it.w>1?it.w:it.text.length*6);
+        }
+        if(cur.trim())cols.push(cur.trim());
+        if(cols.length)allRows.push(cols);
+      });
+    }
+    const totalText=allRows.flat().join('');
+    if(allRows.length<3||totalText.length<30){
+      alert('PDF에서 텍스트를 추출하지 못했어요.\n스캔 이미지 PDF는 지원되지 않아요.');
+      return;
+    }
+    parseCardRows(allRows);
+  }catch(err){
+    if(err.name==='PasswordException'){
+      const pw=prompt('이 PDF는 비밀번호로 보호되어 있습니다.\n\n카카오뱅크 PDF 비밀번호는 보통\n생년월일 8자리입니다 (예: 19900101)\n\n비밀번호를 입력하세요:');
+      if(pw===null)return;
+      await _parsePDFData(data,pw);
+    }else{
+      alert('PDF 읽기 실패:\n'+err.message);
+    }
+  }
+}
+
+function detectCardCols(headers, sampleRows){
+  const n=h=>String(h).replace(/\s/g,'');
+  const find=kws=>headers.findIndex(h=>kws.some(kw=>n(h).includes(kw)));
+  const cols={
+    date:find(['거래일시','거래일자','거래일','이용일자','이용일','이용일시','승인일자','승인일','날짜','결제일']),
+    merchant:find(['거래내용','거래메모','내용','가맹점명','이용가맹점명','이용가맹점','이용처','상호명','상호','점포명','업소명','가맹점']),
+    amount:find(['출금금액','출금','이용금액','승인금액','거래금액','결제금액','금액','청구금액','원화금액','KRW']),
+  };
+  // 헤더 인식 실패 시(Markany 등 인코딩 깨짐) 데이터 패턴으로 열 감지
+  if((cols.date<0||cols.amount<0)&&sampleRows&&sampleRows.length){
+    const dateRe=/^\d{4}[.\-\/]\d{1,2}[.\-\/]\d{1,2}/;
+    const amtRe=/^-?\d{1,3}(,\d{3})*$/;
+    const numOnlyRe=/^\d{1,3}(,\d{3})*$/;
+    const negRe=/^-\d/;
+    const sample=sampleRows.filter(r=>r&&r.length>1);
+    if(sample.length){
+      const maxCols=Math.max(...sample.map(r=>r.length));
+      if(cols.date<0){
+        for(let i=0;i<maxCols;i++){
+          if(sample.filter(r=>r[i]&&dateRe.test(String(r[i]).trim())).length>=Math.min(2,sample.length)){cols.date=i;break;}
+        }
+      }
+      if(cols.amount<0){
+        // 음수 포함 열 우선(출금이 음수인 계좌 내역)
+        let found=-1;
+        for(let i=0;i<maxCols;i++){
+          if(i===cols.date)continue;
+          if(sample.some(r=>r[i]&&negRe.test(String(r[i]).trim()))){found=i;break;}
+        }
+        // 없으면 숫자+쉼표 패턴 열
+        if(found<0){
+          for(let i=0;i<maxCols;i++){
+            if(i===cols.date)continue;
+            if(sample.filter(r=>r[i]&&amtRe.test(String(r[i]).trim())).length>=2){found=i;break;}
+          }
+        }
+        cols.amount=found;
+      }
+      // 가맹점: 숫자만 있는 열(잔액 등) 제외하고 마지막 열
+      if(cols.merchant<0&&cols.date>=0&&cols.amount>=0){
+        for(let i=maxCols-1;i>=0;i--){
+          if(i===cols.date||i===cols.amount)continue;
+          const allNum=sample.every(r=>!r[i]||numOnlyRe.test(String(r[i]).trim())||!String(r[i]).trim());
+          if(!allNum){cols.merchant=i;break;}
+        }
+        if(cols.merchant<0)cols.merchant=maxCols-1;
+      }
+    }
+  }
+  return cols;
+}
+
+function parseCardRows(allRows){
+  // 한글 있는 첫 행을 헤더로
+  let hdrIdx=0;
+  for(let i=0;i<Math.min(allRows.length,15);i++){
+    if(allRows[i].some(c=>String(c).match(/[가-힣]/))){hdrIdx=i;break;}
+  }
+  // 한글 헤더 없으면 날짜+시간 패턴으로 첫 거래 행 찾아 바로 위를 헤더로
+  // (조회기간 'YYYY.MM.DD ~ YYYY.MM.DD' 같은 범위 행은 제외하기 위해 시간 포함 또는 줄 끝 체크)
+  if(!allRows[hdrIdx].some(c=>String(c).match(/[가-힣]/))){
+    const txDateRe=/^\d{4}[.\-\/]\d{2}[.\-\/]\d{2}(\s\d{2}:\d{2}|$)/;
+    for(let i=1;i<Math.min(allRows.length,30);i++){
+      if(allRows[i].some(c=>txDateRe.test(String(c).trim()))){hdrIdx=Math.max(0,i-1);break;}
+    }
+  }
+  const headers=allRows[hdrIdx].map(c=>String(c).trim());
+  const cols=detectCardCols(headers, allRows.slice(hdrIdx+1,hdrIdx+11));
+  if(cols.date<0||cols.merchant<0||cols.amount<0){
+    showColPicker(headers,allRows,hdrIdx);
+  } else {
+    processCardTxns(allRows,hdrIdx+1,cols);
+  }
+}
+
+function showColPicker(headers,rows,hdrIdx){
+  window._cpRows=rows;window._cpHdr=hdrIdx;
+  const opts=headers.map((h,i)=>`<option value="${i}">${h||(i+'열')}</option>`).join('');
+  $('ci_s1_picker').innerHTML=`
+    <div class="warn-box">⚠️ 열 이름을 자동 감지하지 못했어요. 직접 선택해주세요.</div>
+    <div class="g3">
+      <div class="f"><label>날짜 열</label><select id="cp_date" style="font-size:13px;padding:8px">${opts}</select></div>
+      <div class="f"><label>가맹점명 열</label><select id="cp_mer" style="font-size:13px;padding:8px">${opts}</select></div>
+      <div class="f"><label>금액 열</label><select id="cp_amt" style="font-size:13px;padding:8px">${opts}</select></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-p" onclick="processCardTxns(window._cpRows,window._cpHdr+1,{date:+$('cp_date').value,merchant:+$('cp_mer').value,amount:+$('cp_amt').value})">이 열로 분석하기</button>
+      <button class="btn btn-s" onclick="resetCardImport()">↩️ 다시 선택</button>
+    </div>`;
+  $('ci_s1_drop').style.display='none';
+  $('ci_s1_picker').style.display='block';
+}
+
+function processCardTxns(rows,startIdx,cols){
+  const rawAmts=[];
+  const txns=[];
+  for(let i=startIdx;i<rows.length;i++){
+    const row=rows[i];
+    if(!row||row.every(c=>!c)) continue;
+    const merchant=String(row[cols.merchant]||'').trim();
+    const raw=row[cols.amount];
+    const amount=typeof raw==='number'?raw:parseFloat(String(raw).replace(/[^0-9.-]/g,''))||0;
+    if(amount!==0) rawAmts.push(amount);
+    if(!merchant) continue;
+    if(/취소|CANCEL|VOID|반환|환불/i.test(merchant)) continue;
+    txns.push({date:String(row[cols.date]||'').trim(),merchant,amount});
+  }
+  // 카카오뱅크 등 출금이 음수로 표기된 경우: 음수 건만 취하고 절댓값 변환
+  const negCnt=rawAmts.filter(a=>a<0).length;
+  const useNeg=negCnt>rawAmts.length*0.4;
+  const finalTxns=txns.filter(t=>useNeg?t.amount<0:t.amount>0)
+                       .map(t=>({...t,amount:Math.abs(t.amount)}));
+  if(!finalTxns.length){alert('유효한 거래 내역이 없어요.\n취소 건만 있거나 파일 형식이 다를 수 있습니다.');return;}
+  _cTxns=finalTxns;
+  // finalTxns(출금만, 절댓값)로 단위 감지 — 입출금 혼재 시 avg가 0에 수렴하는 버그 방지
+  const avg=finalTxns.reduce((s,t)=>s+t.amount,0)/finalTxns.length;
+  _cUnit=avg>5000?10000:1;
+  buildCardGroups();
+  showImportPreview();
+}
+
+function buildCardGroups(){
+  _cGroups={};
+  _cTxns.forEach(t=>{
+    const f=ccKwCat(t.merchant);
+    if(!_cGroups[f])_cGroups[f]={total:0,count:0,sample:[]};
+    _cGroups[f].total+=t.amount;
+    _cGroups[f].count++;
+    if(_cGroups[f].sample.length<6&&!_cGroups[f].sample.includes(t.merchant))
+      _cGroups[f].sample.push(t.merchant);
+  });
+}
+
+function detectMonthsCard(txns){
+  const ms=txns.map(t=>{
+    const s=t.date.replace(/[-./년월일 ]/g,'').replace(/\D/g,'').slice(0,8);
+    if(s.length===8){const d=new Date(s.slice(0,4),+s.slice(4,6)-1,+s.slice(6,8));return isNaN(d)?null:d.getTime();}
+    return null;
+  }).filter(Boolean);
+  if(!ms.length) return 1;
+  const diff=(Math.max(...ms)-Math.min(...ms))/(864e5);
+  return Math.max(1,Math.round(diff/30+0.4));
+}
+
+function showImportPreview(){
+  const months=detectMonthsCard(_cTxns);
+  const grand=_cTxns.reduce((s,t)=>s+t.amount,0)/_cUnit;
+  const catOpts=CC_CATS.map(c=>`<option value="${c.f}">${c.l}</option>`).join('');
+
+  const rowsHtml=Object.entries(_cGroups)
+    .sort((a,b)=>b[1].total-a[1].total)
+    .map(([f,g])=>{
+      const man=(g.total/_cUnit);
+      const isSkip=f==='skip';
+      const lbl=(CC_CATS.find(c=>c.f===f)||{l:'기타'}).l;
+      const selHtml=CC_CATS.map(c=>`<option value="${c.f}" ${c.f===f?'selected':''}>${c.l}</option>`).join('');
+      return `<div class="ci-row ${isSkip?'ci-skip':''}">
+        <select class="ci-sel" data-orig="${f}"><${''/* options */}${selHtml}</select>
+        <span class="ci-cnt">${g.count}건</span>
+        <span class="ci-amt">${fmt(Math.round(man))}만원</span>
+        <div class="ci-sample">${[...new Set(g.sample)].slice(0,5).join(' · ')}</div>
+      </div>`;
+    }).join('');
+
+  $('ci_summary').innerHTML=`
+    <div style="background:var(--ink);color:#fff;border-radius:var(--r2);padding:14px 20px;margin-bottom:16px;display:flex;gap:20px;flex-wrap:wrap;align-items:center">
+      <div><div style="font-size:10px;opacity:.45;text-transform:uppercase;letter-spacing:.08em">분석 건수</div><div style="font-family:'DM Serif Display',serif;font-size:24px;font-weight:400">${_cTxns.length}건</div></div>
+      <div><div style="font-size:10px;opacity:.45;letter-spacing:.08em">합계 (만원)</div><div style="font-family:'DM Serif Display',serif;font-size:24px;font-weight:400">${fmt(Math.round(grand))}</div></div>
+      <div><div style="font-size:10px;opacity:.45;letter-spacing:.08em">감지된 기간</div><div style="font-family:'DM Serif Display',serif;font-size:20px;font-weight:400">${months}개월</div></div>
+      <div style="margin-left:auto;font-size:11px;opacity:.4">금액단위: ${_cUnit===10000?'원 → 자동 ÷10,000':'만원'}</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">⬇️ 드롭다운으로 카테고리를 바꿀 수 있어요. <b>제외</b>를 선택하면 반영되지 않습니다.</div>
+    <div id="ci_rows">${rowsHtml}</div>
+    <div style="margin-top:16px;background:#F8FAFC;border-radius:var(--r2);padding:14px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="f" style="margin:0">
+        <label style="font-size:11px">파일 기간</label>
+        <select id="ci_months" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r2);font-family:inherit;font-size:12px;margin-top:3px">
+          <option value="${months}" selected>${months}개월 → 연간 환산 (×${(12/months).toFixed(months===1?0:1)})</option>
+          <option value="1">1개월 → ×12</option>
+          <option value="3">3개월 → ×4</option>
+          <option value="6">6개월 → ×2</option>
+          <option value="12">12개월 → 그대로</option>
+        </select>
+      </div>
+      <button class="btn btn-a" style="min-height:40px" onclick="applyCardImport()">📥 현금흐름표에 반영하기</button>
+      <button class="btn btn-s" style="min-height:40px" onclick="resetCardImport()">↩️ 다시 업로드</button>
+    </div>`;
+  $('ci_s1').style.display='none';
+  $('ci_s2').style.display='block';
+}
+
+function applyCardImport(){
+  const months=parseInt($('ci_months').value)||1;
+  const fieldTotals={};
+  document.querySelectorAll('#ci_rows .ci-sel').forEach(sel=>{
+    const orig=sel.dataset.orig;
+    const to=sel.value;
+    if(to==='skip'||!_cGroups[orig]) return;
+    fieldTotals[to]=(fieldTotals[to]||0)+_cGroups[orig].total;
+  });
+  if(!Object.keys(fieldTotals).length){alert('반영할 항목이 없어요. 모두 제외로 설정됐는지 확인해주세요.');return;}
+  const replace=confirm('✏️ 반영 방식 선택\n\n확인 → 기존 값 덮어쓰기\n취소 → 기존 값에 추가');
+  Object.entries(fieldTotals).forEach(([f,total])=>{
+    const monthlyMan=total/_cUnit/months;
+    const yEl=$(f);if(!yEl)return;
+    if(cfMode==='monthly'){
+      const mEl=$(f.replace('_y','_m'));
+      if(mEl&&!mEl.readOnly) mEl.value=Math.round(monthlyMan+(replace?0:parseFloat(mEl.value)||0));
+    } else {
+      yEl.value=Math.round(monthlyMan*12+(replace?0:parseFloat(yEl.value)||0));
+    }
+  });
+  calcCF();
+  alert(`✅ ${Object.keys(fieldTotals).length}개 항목 반영 완료!\n\n직접 추가 입력이 필요한 것:\n• 현금 지출 (국세청 홈택스 → 현금영수증 내역)\n• 배우자 카드가 따로 있다면 별도 업로드\n• 대출 이자·원금 상환액`);
+  resetCardImport();
+  toggleImport();
+}
+
+function copyAIPrompt(){
+  const prompt=`첨부한 카드·계좌 거래내역을 분석해줘.
+
+[분류 규칙]
+출금(지출) 거래만 대상으로 하고, 아래 비목에 맞게 분류해.
+저축·적금·저금통·파킹·CMA·MMF·펀드·카드대금·충전은 '제외'로 처리.
+계좌이체는 거래 내용을 보고 판단해: 월세·학원비·병원비 등 실제 지출이면 해당 비목으로 분류하고, 내 다른 계좌로의 이체나 저축성 이체면 '제외'로, 내용이 불분명하면 아래 이체 목록에 따로 정리해줘.
+
+비목:
+① 식비 — 식당, 카페, 커피, 편의점(GS25·CU·세븐일레븐 등), 배달앱, 마트, 슈퍼
+② 교통비 — 택시, 대중교통(지하철·버스), 기차(KTX·SRT), 주유, 주차
+③ 의료비 — 병원, 의원, 약국, 치과, 한의원, 재활·통증 클리닉
+④ 여가·문화·여행 — 영화, 숙박, 항공, 구독서비스(넷플릭스 등), 도서, 운동·헬스
+⑤ 통신비 — 휴대폰 요금, 인터넷, 통신사(SKT·KT·LGU+ 등)
+⑥ 생활비·쇼핑 — 의류, 온라인쇼핑(쿠팡·G마켓 등), 미용실, 드럭스토어, 반려동물
+⑦ 자녀 교육·보육 — 학원, 유치원, 어린이집, 교재·문구
+⑧ 부모님 지원 — 부모님 성함으로 이체하거나 부모님 관련 지출
+⑨ 경조사·선물 — 경조금, 선물, 화환
+⑩ 보험료 — 자동이체·자동납 보험료
+⑪ 관리비·공과금 — 전기·가스·수도·난방·아파트 관리비, 공과금
+
+[출력 형식]
+아래 표로 출력해줘. 분석 기간이 12개월이 아니면 12개월 기준으로 연환산해.
+
+| 비목 | 연간(만원) | 월평균(만원) | 주요 거래처 |
+|------|-----------|------------|-----------|
+(각 비목 행)
+| 합계(제외 제외) | | | |
+| 제외(저축·내부이체 등) | | | |
+
+그리고 계좌이체 중 분류가 불분명한 건은 아래 표로 별도 정리해줘:
+| 날짜 | 금액(만원) | 거래 내용 | 추정 성격 |
+
+마지막에 "분류 불확실한 항목"도 따로 알려줘.`;
+  navigator.clipboard.writeText(prompt).then(()=>{
+    const btn=$('copy_prompt_btn');
+    const orig=btn.textContent;
+    btn.textContent='✅ 복사됨!';
+    btn.style.color='var(--teal)';
+    setTimeout(()=>{btn.textContent=orig;btn.style.color='';},2000);
+  }).catch(()=>alert('복사 실패. 브라우저 권한을 확인해주세요.'));
+}
+
+function resetCardImport(){
+  _cTxns=[];_cGroups={};
+  $('ci_s1').style.display='block';
+  $('ci_s2').style.display='none';
+  $('ci_s1_drop').style.display='block';
+  $('ci_s1_picker').style.display='none';
+  $('ci_s1_picker').innerHTML='';
+  $('ci_file').value='';
+}
+
+// ─── 내러티브 카드 헬퍼 ──────────────────────────────────
+function na(title, body, sub=''){
+  return `<div class="na"><div class="na-title">${title}</div><div class="na-body">${body}</div>${sub?`<div class="na-sub">${sub}</div>`:''}</div>`;
+}
+function naBar(label, value, total, color){
+  return `<div class="bc-row"><div class="bc-top"><span>${label}</span><span><b>${fmt(value)}</b>만 (${pct(total>0?value/total:0)})</span></div><div class="bc-bg"><div class="bc-fill" style="width:${total>0?Math.min(value/total*100,100):0}%;background:${color}"></div></div></div>`;
+}
+
+// ─── 재무상태표 기본분석 ─────────────────────────────────
+function buildBSAnalysis(bs){
+  const el=$('bs_analysis'); if(!el)return;
+  const {aLiq,aSav,aInv,aFin,aRE,aEtc,aTotal,lCur,lNCur,lTotal,nw}=bs;
+
+  if(aTotal===0&&lTotal===0){
+    el.innerHTML='<div class="info-box">💡 자산·부채 데이터를 먼저 입력해주세요.</div>';
+    return;
+  }
+
+  // ── 자산 분석 ──
+  const aFinPct=aTotal>0?aFin/aTotal:0;
+  const aREPct=aTotal>0?aRE/aTotal:0;
+  const aLiqPct=aTotal>0?aLiq/aTotal:0;
+
+  const aColors=['#2a7c6f','#c4933f','#2b5ea7','#b86e1a','#7a776f'];
+  const aItems=[
+    {l:'현금성 자산',v:aLiq,c:aColors[0]},
+    {l:'저축성 자산',v:aSav,c:aColors[1]},
+    {l:'투자 자산',v:aInv,c:aColors[2]},
+    {l:'부동산',v:aRE,c:aColors[3]},
+    {l:'기타',v:aEtc,c:aColors[4]},
+  ].filter(a=>a.v>0);
+  const aBars=aItems.map(a=>naBar(a.l,a.v,aTotal,a.c)).join('');
+
+  let assetInsight='';
+  if(aREPct>0.7) assetInsight=`<span class="tag-warn">⚠️ 부동산 집중(${pct(aREPct)})</span> — 자산의 대부분이 부동산으로 묶여 있어 유동성 확보가 어렵습니다. 금융자산 비중 확대를 검토하세요.`;
+  else if(aREPct>0.5) assetInsight=`부동산 비중(${pct(aREPct)})이 높은 편입니다. 금융자산을 점진적으로 늘려 균형을 맞춰 나가세요.`;
+  else if(aFinPct<0.2&&aTotal>0) assetInsight=`<span class="tag-bad">🚨 금융자산 비중(${pct(aFinPct)}) 부족</span> — 긴급 시 활용할 수 있는 유동 자금이 제한적입니다.`;
+  else if(aFinPct>=0.4) assetInsight=`<span class="tag-ok">✅ 금융자산 비중(${pct(aFinPct)}) 양호</span> — 유동성과 투자의 균형이 잘 갖춰져 있습니다.`;
+  else assetInsight=`금융자산 비중(${pct(aFinPct)})은 중간 수준입니다. 금융자산 비중을 지속적으로 높여 나가세요.`;
+
+  const assetBody=`총 자산 <strong>${fmt(aTotal)}만원</strong>. ${assetInsight}`;
+
+  // ── 부채 분석 ──
+  let debtBody='';
+  if(lTotal===0){
+    debtBody='<span class="tag-ok">✅ 부채 없음</span> — 매우 건전한 재무 상태입니다.';
+  } else {
+    const lCurPct=lTotal>0?lCur/lTotal:0;
+    const debtRatio=aTotal>0?lTotal/aTotal:0;
+    debtBody=`총 부채 <strong>${fmt(lTotal)}만원</strong> (자산 대비 <strong>${pct(debtRatio)}</strong>). `;
+    debtBody+=`단기부채 ${pct(lCurPct)} · 장기부채 ${pct(1-lCurPct)}. `;
+    if(lCurPct>0.3) debtBody+=`<span class="tag-warn">⚠️ 단기부채 비중(${pct(lCurPct)})이 높아 단기 상환 압력이 큽니다.</span> `;
+    if(debtRatio>0.6) debtBody+=`<span class="tag-bad">🚨 부채비율 위험 수준</span> — 적극적인 상환 전략이 필요합니다.`;
+    else if(debtRatio>0.4) debtBody+=`<span class="tag-warn">⚠️ 부채비율 다소 높음</span> — 부채 감축 계획을 수립하세요.`;
+    else debtBody+=`<span class="tag-ok">✅ 부채비율(${pct(debtRatio)}) 건전</span>`;
+  }
+
+  // ── 순자산 분석 ──
+  let nwBody='';
+  if(nw<=0){
+    nwBody=`<span class="tag-bad">🚨 순자산 적자 (${fmt(Math.abs(nw))}만원)</span> — 부채가 자산을 초과한 상태입니다. 부채 감축을 최우선 과제로 삼으세요.`;
+  } else {
+    nwBody=`순자산 <strong>${fmt(nw)}만원</strong>. `;
+    const annualIncome=(v('i_my_y')+v('i_sp_y')+v('i_biz_y'));
+    if(annualIncome>0){
+      const ratio=nw/annualIncome;
+      if(ratio>=2) nwBody+=`<span class="tag-ok">✅ 연소득 대비 ${ratio.toFixed(1)}배</span>로 자산 형성이 양호합니다.`;
+      else if(ratio>=1) nwBody+=`연소득 대비 ${ratio.toFixed(1)}배 수준. 지속적인 자산 형성이 필요합니다.`;
+      else nwBody+=`<span class="tag-warn">⚠️ 연소득 대비 ${ratio.toFixed(1)}배</span> — 자산 형성 속도를 높여야 합니다.`;
+    }
+    if(aTotal>0) nwBody+=` (부채비율 ${pct(lTotal/aTotal)})`;
+  }
+
+  el.innerHTML=`<div class="na-grid">${na('자산 규모·구성',assetBody,aBars)}${na('부채 규모·구성',debtBody)}${na('순자산 수준',nwBody)}</div>`;
+}
+
+// ─── 현금흐름표 기본분석 ────────────────────────────────
+function buildCFAnalysis(cf){
+  const el=$('cf_analysis'); if(!el)return;
+  const {iM,varM,fixM,savM,princM,netM}=cf;
+
+  if(iM===0){
+    el.innerHTML='<div class="info-box">💡 수입·지출 데이터를 먼저 입력해주세요.</div>';
+    return;
+  }
+
+  // ── 유입 분석 ──
+  const iMyM=v('i_my_y')/12, iSpM=v('i_sp_y')/12, iBizM=v('i_biz_y')/12;
+  const iBonusM=v('i_bonus_y')/12;
+  const iIntM=v('i_int_y')/12, iRentM=v('i_rent_y')/12, iPenM=v('i_pen_y')/12, iOthM=v('i_oth_y')/12;
+
+  const regularM=iMyM+iSpM+iBizM;
+  const regularPct=iM>0?regularM/iM:0;
+
+  const srcNames=[
+    iMyM>0?'내 근로소득':null,
+    iSpM>0?'배우자 근로소득':null,
+    iBizM>0?'사업소득':null,
+    iBonusM>0?'상여금':null,
+    iIntM>0?'이자·배당':null,
+    iRentM>0?'임대소득':null,
+    iPenM>0?'연금':null,
+    iOthM>0?'기타소득':null,
+  ].filter(Boolean);
+  const stableSrcCount=[iMyM>0,iSpM>0,iBizM>0,iIntM>0,iRentM>0,iPenM>0].filter(Boolean).length;
+
+  let regularityBody='';
+  if(regularPct>=0.9) regularityBody=`<span class="tag-ok">✅ 정기소득 중심(${pct(regularPct)})</span> — 현금흐름이 안정적이고 예측 가능합니다.`;
+  else if(regularPct>=0.7) regularityBody=`정기소득 비중 ${pct(regularPct)}로 양호합니다. 비정기소득(상여금 등)도 일부 있어 소득이 다소 변동합니다.`;
+  else regularityBody=`<span class="tag-warn">⚠️ 비정기소득 비중 높음(${pct(1-regularPct)})</span> — 월별 소득 변동이 클 수 있어, 비상자금을 충분히 확보해 두세요.`;
+
+  let diversityBody='';
+  if(stableSrcCount>=3) diversityBody=`<span class="tag-ok">✅ 소득원 다각화(${stableSrcCount}개)</span> — ${srcNames.join(' · ')}으로 구성됩니다.`;
+  else if(stableSrcCount===2) diversityBody=`소득원 2개(${srcNames.join(' · ')}) — 추가 소득원 발굴을 점진적으로 추진하세요.`;
+  else diversityBody=`<span class="tag-warn">⚠️ 단일 소득원(${srcNames.join(' · ')})</span> — 소득 중단 시 현금흐름이 즉각 위협받을 수 있습니다.`;
+
+  const iItems=[
+    {l:'내 근로소득',v:iMyM,c:'#2a7c6f'},{l:'배우자 근로소득',v:iSpM,c:'#3a9c8f'},
+    {l:'사업소득',v:iBizM,c:'#c4933f'},{l:'상여금(월환산)',v:iBonusM,c:'#d4a34f'},
+    {l:'이자·배당',v:iIntM,c:'#2b5ea7'},{l:'임대소득',v:iRentM,c:'#3b6eb7'},
+    {l:'연금수령',v:iPenM,c:'#7a776f'},{l:'기타',v:iOthM,c:'#b5b2a9'},
+  ].filter(a=>a.v>0);
+  const iBars=iItems.map(a=>naBar(a.l,a.v,iM,a.c)).join('');
+  const incomeBody=`월 총소득 <strong>${fmt(iM)}만원</strong>`;
+
+  // ── 유출 분석 ──
+  const nonConsM=(v('e_mint_y')+v('e_oint_y'))/12;
+  const consPct=iM>0?varM/iM:0;
+  const nonConsPct=iM>0?nonConsM/iM:0;
+  const totalSavM=savM+princM;
+  const savPct=iM>0?totalSavM/iM:0;
+
+  let consumBody='';
+  if(consPct>0.7) consumBody=`<span class="tag-bad">🚨 소비지출 ${pct(consPct)}</span> — 수입의 70% 이상이 소비로 나가 저축 여력이 매우 낮습니다.`;
+  else if(consPct>0.5) consumBody=`<span class="tag-warn">⚠️ 소비지출 ${pct(consPct)}</span> — 소비 비중이 높아 저축 여력이 제한됩니다.`;
+  else consumBody=`<span class="tag-ok">✅ 소비지출 ${pct(consPct)}</span> — 소득 대비 소비 수준이 적절합니다.`;
+  if(nonConsPct>0) consumBody+=`<br>비소비지출(이자비용) ${pct(nonConsPct)}, 저축·투자(원금상환 포함) ${pct(savPct)}.`;
+  if(princM>0){
+    const princRatio=totalSavM>0?princM/totalSavM:0;
+    if(princRatio>0.5) consumBody+=`<br><span class="tag-warn">⚠️ 저축의 ${pct(princRatio)}가 원금상환</span> — 순자산은 늘어나지만 유동자산은 거의 늘지 않아 단기 유동성이 낮을 수 있습니다. 비상자금 잔액을 별도로 확인하세요.`;
+    else if(princRatio>0.2) consumBody+=`<br>💡 저축 중 ${pct(princRatio)}는 원금상환으로, 순자산 증가이지만 유동자산 증가는 아닙니다.`;
+  }
+
+  const eItems=[
+    {l:'소비지출(변동)',v:varM,c:'#EF4444'},
+    {l:'이자비용(비소비)',v:nonConsM,c:'#F97316'},
+    {l:'원금상환(고정)',v:princM,c:'#FB923C'},
+    {l:'기타 고정지출',v:Math.max(fixM-nonConsM-princM,0),c:'#FBBF24'},
+    {l:'순수 저축·투자',v:savM,c:'#22C55E'},
+  ].filter(a=>a.v>0);
+  const eBars=eItems.map(a=>naBar(a.l,a.v,iM,a.c)).join('');
+  const outflowBody=`월 지출 <strong>${fmt(varM+fixM)}만원</strong> · 저축·원금상환 <strong>${fmt(totalSavM)}만원</strong>`;
+
+  // ── 미확인 지출 ──
+  const netRnd=Math.round(netM*10)/10;
+  let unaccountedBody='';
+  if(Math.abs(netRnd)<1){
+    unaccountedBody='<span class="tag-ok">✅ 순현금흐름 균형</span> — 수입과 지출·저축 계획이 잘 맞춰져 있습니다.';
+  } else if(netRnd>0){
+    unaccountedBody=`<span class="tag-warn">⚠️ 월 ${fmt(netRnd)}만원 미파악</span> — 저축·지출 계획에 반영되지 않은 돈이 있습니다. 미기재 지출 항목이 있거나 추가 저축 계획으로 반영하세요.`;
+  } else {
+    unaccountedBody=`<span class="tag-bad">🚨 월 ${fmt(Math.abs(netRnd))}만원 초과</span> — 계획한 지출·저축이 수입을 초과합니다. 순자산이 감소하는 상태로, 저축 가능 금액 내에서 계획을 재수립하세요.`;
+  }
+
+  el.innerHTML=`
+    <div class="card" style="margin-bottom:14px">
+      <div class="cf-sub-hd">📥 유입 기본분석</div>
+      <div class="na-grid">${na('소득의 정기성·반복성',regularityBody)}${na('소득원천의 다양성',diversityBody)}${na('소득 규모·구성',incomeBody,iBars)}</div>
+    </div>
+    <div class="card">
+      <div class="cf-sub-hd">📤 유출 기본분석</div>
+      <div class="na-grid">${na('유출 규모·구성',outflowBody,eBars)}${na('소비성향 분석',consumBody)}${na('미확인 지출',unaccountedBody)}</div>
+    </div>`;
+}
+
+// ─── 재무비율 ─────────────────────────────────────────────
+let GL='book';
+function setGL(g){GL=g;$('gl_book').classList.toggle('on',g==='book');$('gl_yang').classList.toggle('on',g==='yang');$('gl_sgw').classList.toggle('on',g==='sgw');calcAll();}
+
+const yangBench={
+  emergency:{20:2,30:4,40:4,50:4,55:6},
+  debtTot:{20:40,30:40,40:40,50:30,55:20},
+  dsr:{20:25,30:25,40:25,50:25,55:0},
+  housing:{20:20,30:20,40:20,50:20,55:20},
+  consumer:{20:10,30:10,40:10,50:10,55:10},
+  savings:{20:20,30:20,40:20,50:30,55:30},
+  investAsset:{20:10,30:20,40:30,50:30,55:30},
+  finAsset:{20:20,30:30,40:40,50:40,55:40},
+  budget:{20:50,30:60,40:70,50:70,55:70},
+  insurance:{20:3,30:5,40:7,50:10,55:10},
+};
+function getAgeGroup(){
+  const sel=$('r_age_sel').value;
+  if(sel)return parseInt(sel);
+  const a=parseInt($('c_age').value)||35;
+  return a>=55?55:a>=50?50:a>=40?40:a>=30?30:20;
+}
+function yv(k){const a=getAgeGroup();return yangBench[k][a]??yangBench[k][20];}
+
+const sgwBench={
+  budget:     {20:50,30:70,40:80,50:80,55:80},
+  emergency:  {20:2, 30:3, 40:4, 50:4, 55:6},
+  debtTot:    {20:40,30:40,40:40,50:40,55:40},
+  dsr:        {20:30,30:30,40:30,50:30,55:30},
+  savings:    {20:50,30:30,40:20,50:20,55:20},
+  investFlow: {20:40,30:30,40:30,50:30,55:30},
+};
+function sgwv(k){const a=getAgeGroup();return sgwBench[k][a]??sgwBench[k][20];}
+
+function calcAll(){
+  const bs=calcBS(), cf=calcCF();
+  buildBSAnalysis(bs);
+  buildCFAnalysis(cf);
+  const iM=cf.iM;
+  const liqAsset=bs.aLiq;
+  const monthlyExp=cf.varM+cf.fixM;
+  const efRatio=monthlyExp>0?liqAsset/monthlyExp:0;
+  const debtRatio=bs.aTotal>0?bs.lTotal/bs.aTotal:0;
+  const totalDebtSvc=v('e_mint_y')/12+v('e_oint_y')/12+v('s_mprin_y')/12+v('s_oprin_y')/12+v('s_mamort_y')/12+v('s_oamort_y')/12;
+  const dsr=iM>0?totalDebtSvc/iM:0;
+  const housingDebtSvc=v('e_mint_y')/12+v('s_mprin_y')/12+v('s_mamort_y')/12;
+  const housingRatio=iM>0?housingDebtSvc/iM:0;
+  const consDebtSvc=v('e_oint_y')/12+v('s_oprin_y')/12+v('s_oamort_y')/12;
+  const consRatio=iM>0?consDebtSvc/iM:0;
+  const savRate=iM>0?(cf.savM+cf.princM)/iM:0;
+  const investRatio=bs.aTotal>0?bs.aInv/bs.aTotal:0;
+  const finRatio=bs.aTotal>0?bs.aFin/bs.aTotal:0;
+  const budgetRatio=iM>0?cf.totExpM/iM:0;
+  const insRatio=iM>0?v('e_ins_y')/12/iM:0;
+  const investFlowM=(v('s_fund_y')+v('s_pen_y')+v('s_isa_y'))/12;
+  const investFlowRatio=(cf.savM+cf.princM)>0?investFlowM/(cf.savM+cf.princM):0;
+  const ag=getAgeGroup();
+
+  let ratios;
+  if(GL==='book'){
+    ratios=[
+      {grp:'유동성',q:'급할 때 쓸 수 있는 비상자금이 충분한가요?',
+       v:efRatio.toFixed(1)+'개월',bench:'권장 3~6개월 생활비',pv:efRatio/6,
+       cls:efRatio>=3?(efRatio<=12?'ok':'warn'):(efRatio>=1?'warn':'bad'),
+       st:efRatio>=3?(efRatio<=12?'✅ 잘 준비됐어요':'⚠️ 너무 많이 묶여 있어요'):(efRatio>=1?'⚠️ 조금 부족해요':'🚨 비상자금이 없어요'),
+       why:'갑작스러운 실직·의료비 등에 대비해 3~6개월 생활비를 예금·CMA에 별도 보관하세요.'},
+      {grp:'유동성',q:'비상자금이 한 달 생활비는 되나요?',
+       v:efRatio.toFixed(1)+'개월',bench:'최소 1개월 이상',pv:efRatio/3,
+       cls:efRatio>=1?'ok':'bad',
+       st:efRatio>=1?'✅ 최소 유동성 확보':'🚨 당장 현금이 없어요',
+       why:'예상치 못한 지출에 즉시 대응할 수 있는 현금. 1개월 생활비는 반드시 유동성 자산으로 보유하세요.'},
+      {grp:'안정성',q:'내 재산 중 빚이 얼마나 되나요?',
+       v:pct(debtRatio),bench:'건전 기준 40% 이하',pv:debtRatio/0.4,
+       cls:debtRatio<=0.4?'ok':debtRatio<=0.6?'warn':'bad',
+       st:debtRatio<=0.4?'✅ 부채 수준이 건전해요':debtRatio<=0.6?'⚠️ 조금 높아요':'🚨 부채가 많아요',
+       why:'총 자산 중 부채 비율. 40% 이하가 안전하며, 높을수록 금리 상승·자산 하락 시 위험합니다.'},
+      {grp:'안정성',q:'버는 돈 중 대출 갚는 데 얼마나 쓰나요?',
+       v:pct(dsr),bench:'건전 기준 36% 이하',pv:dsr/0.36,
+       cls:dsr<=0.36?'ok':dsr<=0.5?'warn':'bad',
+       st:dsr<=0.36?'✅ 상환 부담이 적정해요':dsr<=0.5?'⚠️ 상환 부담이 높아요':'🚨 상환 부담이 과중해요',
+       why:`월 소득 중 모든 대출 원리금 합계 비율(DSR)${cf.amortM>0?' — 원리금 통합 입력분 '+fmt(cf.amortM)+'만원/월 포함':''}. 36% 초과 시 생활이 빠듯해지고 추가 대출도 어렵습니다.`},
+      {grp:'안정성',q:'집 관련 대출 상환이 얼마나 되나요?',
+       v:pct(housingRatio),bench:'건전 기준 28% 이하',pv:housingRatio/0.28,
+       cls:housingRatio<=0.28?'ok':housingRatio<=0.4?'warn':'bad',
+       st:housingRatio<=0.28?'✅ 주거 부담이 적정해요':'⚠️ 주거 부담이 다소 높아요',
+       why:`월 수입 대비 주택 대출 원리금 비율${v('s_mamort_y')>0?' — 주담대 원리금 통합 입력분 '+fmt(v('s_mamort_y')/12)+'만원/월 포함':''}. 28% 이하여야 다른 생활과 저축도 여유 있게 가능합니다.`},
+      {grp:'안정성',q:'소비성 대출(신용대출 등)은 얼마나 되나요?',
+       v:pct(consRatio),bench:'건전 기준 20% 이하',pv:consRatio/0.2,
+       cls:consRatio<=0.2?'ok':consRatio<=0.3?'warn':'bad',
+       st:consRatio<=0.2?'✅ 소비성 부채가 적정해요':'🚨 소비성 부채 정리가 필요해요',
+       why:'신용대출·카드론 등 소비성 부채는 금리가 높아 재무에 가장 나쁜 영향을 줍니다. 최우선으로 갚으세요.'},
+      {grp:'성장성',q:'버는 돈 중 얼마나 저축·투자하고 있나요?',
+       v:pct(savRate),bench:'권장 10% 이상 (이상적 20%)',pv:savRate/0.2,
+       cls:savRate>=0.1?'ok':savRate>=0.05?'warn':'bad',
+       st:savRate>=0.2?'✅ 훌륭한 저축률이에요':savRate>=0.1?'✅ 양호한 저축률이에요':savRate>=0.05?'⚠️ 저축률을 높여야 해요':'🚨 저축이 거의 없어요',
+       why:'미래 재무목표 달성의 핵심입니다. 수입의 최소 10%, 가능하면 20% 이상을 저축하는 것이 목표입니다.'},
+      {grp:'성장성',q:'미래를 위한 투자 자산은 얼마나 되나요?',
+       v:pct(investRatio),bench:'연령에 따라 다름',pv:investRatio/0.5,
+       cls:investRatio>=0.3?'ok':investRatio>=0.15?'warn':'bad',
+       st:investRatio>=0.3?'✅ 투자 자산이 충분해요':investRatio>=0.15?'⚠️ 투자 자산을 늘려가세요':'🚨 투자 자산이 부족해요',
+       why:'주식·펀드·ETF·연금 등 투자자산은 장기적으로 자산을 불리는 엔진입니다. 나이가 젊을수록 더 높은 비중이 권장됩니다.'},
+    ];
+  } else if(GL==='yang') {
+    const agLabel=ag+(ag===55?'세 이상':'대');
+    const ef=yv('emergency'),dt=yv('debtTot'),ds=yv('dsr'),h=yv('housing'),c=yv('consumer'),sv=yv('savings'),inv=yv('investAsset'),fin=yv('finAsset'),bud=yv('budget'),ins=yv('insurance');
+    const efByIncome=iM>0?liqAsset/iM:0;
+    ratios=[
+      {grp:'유동성',q:'월수입 대비 비상자금이 충분한가요?',
+       v:efByIncome.toFixed(1)+'배',bench:`월수입 ${ef}배 이상 (${agLabel})`,pv:efByIncome/ef,
+       cls:efByIncome>=ef?'ok':efByIncome>=ef*0.6?'warn':'bad',
+       st:efByIncome>=ef?`✅ ${ef}배 기준 충족`:`⚠️ ${ef}배 목표 미달`,
+       why:`${agLabel} 기준 월수입의 ${ef}배를 유동성 자산으로 보유하는 것이 권장됩니다.`},
+      {grp:'안정성',q:'보험료가 적정한가요?',
+       v:pct(insRatio),bench:`수입의 ${ins}% 전후 (${agLabel})`,pv:insRatio/(ins/100),
+       cls:insRatio>=ins/100*0.7&&insRatio<=ins/100*1.3?'ok':insRatio<=ins/100*1.5?'warn':'bad',
+       st:insRatio<=ins/100*1.3?`✅ 보험료 적정`:`⚠️ 보험료 점검 필요`,
+       why:`보장성 보험료는 수입의 ${ins}% 수준이 적정합니다. 과도하면 저축 여력이 줄고, 부족하면 위험에 노출됩니다.`},
+      {grp:'안정성',q:'내 재산 중 빚이 얼마나 되나요?',
+       v:pct(debtRatio),bench:`${dt}% 이하 (${agLabel})`,pv:debtRatio/(dt/100),
+       cls:debtRatio<=dt/100?'ok':debtRatio<=dt/100+0.1?'warn':'bad',
+       st:debtRatio<=dt/100?'✅ 부채 수준 건전':'🚨 부채 감축이 필요해요',
+       why:`${agLabel} 기준 총자산 대비 총부채 ${dt}% 이하가 권장됩니다.`},
+      {grp:'안정성',q:'버는 돈 중 대출 갚는 데 얼마나 쓰나요?',
+       v:pct(dsr),bench:`${ds}% 이하 (${agLabel})`,pv:ds>0?dsr/(ds/100):dsr>0?2:0,
+       cls:(ds===0?(dsr===0?'ok':'bad'):dsr<=ds/100?'ok':dsr<=ds/100+0.1?'warn':'bad'),
+       st:ds===0?(dsr===0?'✅ 부채 없음':'🚨 은퇴 후 부채 위험'):(dsr<=ds/100?'✅ 상환 부담 적정':'🚨 상환 부담 과중'),
+       why:`${agLabel} 기준 총부채상환비율 ${ds}% 이하가 권장됩니다.`},
+      {grp:'안정성',q:'주택 관련 대출 부담은요?',
+       v:pct(housingRatio),bench:`${h}% 이하 (${agLabel})`,pv:housingRatio/(h/100),
+       cls:housingRatio<=h/100?'ok':housingRatio<=h/100+0.1?'warn':'bad',
+       st:housingRatio<=h/100?'✅ 주거부채 적정':'⚠️ 주거부채 부담 과다',
+       why:`주거 관련 대출 원리금이 월수입의 ${h}%를 넘지 않도록 관리하세요.`},
+      {grp:'안정성',q:'소비성 대출(신용대출 등)은요?',
+       v:pct(consRatio),bench:`${c}% 이하 (${agLabel})`,pv:consRatio/(c/100),
+       cls:consRatio<=c/100?'ok':consRatio<=c/100+0.1?'warn':'bad',
+       st:consRatio<=c/100?'✅ 소비성 부채 양호':'🚨 즉시 정리 필요',
+       why:`소비성 부채는 고금리라 재무에 매우 불리합니다. 월수입의 ${c}% 이하로 줄여야 합니다.`},
+      {grp:'성장성',q:'생활비 대비 수입 균형은 어떤가요?',
+       v:pct(budgetRatio),bench:`지출/수입 ${bud}% 이하 (${agLabel})`,pv:budgetRatio/(bud/100),
+       cls:budgetRatio<=bud/100?'ok':budgetRatio<=bud/100+0.1?'warn':'bad',
+       st:budgetRatio<=bud/100?'✅ 지출 관리가 잘 돼요':'🚨 지출이 수입을 초과해요',
+       why:'수입 대비 지출(생활비+고정지출) 비율. 너무 높으면 저축할 여유가 없습니다.'},
+      {grp:'성장성',q:'저축을 충분히 하고 있나요?',
+       v:pct(savRate),bench:`${sv}% 이상 (${agLabel})`,pv:savRate/(sv/100),
+       cls:savRate>=sv/100?'ok':savRate>=sv/100*0.7?'warn':'bad',
+       st:savRate>=sv/100?`✅ ${sv}% 목표 달성`:`⚠️ 저축률 ${sv}% 목표 미달`,
+       why:`${agLabel} 기준 수입의 ${sv}% 이상을 저축·투자에 배분하는 것이 권장됩니다.`},
+      {grp:'성장성',q:'투자 자산 비중이 충분한가요?',
+       v:pct(investRatio),bench:`금융투자자산/총자산 ${inv}% 이상 (${agLabel})`,pv:investRatio/(inv/100),
+       cls:investRatio>=inv/100?'ok':investRatio>=inv/100*0.6?'warn':'bad',
+       st:investRatio>=inv/100?'✅ 투자자산 비중 양호':'⚠️ 투자자산 확대 필요',
+       why:`${agLabel} 기준 총자산 중 금융투자자산(주식·펀드·연금 등) 비중 ${inv}% 이상이 권장됩니다.`},
+      {grp:'성장성',q:'금융자산 전체 비중은 어떤가요?',
+       v:pct(finRatio),bench:`금융자산/총자산 ${fin}% 이상 (${agLabel})`,pv:finRatio/(fin/100),
+       cls:finRatio>=fin/100?'ok':finRatio>=fin/100*0.6?'warn':'bad',
+       st:finRatio>=fin/100?'✅ 금융자산 비중 양호':'⚠️ 금융자산 확대 필요',
+       why:`부동산에 집중된 자산은 유동성이 낮아 위기 시 대응이 어렵습니다. 금융자산 비중 ${fin}% 이상을 권장합니다.`},
+    ];
+  } else {
+    // ── 서민금융진흥원 기준 ──────────────────────────────────
+    const agLabel=ag+(ag===55?'세 이상':'대');
+    const bud=sgwv('budget'),ef=sgwv('emergency'),dt=sgwv('debtTot'),ds=sgwv('dsr'),sv=sgwv('savings'),iv=sgwv('investFlow');
+    ratios=[
+      {grp:'유동성',q:'비상자금이 생활비의 몇 달치인가요?',
+       v:efRatio.toFixed(1)+'개월',bench:`유동성자산/월지출 ${ef}배 이상 (${agLabel})`,pv:efRatio/ef,
+       cls:efRatio>=ef?'ok':efRatio>=ef*0.6?'warn':'bad',
+       st:efRatio>=ef?`✅ ${ef}개월치 확보`:`⚠️ ${ef}개월치 미달`,
+       why:`유동성자산/월평균총지출 ${ef}배 이상 권장. 갑작스러운 실직·의료비 등 비상상황에 대비해 별도 보관하세요. (서민금융진흥원 기준)`},
+      {grp:'안정성',q:'생활비가 수입 범위 내에 있나요?',
+       v:pct(budgetRatio),bench:`총지출/총소득 ${bud}% 이하 (${agLabel})`,pv:budgetRatio/(bud/100),
+       cls:budgetRatio<=bud/100?'ok':budgetRatio<=bud/100+0.05?'warn':'bad',
+       st:budgetRatio<=bud/100?'✅ 가계수지 양호':'🚨 지출이 수입을 초과',
+       why:`총지출/총소득 ${bud}% 이하가 건전 기준입니다. 초과 시 저축 여력이 없거나 적자 상태입니다. (서민금융진흥원 기준)`},
+      {grp:'안정성',q:'내 재산 중 빚이 얼마나 되나요?',
+       v:pct(debtRatio),bench:`총부채/총자산 ${dt}% 이하 (전 연령)`,pv:debtRatio/(dt/100),
+       cls:debtRatio<=dt/100?'ok':debtRatio<=dt/100+0.1?'warn':'bad',
+       st:debtRatio<=dt/100?'✅ 부채 수준 건전':'🚨 부채 감축 필요',
+       why:`총부채/총자산 ${dt}% 이하가 권장됩니다. 높을수록 금리 상승·자산 하락 시 위험합니다. (서민금융진흥원 기준)`},
+      {grp:'안정성',q:'버는 돈 중 대출 갚는 데 얼마나 쓰나요?',
+       v:pct(dsr),bench:`총부채상환액/총소득 ${ds}% 이하 (전 연령)`,pv:ds>0?dsr/(ds/100):dsr>0?2:0,
+       cls:dsr<=ds/100?'ok':dsr<=ds/100+0.05?'warn':'bad',
+       st:dsr<=ds/100?'✅ 상환 부담 적정':'🚨 상환 부담 과중',
+       why:`총부채상환액/총소득 ${ds}% 이하가 건전 기준입니다. 초과 시 생활 여유가 줄고 추가 충격에 취약합니다. (서민금융진흥원 기준)`},
+      {grp:'성장성',q:'버는 돈 중 얼마나 저축하고 있나요?',
+       v:pct(savRate),bench:`총저축/총소득 ${sv}% 이상 (${agLabel})`,pv:sv>0?savRate/(sv/100):savRate>0?2:0,
+       cls:savRate>=sv/100?'ok':savRate>=sv/100*0.7?'warn':'bad',
+       st:savRate>=sv/100?`✅ ${sv}% 목표 달성`:`⚠️ 저축률 ${sv}% 미달`,
+       why:`총저축/총소득 ${sv}% 이상 권장. 젊을수록 더 높은 저축률로 장기 자산을 쌓아야 합니다. (서민금융진흥원 기준)`},
+      {grp:'성장성',q:'저축 중 투자성 저축 비중은요?',
+       v:pct(investFlowRatio),bench:`금융투자저축/총저축 ${iv}% 이상 (${agLabel})`,pv:iv>0?investFlowRatio/(iv/100):0,
+       cls:investFlowRatio>=iv/100?'ok':investFlowRatio>=iv/100*0.6?'warn':'bad',
+       st:investFlowRatio>=iv/100?'✅ 투자성 저축 비중 양호':'⚠️ 투자성 저축 확대 필요',
+       why:`펀드·ETF·연금저축·IRP 등 금융투자저축이 총저축의 ${iv}% 이상이 권장됩니다. (서민금융진흥원 기준)`},
+    ];
+  }
+
+  // 카드 렌더링 (그룹별)
+  const grpOrder=['유동성','안정성','성장성'];
+  const grpIcon={'유동성':'💧','안정성':'🛡️','성장성':'🌱'};
+  const grouped={유동성:[],안정성:[],성장성:[]};
+  ratios.forEach(r=>{(grouped[r.grp]||grouped['안정성']).push(r);});
+  const rxCard=r=>`<div class="rx ${r.cls}">
+    <div class="rx-q">${r.q}</div>
+    <div class="rx-v">${r.v}</div>
+    <div class="rx-bar"><div class="rx-fill" style="width:${Math.min((r.pv||0)*100,100)}%"></div></div>
+    <div class="rx-bench">${r.bench}</div>
+    <div class="rx-st">${r.st}</div>
+    <div class="rx-why">${r.why}</div>
+  </div>`;
+  $('rx_grid').innerHTML=grpOrder.filter(g=>grouped[g].length).map(g=>
+    `<div class="rx-grp-hd">${grpIcon[g]} ${g}</div>${grouped[g].map(rxCard).join('')}`
+  ).join('');
+
+  // 점수 계산
+  const good=ratios.filter(r=>r.cls==='ok');
+  const warn=ratios.filter(r=>r.cls==='warn');
+  const bad=ratios.filter(r=>r.cls==='bad');
+  const score=bs.aTotal===0&&iM===0?null:Math.round((good.length*10+warn.length*5)/ratios.length*10);
+
+  const rs=$('ratio_summary');
+  if(score!==null){
+    const msg=score>=80?'재무 관리를 훌륭하게 하고 계세요':
+              score>=60?'몇 가지 항목만 개선하면 더 탄탄해집니다':
+              score>=40?'지금부터 하나씩 정리해 나가면 됩니다':
+                        '가장 위험한 항목부터 해결하세요';
+    rs.style.display='';
+    rs.textContent=`${msg} · 양호 ${good.length}개 · 주의 ${warn.length}개 · 위험 ${bad.length}개`;
+  } else {
+    rs.style.display='none';
+  }
+
+  // 진단 메시지
+  let dh='';
+  if(bs.aTotal===0&&iM===0){
+    dh='<div class="dx warn"><h4>아직 데이터가 없어요</h4>자산·부채와 수입·지출을 먼저 입력한 뒤 다시 진단해주세요.</div>';
+  } else {
+    // 강점
+    if(good.length) dh+=`<div class="dx ok"><h4>✅ 강점 (${good.length}개 양호 항목)</h4>${good.map(r=>`• <b>${r.q.replace('?','')}</b>: ${r.v} — ${r.st.replace(/[✅⚠️🚨]/g,'').trim()}`).join('<br>')}</div>`;
+    // 약점
+    if(bad.length||warn.length){
+      const issues=[...bad,...warn];
+      dh+=`<div class="dx ${bad.length?'bad':'warn'}"><h4>${bad.length?'🚨':'⚠️'} 약점 (${issues.length}개 개선 필요)</h4>${issues.map((r,i)=>`<b>${i+1}.</b> <b>${r.q.replace('?','')}</b> (현재 ${r.v}) — ${r.st.replace(/[✅⚠️🚨]/g,'').trim()}`).join('<br><br>')}</div>`;
+    }
+    // 실행제안
+    if(bad.length||warn.length){
+      const actions=[...bad,...warn];
+      dh+=`<div class="dx warn" style="border-left-color:var(--gold);background:var(--gold-pale)"><h4 style="color:var(--amber)">📌 실행제안 (우선순위순)</h4>${actions.map((r,i)=>`<b>${i+1}.</b> ${r.why}`).join('<br><br>')}</div>`;
+    }
+    if(!bad.length&&!warn.length) dh+=`<div class="dx ok"><h4>🎉 모든 항목이 양호합니다!</h4>현재 재무 상태를 잘 유지해 나가세요.</div>`;
+  }
+  $('diag_area').innerHTML=dh;
+
+  // 자산·지출 구성
+  const colors=['#2a7c6f','#c4933f','#2b5ea7','#b86e1a','#7a776f','#b5b2a9'];
+  const aItems=[
+    {l:'현금성 자산',v:bs.aLiq,c:colors[0]},
+    {l:'저축성 자산',v:bs.aSav,c:colors[1]},
+    {l:'투자 자산',v:bs.aInv,c:colors[2]},
+    {l:'부동산',v:bs.aRE,c:colors[3]},
+    {l:'기타',v:bs.aEtc,c:colors[4]},
+  ];
+  $('asset_chart').innerHTML=aItems.map(a=>`
+    <div class="bc-row">
+      <div class="bc-top"><span>${a.l}</span><span><b>${fmt(a.v)}</b>만 (${bs.aTotal>0?pct(a.v/bs.aTotal):'0%'})</span></div>
+      <div class="bc-bg"><div class="bc-fill" style="width:${bs.aTotal>0?Math.min(a.v/bs.aTotal*100,100):0}%;background:${a.c}"></div></div>
+    </div>
+  `).join('');
+
+  const eItems=[
+    {l:'변동지출 (생활비)',v:cf.varM,c:'#EF4444'},
+    {l:'고정지출 (보험·이자·월세·원금)',v:cf.fixM,c:'#F97316'},
+    {l:'순수 저축·투자',v:cf.savM,c:'#22C55E'},
+    {l:'남는 돈 (추가 여력)',v:Math.max(cf.netM,0),c:'#A3E635'},
+  ];
+  $('exp_chart').innerHTML=eItems.map(e=>`
+    <div class="bc-row">
+      <div class="bc-top"><span>${e.l}</span><span><b>${fmt(e.v)}</b>만/월 (${iM>0?pct(e.v/iM):'0%'})</span></div>
+      <div class="bc-bg"><div class="bc-fill" style="width:${iM>0?Math.min(e.v/iM*100,100):0}%;background:${e.c}"></div></div>
+    </div>
+  `).join('');
+}
+
+// ─── 재무목표 ─────────────────────────────────────────────
+function cGoal(el){
+  const it=el.closest('.goal-card');
+  const amt=parseFloat(it.querySelector('.ga').value)||0;
+  const yr=parseInt(it.querySelector('.gy').value)||0;
+  const cur=parseFloat(it.querySelector('.gc').value)||0;
+  const rt=(parseFloat(it.querySelector('.gr').value)||4)/100;
+  const mo=it.querySelector('.gm');
+  const n=(yr-new Date().getFullYear())*12;
+  if(n<=0||amt<=0){mo.value='—';return;}
+  const r=rt/12;
+  const fv=amt-cur*Math.pow(1+r,n);
+  const pmt=fv>0&&r>0?fv*r/(Math.pow(1+r,n)-1):fv>0?fv/n:0;
+  mo.value=pmt>0?fmt(Math.ceil(pmt))+' 만원':'목표 달성 가능!';
+}
+function addGoal(){
+  const d=document.createElement('div');
+  d.className='goal-card';
+  d.innerHTML=`
+    <div class="g3" style="gap:12px">
+      <div class="f"><label>목표 이름</label><input type="text" class="gn" placeholder="목표를 입력하세요"></div>
+      <div class="f"><label>필요한 총 금액 (만원)</label><input type="number" class="ga" placeholder="0" oninput="cGoal(this)"></div>
+      <div class="f"><label>목표 연도</label><input type="number" class="gy" placeholder="2030" oninput="cGoal(this)"></div>
+      <div class="f"><label>지금까지 모은 금액 (만원)</label><input type="number" class="gc" placeholder="0" oninput="cGoal(this)"></div>
+      <div class="f"><label>예상 수익률 (% / 년)</label><input type="number" class="gr" placeholder="4" step="0.1" oninput="cGoal(this)"></div>
+      <div class="f"><label>💡 필요한 월 저축액</label><input type="text" class="gm" readonly style="font-family:'DM Serif Display',serif;font-weight:400;color:var(--ink);font-size:18px"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <div class="f" style="flex:1"><label>메모</label><input type="text" class="gmemo"></div>
+      <button class="btn btn-s" onclick="this.closest('.goal-card').remove()" style="align-self:flex-end;font-size:12px;padding:7px 12px">삭제</button>
+    </div>`;
+  $('goal_list').appendChild(d);
+}
+
+// ─── 은퇴 시뮬레이션 ─────────────────────────────────────
+function calcRet(){
+  const retAge=v('r_age')||60,life=v('r_life')||90;
+  const need=v('r_need')||300,inf=(v('r_inf')||2.5)/100;
+  const rr=(v('r_ret')||4)/100,nps=v('r_nps')||0;
+  const curAge=parseInt($('c_age').value)||40;
+  const ytr=Math.max(retAge-curAge,0),rYr=life-retAge;
+  if(rYr<=0){$('ret_res').innerHTML='';return;}
+  const needAtRet=need*Math.pow(1+inf,ytr);
+  const netNeed=Math.max(needAtRet-nps,0);
+  const r2=rr/12,n2=rYr*12;
+  const pvNeed=r2>0?netNeed*(1-Math.pow(1+r2,-n2))/r2:netNeed*n2;
+  const curRet=v('a_pension_acc')+v('a_retiredb');
+  const fvCur=curRet*Math.pow(1+rr,ytr);
+  const gap=pvNeed-fvCur;
+  const r3=rr/12,n3=ytr*12;
+  const mPmt=n3>0&&r3>0&&gap>0?gap*r3/(Math.pow(1+r3,n3)-1):n3>0&&gap>0?gap/n3:0;
+
+  $('ret_res').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:12px">
+      <div style="background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--r2);padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase">은퇴 시 필요한 총 자산</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-top:4px">${fmt(Math.round(pvNeed))} 만원</div>
+      </div>
+      <div style="background:var(--ok-bg);border:1px solid var(--ok-b);border-radius:var(--r2);padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--teal);font-weight:600;letter-spacing:.04em;text-transform:uppercase">지금 있는 은퇴자산의 미래가치</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--teal);margin-top:4px">${fmt(Math.round(fvCur))} 만원</div>
+      </div>
+      <div style="background:${gap>0?'var(--bad-bg)':'var(--ok-bg)'};border:1px solid ${gap>0?'var(--bad-b)':'var(--ok-b)'};border-radius:var(--r2);padding:14px;text-align:center">
+        <div style="font-size:11px;color:${gap>0?'var(--red)':'var(--teal)'};font-weight:600;letter-spacing:.04em;text-transform:uppercase">${gap>0?'부족한 금액':'이미 충분해요 🎉'}</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:${gap>0?'var(--red)':'var(--teal)'};margin-top:4px">${fmt(Math.abs(Math.round(gap)))} 만원</div>
+      </div>
+      <div style="background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:var(--r2);padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--amber);font-weight:600;letter-spacing:.04em;text-transform:uppercase">지금부터 월 저축 목표액</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--amber);margin-top:4px">${gap>0?fmt(Math.round(mPmt)):'0'} 만원</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);padding:10px 14px;background:var(--paper-2);border-radius:var(--r2)">
+      📌 은퇴 시 필요 월 생활비(물가 반영): <b>${fmt(Math.round(needAtRet))}만원</b> |
+      국민연금 차감 후: <b>${fmt(Math.round(netNeed))}만원</b>/월 |
+      은퇴 기간: <b>${rYr}년</b> | 준비 기간: <b>${ytr}년</b>
+    </div>`;
+}
+
+// ─── 커스텀 행 추가·삭제 ─────────────────────────────────
+const BS_SECS=['aliq','asav','ainv','are','aetc','lcur','lncur'];
+const CF_SECS=['iearn','iother','ve','fe_mon','fe','sv'];
+let _custId=0;
+function addCustomRow(sec,_skipSave=false){
+  _custId++;
+  const tr=document.createElement('tr');
+  tr.className='sub custom-row';
+  tr.dataset.section=sec;
+  const delBtn=`<button onclick="removeCustomRow(this)" style="background:var(--paper-2);border:1px solid var(--paper-3);border-radius:2px;cursor:pointer;color:var(--ink-3);font-size:11px;padding:2px 7px;flex-shrink:0;font-family:inherit" title="삭제">✕</button>`;
+  const nameTd=`<td style="padding:4px 8px 4px 24px"><div style="display:flex;align-items:center;gap:4px"><input type="text" class="il cust-name" placeholder="항목명 입력" style="text-align:left;flex:1;min-width:0;font-size:12px">${delBtn}</div></td>`;
+  const isBS=BS_SECS.includes(sec);
+  if(isBS){
+    tr.innerHTML=nameTd+`<td class="r"><input class="il cust-val" type="number" placeholder="0" oninput="calcBS()"></td>`;
+  } else {
+    const isY=cfMode==='yearly';
+    tr.innerHTML=nameTd+
+      `<td class="r"><input class="${isY?'il':'ro'} cust-y" type="number" placeholder="0" oninput="calcCF()" ${isY?'':'readonly'}></td>`+
+      `<td class="r"><input class="${isY?'ro':'il'} cust-m" type="number" placeholder="0" oninput="calcCF()" ${isY?'readonly':''}></td>`;
+  }
+  const addBtn=document.getElementById(sec+'_add_tr');
+  addBtn.parentNode.insertBefore(tr,addBtn);
+  isBS?calcBS():calcCF();
+  if(!_skipSave)localStorage.setItem('identifi_data',JSON.stringify(getAllVals()));
+}
+function removeCustomRow(btn){
+  const tr=btn.closest('tr');
+  const sec=tr.dataset.section;
+  tr.remove();
+  BS_SECS.includes(sec)?calcBS():calcCF();
+  localStorage.setItem('identifi_data',JSON.stringify(getAllVals()));
+}
+function initFixedRowDelete(){
+  const sel='#pane-balance tr.sub:not(.custom-row),#pane-cashflow tr.sub:not(.custom-row)';
+  document.querySelectorAll(sel).forEach(tr=>{
+    const td=tr.querySelector('td');
+    if(!td)return;
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;align-items:center;gap:4px;min-width:0';
+    const span=document.createElement('span');
+    span.innerHTML=td.innerHTML;
+    const btn=document.createElement('button');
+    btn.className='del-fixed-btn no-print';
+    btn.textContent='✕';
+    btn.title='이 항목 숨기기';
+    btn.onclick=()=>delFixedRow(tr);
+    wrap.append(span,btn);
+    td.innerHTML='';
+    td.appendChild(wrap);
+  });
+}
+function delFixedRow(tr){
+  tr.querySelectorAll('input').forEach(inp=>{inp.value='';});
+  tr.style.display='none';
+  const inBS=!!tr.closest('#pane-balance');
+  inBS?calcBS():calcCF();
+  localStorage.setItem('identifi_data',JSON.stringify(getAllVals()));
+}
+
+// ─── 저장·불러오기 ────────────────────────────────────────
+function getAllVals(){
+  const d={__cfMode:cfMode};
+  document.querySelectorAll('input,select,textarea').forEach(e=>{if(e.id&&!e.readOnly)d[e.id]=e.value;});
+  const cr={};
+  [...BS_SECS,...CF_SECS].forEach(sec=>{
+    cr[sec]=[];
+    document.querySelectorAll(`tr.custom-row[data-section="${sec}"]`).forEach(tr=>{
+      const name=tr.querySelector('.cust-name')?.value||'';
+      const yv=tr.querySelector('.cust-y')?.value||tr.querySelector('.cust-val')?.value||'';
+      cr[sec].push({name,y:yv});
+    });
+  });
+  d.__customRows=cr;
+  const hiddenRows=[];
+  document.querySelectorAll('#pane-balance tr.sub:not(.custom-row),#pane-cashflow tr.sub:not(.custom-row)').forEach(tr=>{
+    if(tr.style.display==='none'){const inp=tr.querySelector('input[id]');if(inp)hiddenRows.push(inp.id);}
+  });
+  d.__hiddenRows=hiddenRows;
+  return d;
+}
+function applyLoadedData(d){
+  document.querySelectorAll('tr.custom-row').forEach(tr=>tr.remove());
+  document.querySelectorAll('#pane-balance tr.sub:not(.custom-row),#pane-cashflow tr.sub:not(.custom-row)').forEach(tr=>{tr.style.display='';});
+  if(d.__customRows){
+    [...BS_SECS,...CF_SECS].forEach(sec=>{
+      (d.__customRows[sec]||[]).forEach(({name,y})=>{
+        addCustomRow(sec,true);
+        const rows=document.querySelectorAll(`tr.custom-row[data-section="${sec}"]`);
+        const last=rows[rows.length-1];
+        if(last){
+          const nameEl=last.querySelector('.cust-name');
+          const valEl=last.querySelector('.cust-y,.cust-val');
+          if(nameEl)nameEl.value=name||'';
+          if(valEl)valEl.value=y||'';
+        }
+      });
+    });
+  }
+  const mode=d.__cfMode||'yearly';
+  if(mode!==cfMode) setCFMode(mode);
+  setAllVals(d);
+  if(d.__hiddenRows){d.__hiddenRows.forEach(id=>{const inp=document.getElementById(id);if(inp)inp.closest('tr').style.display='none';});}
+}
+function setAllVals(d){Object.entries(d).forEach(([k,val])=>{const e=$(k);if(e&&!e.readOnly)e.value=val;});}
+
+function saveData(){
+  const d=getAllVals();
+  localStorage.setItem('identifi_data',JSON.stringify(d));
+  const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(b);
+  const a=document.createElement('a');
+  a.href=u;a.download=`IdentiFi_${$('c_name').value||'나의재무진단'}_${$('c_date').value||''}.json`;
+  a.click();URL.revokeObjectURL(u);
+  alert('저장 완료! JSON 파일이 다운로드되었습니다.');
+}
+function loadData(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{const d=JSON.parse(ev.target.result);applyLoadedData(d);toggleHousing();calcAge();calcSpouseAge();calcBS();calcCF();alert('불러오기 완료!');}
+      catch{alert('파일을 읽을 수 없어요.');}
+    };r.readAsText(f);
+  };inp.click();
+}
+function resetData(){
+  if(!confirm('모든 데이터를 지울까요? 저장된 파일이 있다면 불러올 수 있어요.'))return;
+  document.querySelectorAll('tr.custom-row').forEach(tr=>tr.remove());
+  document.querySelectorAll('#pane-balance tr.sub:not(.custom-row),#pane-cashflow tr.sub:not(.custom-row)').forEach(tr=>{tr.style.display='';});
+  document.querySelectorAll('input,select,textarea').forEach(e=>{if(!e.readOnly)e.value='';});
+  $('c_date').value='2026-06-22';
+  calcBS();calcCF();
+  $('rx_grid').innerHTML='';$('diag_area').innerHTML='';
+  const rs=$('ratio_summary');if(rs){rs.style.display='none';rs.textContent='';}
+}
+
+// ─── 인쇄 시 빈 행 숨김 ─────────────────────────────────
+window.addEventListener('beforeprint',()=>{
+  ['#pane-cashflow','#pane-balance'].forEach(sel=>{
+    const pane=document.querySelector(sel);
+    if(!pane)return;
+    pane.querySelectorAll('tr.sub').forEach(tr=>{
+      const inp=tr.querySelector('input[type="number"]');
+      if(!inp||(parseFloat(inp.value)||0)===0) tr.classList.add('print-hide');
+    });
+    pane.querySelectorAll('tr.memo').forEach(tr=>tr.classList.add('print-hide'));
+    pane.querySelectorAll('tr.cat').forEach(cat=>{
+      let nx=cat.nextElementSibling,vis=false;
+      while(nx&&!['cat','sum','tot','net','sav'].some(c=>nx.classList.contains(c))){
+        if(nx.classList.contains('sub')&&!nx.classList.contains('print-hide')){vis=true;break;}
+        nx=nx.nextElementSibling;
+      }
+      if(!vis)cat.classList.add('print-hide');
+    });
+  });
+});
+window.addEventListener('afterprint',()=>{
+  document.querySelectorAll('.print-hide').forEach(el=>el.classList.remove('print-hide'));
+});
+
+// ─── 초기화 ──────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  if(typeof pdfjsLib!=='undefined'){
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+  }
+  initFixedRowDelete();
+  const s=localStorage.getItem('identifi_data');
+  if(s){try{const d=JSON.parse(s);applyLoadedData(d);toggleHousing();calcAge();calcSpouseAge();}catch{}}
+  calcBS();calcCF();
+  document.addEventListener('input',()=>{
+    localStorage.setItem('identifi_data',JSON.stringify(getAllVals()));
+  });
+
+  // 모바일 툴팁 탭 처리
+  document.querySelectorAll('.tip').forEach(el=>{
+    el.addEventListener('touchstart',e=>{
+      e.preventDefault();
+      document.querySelectorAll('.tip.active').forEach(t=>{if(t!==el)t.classList.remove('active');});
+      el.classList.toggle('active');
+      setTimeout(()=>el.classList.remove('active'),3000);
+    },{passive:false});
+  });
+
+  // 모바일 하단 네비 스크롤 보정 (safe-area)
+  if(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)){
+    document.body.style.paddingBottom='60px';
+  }
+});
+</script>
+
+<!-- 모바일 하단 탭바 -->
+<style>
+.mob-nav{display:none}
+@media(max-width:600px){
+  .mob-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;
+    background:var(--paper);border-top:1px solid var(--paper-3);
+    z-index:200;padding-bottom:env(safe-area-inset-bottom);
+  }
+  .mob-nav button{
+    flex:1;background:none;border:none;color:var(--ink-4);
+    padding:8px 4px 10px;font-size:9px;font-weight:500;font-family:inherit;
+    cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;
+    transition:color .15s;letter-spacing:.02em;
+  }
+  .mob-nav button .mico{font-size:18px;line-height:1}
+  .mob-nav button.on{color:var(--ink)}
+  .mob-nav button.on .mico-bar{background:var(--gold)}
+  .mob-nav .mico-bar{width:4px;height:4px;border-radius:50%;background:transparent;margin-top:1px}
+  .nav{display:none}
+  .main{padding-top:16px}
+  .btn-row{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .btn-row::-webkit-scrollbar{display:none}
+  .btn-row .btn{flex-shrink:0}
+  .tip.active::after{display:block;content:attr(data-tip)}
+  .tip::after{display:none}
+  .tip:hover::after{display:block}
+}
+</style>
+<nav class="mob-nav" id="mob_nav">
+  <button onclick="sw('info')" class="on" data-tab="info"><span class="mico">👤</span><span>기본정보</span><span class="mico-bar"></span></button>
+  <button onclick="sw('balance')" data-tab="balance"><span class="mico">🏦</span><span>자산·부채</span><span class="mico-bar"></span></button>
+  <button onclick="sw('cashflow')" data-tab="cashflow"><span class="mico">💳</span><span>수입·지출</span><span class="mico-bar"></span></button>
+  <button onclick="sw('diag')" data-tab="diag"><span class="mico">🩺</span><span>건강진단</span><span class="mico-bar"></span></button>
+  <button onclick="sw('goal')" data-tab="goal"><span class="mico">🎯</span><span>목표</span><span class="mico-bar"></span></button>
+</nav>
+<script>
+function _mPrint(fn){
+  if(window.matchMedia('(max-width:768px)').matches){
+    var t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:14px 22px;border-radius:10px;font-size:14px;z-index:9999;text-align:center;max-width:280px;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+    t.innerHTML='🖨️ 출력·PDF 저장은<br><b>PC 웹 브라우저</b>에서 이용해 주세요.';
+    document.body.appendChild(t);
+    setTimeout(function(){t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(function(){t.remove();},400);},3000);
+    return;
+  }
+  fn();
+}
+</script>
+</body>
+</html>

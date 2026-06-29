@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투자성향 결과표 — 위험자산 비중</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1814; --ink-2: #3d3a35; --ink-3: #7a776f; --ink-4: #b5b2a9;
+  --paper: #faf8f4; --paper-2: #f2efe9; --paper-3: #e8e4db;
+  --gold: #c4933f; --gold-light: #f0d99a; --gold-pale: #fdf5e0;
+  --teal: #2a7c6f; --blue: #2b5ea7; --amber: #b86e1a; --red: #943030;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:'Noto Sans KR',sans-serif;font-size:14px;line-height:1.6}
+.page{max-width:820px;margin:0 auto;padding:3rem 2rem 5rem}
+
+.site-header{border-bottom:1px solid var(--paper-3);padding-bottom:1.5rem;margin-bottom:2.5rem;display:flex;align-items:baseline;justify-content:space-between}
+.site-logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink)}
+.site-logo span{color:var(--gold);font-style:italic}
+.site-sub{font-size:11px;color:var(--ink-4);letter-spacing:.1em;text-transform:uppercase}
+
+.page-eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;font-weight:500}
+.page-title{font-family:'Noto Serif KR',serif;font-size:24px;font-weight:500;color:var(--ink);margin-bottom:.75rem}
+.page-desc{font-size:13px;color:var(--ink-3);line-height:1.8;margin-bottom:2rem;padding:.75rem 1rem;background:var(--paper-2);border:1px solid var(--paper-3);border-left:3px solid var(--gold);border-radius:0 4px 4px 0}
+
+/* ── 매트릭스 ── */
+.matrix-wrap{overflow-x:auto;margin-bottom:2.5rem}
+.matrix-outer{position:relative;min-width:620px}
+
+/* 축 레이블 */
+.axis-y-label{
+  position:absolute;left:-2.2rem;top:50%;transform:translateY(-50%) rotate(-90deg);
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);
+  white-space:nowrap;
+}
+.axis-x-label{
+  text-align:center;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-4);margin-bottom:.4rem;
+}
+
+.matrix-table{width:100%;border-collapse:collapse;font-size:13px}
+
+/* 헤더 */
+.matrix-table thead th{
+  font-size:10px;font-weight:400;letter-spacing:.06em;color:var(--ink-3);
+  padding:.55rem .4rem;text-align:center;border-bottom:2px solid var(--ink);
+}
+.matrix-table thead th.corner{border-bottom:2px solid var(--ink);border-right:2px solid var(--ink)}
+.th-main{font-size:11.5px;font-weight:500;color:var(--ink-2) !important}
+
+/* 행 헤더 */
+.row-head{
+  font-size:10px;font-weight:400;color:var(--ink-3);padding:.4rem .65rem .4rem .3rem;
+  text-align:right;white-space:nowrap;border-right:2px solid var(--ink);
+  vertical-align:middle;letter-spacing:.02em;
+}
+.row-head strong{display:block;font-size:11.5px;font-weight:500;color:var(--ink-2);letter-spacing:0}
+
+/* 셀 */
+.mc{
+  padding:.7rem .5rem;text-align:center;border:1px solid var(--paper-3);
+  vertical-align:middle;cursor:default;transition:filter .15s;
+}
+.mc:hover{filter:brightness(.94)}
+
+/* SAA 수치 */
+.saa{
+  font-family:'DM Serif Display',serif;font-size:22px;line-height:1.1;
+}
+/* TAA 조정폭 */
+.taa{font-size:10px;color:rgba(0,0,0,.45);margin-top:1px}
+/* 허용범위 */
+.range{font-size:9.5px;color:rgba(0,0,0,.38);margin-top:1px}
+
+/* 위험 수준별 셀 색상 */
+.lv1{background:#f0f7f2;color:#2a5c3a}           /* 5~10% */
+.lv2{background:#e4edf8;color:#1e4a82}           /* 20~30% */
+.lv3{background:#fff8e8;color:#7a5200}           /* 35~50% */
+.lv4{background:#fceee0;color:#8a3800}           /* 55~70% */
+.lv5{background:#fae8e8;color:#7a1f1f}           /* 75~90% */
+
+/* 색상 강조선 (대각 근처 → 성향=능력 일치 셀) */
+.match{outline:2px solid var(--gold);outline-offset:-2px;position:relative}
+.match::after{
+  content:'✓';position:absolute;top:3px;right:4px;
+  font-size:8px;color:var(--gold);font-weight:700;
+}
+
+/* 범례 */
+.legend-section{margin-bottom:2rem}
+.legend-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-bottom:.6rem}
+.legend-row{display:flex;gap:8px;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-2)}
+.leg-box{width:14px;height:14px;border-radius:2px;flex-shrink:0}
+
+/* 읽는 법 */
+.howto{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:4px;padding:1rem 1.15rem;margin-bottom:2rem;font-size:12.5px;color:var(--ink-2);line-height:1.8}
+.howto strong{color:var(--ink);font-weight:500}
+.sample{display:inline-block;background:var(--ink);color:var(--gold-light);font-family:'DM Serif Display',serif;font-size:15px;padding:.1rem .6rem;border-radius:2px;vertical-align:middle;margin:0 2px}
+
+/* 정의 박스 */
+.def-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:2rem}
+.def-box{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:4px;padding:.9rem 1rem}
+.def-label{font-size:9.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-4);margin-bottom:.35rem}
+.def-name{font-family:'Noto Serif KR',serif;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:.35rem}
+.def-desc{font-size:12px;color:var(--ink-3);line-height:1.7}
+
+/* 원칙 */
+.principle{font-size:12.5px;color:var(--ink-3);line-height:1.8;margin-bottom:2rem;padding:.8rem 1rem;background:var(--gold-pale);border:1px solid #f0d99a;border-left:3px solid var(--gold);border-radius:0 4px 4px 0}
+.principle strong{color:var(--amber);font-weight:500}
+
+.page-footer{border-top:1px solid var(--paper-3);padding-top:1.5rem;margin-top:1rem;font-size:11px;color:var(--ink-4);line-height:1.7;text-align:center}
+
+@media print{body{background:#fff}.page{padding:1rem}}
+@media(max-width:600px){.def-row{grid-template-columns:1fr}.axis-y-label{display:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="site-header">
+    <div class="site-logo">재무설계 <span>도구</span></div>
+    <div class="site-sub">Risk Profile Matrix</div>
+  </header>
+
+  <div class="page-eyebrow">Investment Risk Profile · Asset Allocation</div>
+  <h1 class="page-title">투자성향 결과표 — 위험자산 비중</h1>
+  <p class="page-desc">
+    <strong>위험수용성향</strong>(심리적 선호)과 <strong>위험감수능력</strong>(재무적 여력)의 조합으로 권장 위험자산 비중을 결정합니다.<br>
+    표기: <strong>기준비중(SAA) ± 전술조정폭(TAA)</strong> &nbsp;→&nbsp; 예) <strong>50% ±10%</strong> = 허용범위 40%~60%
+  </p>
+
+  <!-- ── 읽는 법 ── -->
+  <div class="howto">
+    <strong>읽는 방법</strong> — 세로(행)에서 <strong>위험감수능력</strong> 수준을 찾고, 가로(열)에서 <strong>위험수용성향</strong> 수준을 찾아 교차점의 수치를 확인하세요.<br>
+    셀 예시: <span class="sample">50%</span> <span style="font-size:12px;color:var(--ink-3)">±10% &nbsp; (40%~60%)</span> — SAA 기준비중 50%, TAA ±10% 조정 허용, 운용 범위 40%~60%<br>
+    <span style="color:var(--gold);font-weight:500">✓ 표시</span> 셀은 성향과 능력이 일치하는 기준 대각선입니다.
+  </div>
+
+  <!-- ── 매트릭스 테이블 ── -->
+  <div class="legend-section">
+    <div class="legend-title">위험자산 비중 수준</div>
+    <div class="legend-row">
+      <div class="leg"><div class="leg-box lv1" style="outline:1px solid #b5d4bf"></div>5~15% (매우보수)</div>
+      <div class="leg"><div class="leg-box lv2" style="outline:1px solid #a0bce0"></div>20~30% (보수)</div>
+      <div class="leg"><div class="leg-box lv3" style="outline:1px solid #e0cc88"></div>35~50% (중립)</div>
+      <div class="leg"><div class="leg-box lv4" style="outline:1px solid #e8b890"></div>55~70% (적극)</div>
+      <div class="leg"><div class="leg-box lv5" style="outline:1px solid #e8a0a0"></div>75~90% (공격)</div>
+      <div class="leg" style="margin-left:8px"><div class="leg-box" style="background:var(--paper-2);outline:2px solid var(--gold)"></div>성향=능력 일치</div>
+    </div>
+  </div>
+
+  <div class="matrix-wrap">
+    <div class="axis-x-label">위험수용성향 (심리적 선호) →</div>
+    <div class="matrix-outer">
+      <div class="axis-y-label">← 위험감수능력 (재무적 여력)</div>
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th class="corner" style="text-align:right;padding-right:.5rem;font-size:10px;color:var(--ink-4)">
+              능력 ↓ &nbsp;/&nbsp; 성향 →
+            </th>
+            <th>
+              <div class="th-main">매우 낮음</div>
+              <div>안정 선호</div>
+            </th>
+            <th>
+              <div class="th-main">낮음</div>
+              <div>안정추구</div>
+            </th>
+            <th>
+              <div class="th-main">보통</div>
+              <div>중립</div>
+            </th>
+            <th>
+              <div class="th-main">높음</div>
+              <div>적극</div>
+            </th>
+            <th>
+              <div class="th-main">매우 높음</div>
+              <div>공격 선호</div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- 행 1: 감수능력 매우높음 -->
+          <tr>
+            <td class="row-head"><strong>매우 높음</strong>소득 안정·여유자산 충분<br>장기투자 가능</td>
+            <!-- 성향 매우낮음 × 능력 매우높음 → 성향이 제약 → 10% -->
+            <td class="mc lv1">
+              <div class="saa">10%</div>
+              <div class="taa">±5%</div>
+              <div class="range">5%~15%</div>
+            </td>
+            <!-- 성향 낮음 × 능력 매우높음 → 35% -->
+            <td class="mc lv2">
+              <div class="saa">35%</div>
+              <div class="taa">±10%</div>
+              <div class="range">25%~45%</div>
+            </td>
+            <!-- 성향 보통 × 능력 매우높음 → 55% -->
+            <td class="mc lv4">
+              <div class="saa">55%</div>
+              <div class="taa">±10%</div>
+              <div class="range">45%~65%</div>
+            </td>
+            <!-- 성향 높음 × 능력 매우높음 → 75% -->
+            <td class="mc lv5">
+              <div class="saa">75%</div>
+              <div class="taa">±10%</div>
+              <div class="range">65%~85%</div>
+            </td>
+            <!-- 성향 매우높음 × 능력 매우높음 → 90% (일치) -->
+            <td class="mc lv5 match">
+              <div class="saa">90%</div>
+              <div class="taa">±10%</div>
+              <div class="range">80%~100%</div>
+            </td>
+          </tr>
+
+          <!-- 행 2: 감수능력 높음 -->
+          <tr>
+            <td class="row-head"><strong>높음</strong>소득 양호·일정 여유자산<br>중장기 투자 가능</td>
+            <td class="mc lv1">
+              <div class="saa">10%</div>
+              <div class="taa">±5%</div>
+              <div class="range">5%~15%</div>
+            </td>
+            <!-- 일치 대각 -->
+            <td class="mc lv2 match">
+              <div class="saa">30%</div>
+              <div class="taa">±10%</div>
+              <div class="range">20%~40%</div>
+            </td>
+            <td class="mc lv3">
+              <div class="saa">50%</div>
+              <div class="taa">±10%</div>
+              <div class="range">40%~60%</div>
+            </td>
+            <td class="mc lv5">
+              <div class="saa">70%</div>
+              <div class="taa">±10%</div>
+              <div class="range">60%~80%</div>
+            </td>
+            <!-- 성향 매우높음 × 능력 높음 → 능력이 제약 → 80% -->
+            <td class="mc lv5">
+              <div class="saa">80%</div>
+              <div class="taa">±10%</div>
+              <div class="range">70%~90%</div>
+            </td>
+          </tr>
+
+          <!-- 행 3: 감수능력 보통 -->
+          <tr>
+            <td class="row-head"><strong>보통</strong>소득 보통·여유자산 제한적<br>중기 투자</td>
+            <td class="mc lv1">
+              <div class="saa">10%</div>
+              <div class="taa">±5%</div>
+              <div class="range">5%~15%</div>
+            </td>
+            <td class="mc lv2">
+              <div class="saa">25%</div>
+              <div class="taa">±5%</div>
+              <div class="range">20%~30%</div>
+            </td>
+            <!-- 일치 대각 -->
+            <td class="mc lv3 match">
+              <div class="saa">45%</div>
+              <div class="taa">±10%</div>
+              <div class="range">35%~55%</div>
+            </td>
+            <!-- 성향 높음 × 능력 보통 → 능력 제약 → 55% -->
+            <td class="mc lv4">
+              <div class="saa">55%</div>
+              <div class="taa">±10%</div>
+              <div class="range">45%~65%</div>
+            </td>
+            <!-- 성향 매우높음 × 능력 보통 → 능력 제약 → 60% -->
+            <td class="mc lv4">
+              <div class="saa">60%</div>
+              <div class="taa">±10%</div>
+              <div class="range">50%~70%</div>
+            </td>
+          </tr>
+
+          <!-- 행 4: 감수능력 낮음 -->
+          <tr>
+            <td class="row-head"><strong>낮음</strong>소득 불안정·여유자산 적음<br>단기 유동성 필요</td>
+            <td class="mc lv1">
+              <div class="saa">5%</div>
+              <div class="taa">±5%</div>
+              <div class="range">0%~10%</div>
+            </td>
+            <td class="mc lv2">
+              <div class="saa">20%</div>
+              <div class="taa">±5%</div>
+              <div class="range">15%~25%</div>
+            </td>
+            <td class="mc lv3">
+              <div class="saa">35%</div>
+              <div class="taa">±5%</div>
+              <div class="range">30%~40%</div>
+            </td>
+            <!-- 일치 대각 -->
+            <td class="mc lv3 match">
+              <div class="saa">40%</div>
+              <div class="taa">±10%</div>
+              <div class="range">30%~50%</div>
+            </td>
+            <!-- 성향 매우높음 × 능력 낮음 → 능력 강하게 제약 → 45% -->
+            <td class="mc lv3">
+              <div class="saa">45%</div>
+              <div class="taa">±10%</div>
+              <div class="range">35%~55%</div>
+            </td>
+          </tr>
+
+          <!-- 행 5: 감수능력 매우낮음 -->
+          <tr>
+            <td class="row-head"><strong>매우 낮음</strong>소득 불안정·여유자산 없음<br>단기 유동성 절박</td>
+            <!-- 일치 대각 -->
+            <td class="mc lv1 match">
+              <div class="saa">5%</div>
+              <div class="taa">±5%</div>
+              <div class="range">0%~10%</div>
+            </td>
+            <td class="mc lv1">
+              <div class="saa">10%</div>
+              <div class="taa">±5%</div>
+              <div class="range">5%~15%</div>
+            </td>
+            <td class="mc lv2">
+              <div class="saa">20%</div>
+              <div class="taa">±5%</div>
+              <div class="range">15%~25%</div>
+            </td>
+            <!-- 성향 높음이지만 능력 매우낮음 → 강한 제약 → 25% -->
+            <td class="mc lv2">
+              <div class="saa">25%</div>
+              <div class="taa">±5%</div>
+              <div class="range">20%~30%</div>
+            </td>
+            <!-- 성향 매우높음이지만 능력 매우낮음 → 강한 제약 → 30% -->
+            <td class="mc lv2">
+              <div class="saa">30%</div>
+              <div class="taa">±5%</div>
+              <div class="range">25%~35%</div>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 핵심 원칙 ── -->
+  <div class="principle">
+    <strong>핵심 원칙</strong> — 두 축이 불일치할 때는 <strong>보수적 기준(낮은 쪽)</strong>을 따릅니다.<br>
+    · 성향 높음 + 능력 낮음 → 능력이 제약 (위험자산 상한을 능력 수준으로 제한)<br>
+    · 성향 낮음 + 능력 높음 → 성향이 제약 (고객이 받아들일 수 있는 수준 존중)<br>
+    · 두 축이 일치하는 대각선(✓)이 가장 자연스러운 기준점입니다.
+  </div>
+
+  <!-- ── 용어 정의 ── -->
+  <div class="def-row">
+    <div class="def-box">
+      <div class="def-label">위험수용성향</div>
+      <div class="def-name">Risk Tolerance (심리적 선호)</div>
+      <div class="def-desc">손실 발생 시 감정적으로 감당할 수 있는 수준. 설문·인터뷰로 측정. 투자 경험, 손실 반응, 기대수익률 등에서 도출.</div>
+    </div>
+    <div class="def-box">
+      <div class="def-label">위험감수능력</div>
+      <div class="def-name">Risk Capacity (재무적 여력)</div>
+      <div class="def-desc">소득 안정성, 긴급자금 보유, 부채비율, 투자 가능 기간 등 객관적 재무 상황으로 판단. 손실을 실제로 감당할 수 있는가.</div>
+    </div>
+    <div class="def-box">
+      <div class="def-label">SAA — Strategic Asset Allocation</div>
+      <div class="def-name">전략적 자산배분 (기준비중)</div>
+      <div class="def-desc">장기 목표 기반의 위험자산 목표 비중. 연 1~2회 리밸런싱으로 유지.</div>
+    </div>
+    <div class="def-box">
+      <div class="def-label">TAA — Tactical Asset Allocation</div>
+      <div class="def-name">전술적 자산배분 (조정폭)</div>
+      <div class="def-desc">단기 시장 전망·밸류에이션에 따라 SAA에서 일시적으로 허용하는 ± 편차 범위.</div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    투자성향 결과표 &nbsp;·&nbsp; 개인 참고용 &nbsp;·&nbsp; 2026<br>
+    <span style="font-size:10px">본 자료의 수치는 가이드라인이며 실제 운용 시 종합적 판단이 필요합니다.</span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가치 기반 재무설계 | IdentiFi</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1a1814;--ink-2:#3d3a35;--ink-3:#7a776f;--ink-4:#b5b2a9;
+  --paper:#faf8f4;--paper-2:#f2efe9;--paper-3:#e8e4db;
+  --gold:#c4933f;--gold-light:#f0d99a;--gold-pale:#fdf5e0;
+  --teal:#2a7c6f;--teal-light:#e1f0ed;--red:#943030;--red-light:#fae8e8;
+  --blue:#2b5ea7;--amber:#b86e1a;--radius:2px;--radius-lg:4px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Noto Sans KR',sans-serif;font-size:18px;line-height:1.65;min-height:100vh;word-break:keep-all}
+.page{max-width:1400px;margin:0 auto;padding-bottom:5rem}
+#print-wm{display:none}
+
+/* SITE HEADER */
+.site-header{border-bottom:1px solid var(--paper-3);padding:1.1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--paper);z-index:100}
+.site-logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink)}
+.site-logo span{color:var(--gold);font-style:italic}
+.site-cfp{font-size:13px;color:var(--ink-3);letter-spacing:.04em}
+.site-sub{font-size:12px;color:var(--ink-4);letter-spacing:.1em;text-transform:uppercase;text-align:right}
+
+/* PROGRESS */
+.prog-wrap{padding:.9rem 2rem .6rem;border-bottom:1px solid var(--paper-3)}
+.prog-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.35rem}
+.prog-label{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.prog-count{font-size:14px;color:var(--ink-3)}
+.prog-track{height:2px;background:var(--paper-3)}
+.prog-fill{height:100%;background:var(--gold);transition:width .4s cubic-bezier(.4,0,.2,1)}
+
+/* LAYOUT */
+.con{padding:2rem 2rem 1rem}
+.step{display:none;animation:fi .3s ease}
+.step.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem}
+.card-w{background:#fff;border:1px solid var(--paper-3);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem}
+
+/* TYPE */
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem;font-weight:500}
+h2{font-family:'Noto Serif KR',serif;font-size:22px;font-weight:500;color:var(--ink);margin-bottom:.35rem}
+.desc{font-size:15px;color:var(--ink-3);line-height:1.75;margin-bottom:1.25rem;padding-left:.75rem;border-left:2px solid var(--paper-3)}
+.sec-h{font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:.5rem;padding-bottom:.4rem;border-bottom:1px solid var(--paper-3)}
+
+/* INTRO */
+.i-hero{text-align:center;padding:1.25rem 0 .5rem}
+.i-logo{width:56px;height:56px;background:var(--ink);border-radius:var(--radius-lg);margin:0 auto .9rem;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:22px;color:var(--gold-light);font-style:italic}
+.i-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:.9rem 0}
+.i-box{background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius);padding:.75rem .5rem;text-align:center}
+.i-num{width:20px;height:20px;background:var(--ink);color:var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;margin:0 auto .35rem;font-family:'DM Serif Display',serif}
+.i-lbl{font-size:12px;color:var(--ink-3);line-height:1.4}
+
+/* FLOW DIAGRAM */
+.flow{display:flex;align-items:center;justify-content:center;margin:1.25rem 0;overflow-x:auto;padding:4px 0;gap:0}
+.fbox{text-align:center;min-width:82px;flex-shrink:0}
+.fbox-lbl{font-size:11px;color:var(--ink-4);margin-bottom:3px;letter-spacing:.06em}
+.fbox-main{display:inline-flex;flex-direction:column;align-items:center;padding:8px 10px;border-radius:var(--radius);font-weight:500;font-size:13px;line-height:1.3;border:1px solid transparent}
+.fbox-sub{font-size:11px;opacity:.75;margin-top:2px}
+.farrow{font-size:16px;color:var(--gold);flex-shrink:0;padding:0 3px;margin-top:12px}
+.f-r{background:var(--paper);border-color:var(--paper-3);color:var(--ink-2)}
+.f-b{background:var(--gold-pale);border-color:var(--gold-light);color:var(--ink-2)}
+.f-g{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.f-v{background:var(--ink);border-color:var(--ink);color:var(--gold-light)}
+.f-hvb{display:flex;gap:2px;margin-top:3px}
+.f-hvb span{padding:1px 4px;font-size:11px;font-weight:500;background:rgba(255,255,255,.22);border-radius:1px}
+.philosophy{background:var(--ink);color:#fff;border-radius:var(--radius-lg);padding:1.15rem 1.4rem;margin-top:1rem}
+.ph-title{font-size:12px;font-weight:500;color:var(--gold-light);margin-bottom:.4rem;letter-spacing:.1em;text-transform:uppercase}
+.ph-text{font-family:'Noto Serif KR',serif;font-size:15px;line-height:1.8;color:rgba(255,255,255,.82)}
+
+/* KINDER */
+.q-box{background:var(--gold-pale);border:1px solid var(--gold-light);border-left:3px solid var(--gold);border-radius:0 var(--radius-lg) var(--radius-lg) 0;padding:.9rem 1.1rem;margin-bottom:1rem;font-family:'Noto Serif KR',serif;font-size:16px;color:var(--ink-2);line-height:1.8;font-style:italic}
+textarea.answer{width:100%;min-height:325px;border:1px solid var(--paper-3);border-radius:var(--radius);padding:.8rem .95rem;font-size:15px;font-family:'Noto Sans KR',sans-serif;color:var(--ink);resize:none;background:var(--paper);transition:border-color .2s,box-shadow .2s,background .2s;line-height:1.65}
+textarea.answer:focus{outline:none;border-color:var(--gold)}
+textarea.answer.invalid{border-color:var(--red);box-shadow:0 0 0 3px rgba(148,48,48,.15);background:#fff5f5}
+.hint{font-size:13px;color:var(--ink-4);margin-top:.35rem}
+
+/* VALUE CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.9rem}
+.chip{padding:4px 11px;border:1px solid var(--paper-3);border-radius:1px;cursor:pointer;font-size:13px;color:var(--ink-3);background:var(--paper);transition:all .14s;user-select:none}
+.chip:hover{border-color:var(--gold);color:var(--ink)}
+.chip.sel{background:var(--ink);border-color:var(--ink);color:var(--gold-light)}
+.chip.sel::before{content:'✓ ';font-weight:500}
+.cnt{font-size:12px;color:var(--ink-4);text-align:right;margin-bottom:.35rem}
+.vdesc{margin-top:.5rem;padding:.55rem .85rem;background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius);font-size:13px;color:var(--ink-3);min-height:28px}
+
+/* PRIORITY LIST */
+.plist{list-style:none}
+.pitem{display:flex;align-items:center;gap:.6rem;padding:.7rem .95rem;background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius);margin-bottom:.35rem}
+.prank{width:22px;height:22px;background:var(--ink);color:var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;font-family:'DM Serif Display',serif}
+.prank.r1,.prank.r2,.prank.r3{background:var(--ink)}
+.pname{font-weight:500;color:var(--ink);font-size:14px}
+.ptype{font-size:12px;color:var(--ink-4)}
+.rbts{display:flex;gap:3px;margin-left:auto}
+.rbtn{width:21px;height:21px;border:1px solid var(--paper-3);background:var(--paper);color:var(--ink-3);border-radius:var(--radius);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .14s}
+.rbtn:hover{border-color:var(--ink-3);color:var(--ink)}.rbtn:disabled{opacity:.3;cursor:default}
+.empty-p{text-align:center;padding:1.5rem;color:var(--ink-4);font-size:14px}
+
+/* 3x3 MATRIX */
+.guide-box{background:var(--gold-pale);border:1px solid var(--gold-light);border-left:3px solid var(--gold);border-radius:0 var(--radius-lg) var(--radius-lg) 0;padding:.85rem 1rem;margin-bottom:1rem;font-size:14px;color:var(--ink-2);line-height:1.65}
+.guide-box ul,.guide-box ol{margin:.4rem 0 0 1rem}
+.guide-box li{margin-bottom:2px}
+.m3-wrap{overflow-x:auto;margin-left:-1.5rem;margin-right:-1.5rem}
+.m3{border-collapse:collapse;width:100%;min-width:636px}
+.m3 th,.m3 td{border:1px solid var(--paper-3);vertical-align:top}
+.m3-empty{background:var(--paper-2);width:192px}
+.m3-th{padding:8px 11px;text-align:center;font-size:13px;font-weight:500}
+.m3-th-h{background:var(--ink);color:var(--gold-light)}
+.m3-th-d{background:var(--ink);color:var(--gold-light)}
+.m3-th-b{background:var(--ink);color:var(--gold-light)}
+.m3-th-sub{display:block;font-size:11px;font-weight:400;opacity:.8;margin-top:1px}
+.m3-rh{padding:10px 13px;font-size:13px;font-weight:500;vertical-align:middle;min-width:192px;line-height:1.4}
+.m3-rh-core{background:var(--gold-pale);border-left:3px solid var(--gold);color:var(--ink-2)}
+.m3-rh-ought{background:var(--paper-2);color:var(--ink-2)}
+.m3-rh-fun{background:var(--paper-2);color:var(--ink-2)}
+.m3-rh-sub{display:block;font-size:12px;font-weight:400;color:var(--ink-4);margin-top:4px;line-height:1.5}
+.m3-cell{padding:5px}
+.m3-ta{width:100%;border:1px solid var(--paper-3);border-radius:var(--radius);padding:8px 10px;font-size:13px;font-family:'Noto Sans KR',sans-serif;color:var(--ink);resize:none;min-height:96px;line-height:1.5;background:var(--paper)}
+.m3-ta:focus{outline:1px solid var(--gold);border-color:transparent}
+.m3-ta.invalid{border-color:var(--red);box-shadow:0 0 0 3px rgba(148,48,48,.15);background:#fff5f5}
+.cat-empty .pt-in{pointer-events:none}
+
+/* CAT TOOLTIP */
+.cat-tip{position:absolute;background:var(--ink);color:var(--gold-light);font-size:12px;padding:5px 10px;border-radius:var(--radius);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;z-index:200}
+.cat-tip.show{opacity:1}
+
+/* PERIOD TABLE */
+.pt-ctrls{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap}
+.prio-btn{padding:5px 13px;border:1px solid var(--ink);border-radius:var(--radius);background:var(--paper);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .14s}
+.prio-btn.on{background:var(--ink);color:var(--gold-light)}
+.prio-reset{padding:5px 10px;border:1px solid var(--paper-3);border-radius:var(--radius);background:var(--paper);color:var(--ink-3);font-size:13px;cursor:pointer;font-family:inherit;transition:all .14s}
+.prio-reset:hover{border-color:var(--ink-3);color:var(--ink)}
+.prio-count{font-size:13px;color:var(--ink-2);font-weight:500}
+.pt-wrap{overflow-x:auto;margin-left:-1.5rem;margin-right:-1.5rem}
+.pt{border-collapse:collapse;min-width:800px;width:100%}
+.pt th,.pt td{border:1px solid var(--paper-3);font-size:13px}
+.pt thead th{background:var(--ink);color:var(--gold-light);padding:6px 7px;text-align:center;white-space:nowrap;font-weight:500;letter-spacing:.04em}
+.pt thead th.cat-head{background:var(--ink-2)}
+.pt tbody td.cat-cell{background:var(--paper-2);padding:6px 8px;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;min-width:72px}
+.cat-edit{border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:500;color:var(--ink);width:62px;padding:0}
+.cat-edit:focus{outline:1px solid var(--gold);border-radius:1px;background:var(--paper);padding:1px 3px}
+.cat-edit::placeholder{color:var(--ink-4);font-weight:400}
+.cat-del{width:16px;height:16px;border:none;background:none;color:var(--ink-4);cursor:pointer;font-size:15px;padding:0;line-height:1;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:2px;transition:all .12s}
+.cat-del:hover{background:var(--paper-3);color:var(--ink-2)}
+.pt-cell{padding:3px;min-width:80px;vertical-align:top;position:relative}
+.pt-in{width:100%;border:none;background:transparent;font-size:12px;font-family:inherit;color:var(--ink);padding:3px 4px;resize:none;line-height:1.4;min-height:38px}
+.pt-in:focus{outline:none;background:var(--paper)}
+.pt-cell.cat-empty{background:var(--paper-2)}
+.prio-badge{position:absolute;top:2px;right:2px;width:15px;height:15px;border-radius:50%;background:var(--ink);color:var(--gold-light);font-size:11px;font-weight:500;display:none;align-items:center;justify-content:center;cursor:pointer}
+.assigned .prio-badge{display:flex}
+.add-cat-btn{padding:6px 14px;border:1px dashed var(--paper-3);border-radius:var(--radius);background:transparent;color:var(--ink-3);font-size:13px;cursor:pointer;font-family:inherit;width:100%;margin-top:.55rem;transition:all .14s}
+.add-cat-btn:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* ── FINAL PAGE TABS ── */
+.final-tabs{display:flex;gap:0;border:1px solid var(--paper-3);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1.5rem}
+.final-tab{flex:1;padding:.85rem 1rem;cursor:pointer;font-size:15px;font-family:'Noto Sans KR',sans-serif;font-weight:400;border:none;background:var(--paper-2);color:var(--ink-3);transition:all .18s;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:.5rem;border-right:1px solid var(--paper-3)}
+.final-tab:last-child{border-right:none}
+.final-tab:hover{background:var(--paper-3);color:var(--ink)}
+.final-tab.active{background:var(--ink);color:var(--gold-light);font-weight:500}
+.final-tab-icon{font-size:17px}
+.final-panel{display:none}
+.final-panel.active{display:block}
+
+/* SMARTER TABLE */
+.st{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:1rem}
+.st th,.st td{padding:8px 10px;border:1px solid var(--paper-3);text-align:left;vertical-align:top}
+.st th{background:var(--ink);color:var(--gold-light);font-family:'DM Serif Display',serif;font-size:17px;font-weight:400;width:22px;text-align:center}
+.st-let{display:inline-block;font-weight:500;color:var(--ink);margin-right:3px}
+.st-sub{font-size:13px;color:var(--ink-3);display:block;margin-top:2px;line-height:1.6}
+.st tr:nth-child(even) td{background:var(--paper-2)}
+
+/* EISENHOWER */
+.e-section-title{font-family:'Noto Serif KR',serif;font-size:18px;font-weight:500;color:var(--ink);margin-bottom:.75rem}
+.e-img{width:100%;max-width:460px;border-radius:var(--radius);display:block;margin:0 auto}
+.e-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:.75rem}
+.eq{padding:.9rem 1rem;border-radius:var(--radius-lg);font-size:14px}
+.eq1{background:var(--paper-2);border:1px solid var(--paper-3)}
+.eq2{background:var(--gold-pale);border:1px solid var(--gold-light)}
+.eq3{background:var(--paper-2);border:1px solid var(--paper-3)}
+.eq4{background:var(--paper-2);border:1px solid var(--paper-3)}
+.eq-h{font-weight:500;margin-bottom:4px;font-size:15px}
+.eq-body{font-size:13px;color:var(--ink-3);line-height:1.6}
+.sec-div{border:none;border-top:1px solid var(--paper-3);margin:1.75rem 0}
+
+/* RESULT SECTION HEADERS */
+#panel-result .sec-h{color:var(--gold);border-bottom-color:rgba(196,147,63,.25)}
+
+/* RESULT DIVIDER */
+.res-divider{border:none;border-top:2px solid var(--paper-3);margin:1rem 0}
+
+/* RESULT ROWS */
+.res-row{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--radius);margin-bottom:.4rem}
+.res-badge{width:20px;height:20px;background:var(--ink);color:var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;margin-top:1px}
+.res-row-title{font-weight:500;font-size:13px;color:var(--ink);line-height:1.4}
+.res-row-sub{font-size:11px;color:var(--ink-3);margin-top:1px;line-height:1.5}
+.res-row.top1{background:var(--gold-pale);border-color:var(--gold-light);border-left:2px solid var(--gold)}
+.res-row.top1 .res-badge{background:var(--gold);color:var(--ink)}
+
+/* RESULT */
+.res-hero{text-align:center;padding:1.25rem 0 .75rem}
+.res-mark{font-family:'DM Serif Display',serif;font-size:38px;color:var(--gold);margin-bottom:.4rem}
+.bridge-row{display:flex;align-items:stretch;justify-content:center;gap:4px;margin:.9rem 0;flex-wrap:wrap}
+.bx{background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius);padding:8px 10px;text-align:center;min-width:205px;max-width:300px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.barrow{text-align:center;align-self:center}
+.bx.hl{background:var(--ink);border-color:var(--ink);color:var(--gold-light)}
+.bx.ac{background:var(--gold);border-color:var(--gold);color:var(--ink);box-shadow:0 2px 8px rgba(196,147,63,.35)}
+.bx-l{font-size:11px;opacity:.7;margin-bottom:3px;letter-spacing:.06em}
+.bx-v{font-size:13px;font-weight:500;line-height:1.4;font-family:'Noto Sans KR',sans-serif}
+.barrow{font-size:22px;color:var(--gold);padding:0 8px;flex-shrink:0}
+.k-ans{padding:.6rem .85rem;background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--radius);margin-bottom:.4rem}
+.k-q{font-weight:500;color:var(--ink-3);font-size:12px;margin-bottom:2px;text-transform:uppercase;letter-spacing:.06em}
+.k-a{font-size:13px;color:var(--ink-2);line-height:1.6;white-space:pre-wrap}
+.p2col{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:1rem}
+
+/* NAV */
+.nav{display:flex;gap:.5rem;justify-content:space-between;margin-top:1.4rem;flex-wrap:wrap;align-items:center}
+.btn{padding:.6rem 1.35rem;border-radius:var(--radius);font-size:14px;cursor:pointer;border:1px solid transparent;transition:all .14s;font-family:'Noto Sans KR',sans-serif;letter-spacing:.02em}
+.btn-p{background:var(--ink);border-color:var(--ink);color:var(--gold-light)}.btn-p:hover{background:var(--ink-2)}
+.btn-s{background:var(--paper);border-color:var(--paper-3);color:var(--ink-3)}.btn-s:hover{border-color:var(--ink-3);color:var(--ink)}
+.btn-print{background:var(--ink);border-color:var(--ink);color:var(--gold-light)}.btn-print:hover{background:var(--ink-2)}
+.btn-home{background:var(--paper);border-color:var(--paper-3);color:var(--ink-3)}.btn-home:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* VALUE 2-COL */
+.val-2col{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.val-col-title{font-size:13px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;padding-bottom:.4rem;border-bottom:2px solid var(--gold-light)}
+.sub-sec{margin-bottom:.85rem}
+.sub-sec-h{font-size:12px;font-weight:500;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.35rem;padding:.2rem .55rem;background:var(--paper-2);border-radius:1px;display:inline-block}
+
+.mob-only{display:none!important}
+.ke-mob{display:none}
+/* EVOKE */
+.evoke-row{display:flex;gap:4px;justify-content:center;margin:1rem 0;flex-wrap:wrap}
+.evoke-box{text-align:center;min-width:90px;flex:1;max-width:140px}
+.evoke-letter{font-family:'DM Serif Display',serif;font-size:30px;color:var(--gold)}
+.evoke-phase{font-size:12px;font-weight:500;color:var(--ink);margin:.1rem 0}
+.evoke-ko{font-size:11px;color:var(--ink-4)}
+.evoke-arrow{font-size:18px;color:var(--gold-light);margin-top:14px;flex-shrink:0}
+.evoke-active{background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:var(--radius);padding:4px 6px}
+
+/* OBSTACLES */
+.obs-wrap{margin-top:1.5rem;padding:1.25rem;background:#fff;border:1px solid var(--paper-3);border-radius:var(--radius-lg)}
+.obs-title{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:500;color:var(--ink);margin-bottom:.35rem}
+.obs-desc{font-size:14px;color:var(--ink-3);line-height:1.7;margin-bottom:.9rem;border-left:2px solid var(--paper-3);padding-left:.7rem}
+.obs-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.obs-item label{display:block;font-size:13px;font-weight:500;margin-bottom:.3rem;color:var(--ink-2)}
+.obs-item textarea{width:100%;min-height:80px;border:1px solid var(--paper-3);border-radius:var(--radius);padding:.5rem .65rem;font-size:13px;font-family:inherit;color:var(--ink);resize:vertical;line-height:1.5;background:var(--paper)}
+.obs-item textarea:focus{outline:1px solid var(--gold);border-color:transparent}
+
+/* PRINT A4 */
+@media print{
+  @page{margin:8mm;size:A4}
+  #print-wm{display:block!important;position:fixed;top:0;left:0;width:100%;height:100%;z-index:999999;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='360'%3E%3Ctext x='260' y='180' font-family='Georgia,serif' font-size='58' fill='rgba(196,147,63,0.08)' text-anchor='middle' dominant-baseline='middle' transform='rotate(-40,260,180)'%3EIdentiFi%3C/text%3E%3C/svg%3E");background-repeat:repeat;background-size:520px 360px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .nav,.final-tabs,.pt-ctrls,.add-cat-btn,.guide-box,.prio-btn,.prio-reset,.prio-count,.prog-wrap{display:none!important}
+  .site-header{position:static;border-bottom:1px solid #ddd;padding:.4rem .5rem;margin-bottom:.4rem}
+  .site-cfp-sub{display:none}
+  .res-hero h2{display:none}
+  .res-hero{padding-top:0}
+  #panel-result .card{border:none;background:transparent;padding-left:0;padding-right:.5rem}
+  #res-kinder-quote{display:none!important}
+  .step{display:none!important}
+  #step-9{display:block!important}
+  .final-panel{display:none!important}
+  #panel-result{display:block!important}
+  body{background:#fff;font-size:10px}
+  .page{padding-bottom:0}
+  .con{padding:0}
+  .next-step-cta{display:none!important}
+  .card,.card-w{box-shadow:none;border:1px solid #ddd;padding:8px 10px;margin-bottom:6px;border-radius:3px;break-inside:avoid;page-break-inside:avoid}
+  h2{font-size:12px}
+  .p2col{grid-template-columns:1fr 1fr;gap:6px;break-inside:avoid;page-break-inside:avoid}
+  .p2col > *{margin-bottom:0;break-inside:avoid;page-break-inside:avoid}
+  .k-ans{break-inside:avoid;page-break-inside:avoid}
+  .bridge-row{margin:5px 0;break-inside:avoid;page-break-inside:avoid}
+  .m3{font-size:11px}
+  .pt{font-size:11px}
+  .obstacle-card,.obstacle-card *{font-size:11px!important}
+  #res-interp,#res-interp *{font-size:11px!important}
+  #panel-result>*:last-child{margin-bottom:0!important}
+  .card-w:last-child{margin-bottom:0!important}
+  html,body{height:auto;overflow:visible}
+  #step-9,#panel-result{page-break-after:avoid}
+}
+@media(max-width:900px){
+  .val-2col{grid-template-columns:1fr}
+  .obs-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .con{padding:1.25rem 1rem}
+  .site-header{padding:1rem}
+  .page{overflow-x:hidden}
+  /* 첫화면 모바일 */
+  .i-grid{display:none}
+  .evoke-phase{display:none}
+  .mob-only{display:flex!important}
+  .ke-web{display:none}.ke-mob{display:inline}
+  .bridge-row{flex-direction:column;align-items:stretch;gap:0}
+  .bx{min-width:0!important;max-width:none!important}
+  .eis-desc{display:none}
+  .eis-wrap{overflow-x:visible!important}
+  .eis-table{min-width:0!important;table-layout:fixed!important}
+  .eis-table thead th:first-child{width:22%!important}
+  .eis-table thead th:nth-child(2),.eis-table thead th:nth-child(3){width:39%!important}
+  .eis-table th,.eis-table td{padding:8px 6px!important;font-size:12px!important;white-space:normal!important}
+  .smart-old{display:none}
+  .smart-grid{grid-template-columns:1fr!important}
+  .evoke-explain{display:none!important}
+  .evoke-box{min-width:0;flex:1}
+  .evoke-row{flex-wrap:nowrap;gap:2px}
+  .evoke-letter{font-size:22px}
+  .evoke-ko{font-size:11px}
+  .evoke-arrow{font-size:14px;margin-top:8px}
+  .flow-label{display:none}
+  .fbox{flex:1;min-width:0}
+  .flow{overflow-x:visible;margin-left:0;margin-right:0}
+  .step0-extra{display:none}
+  .custom-val-row{padding:.5rem .6rem}
+  .custom-val-row #custom-val-input{min-width:0;width:0}
+  .prog-wrap{padding:.8rem 1rem .5rem}
+  .i-grid{grid-template-columns:repeat(2,1fr)}
+  .p2col{grid-template-columns:1fr}
+  .final-tab{font-size:14px;padding:.7rem .75rem}
+  .e-grid{grid-template-columns:1fr}
+  .evoke-row{gap:2px}
+  .evoke-box{min-width:60px}
+}
+@media(max-width:768px){.mobile-hide{display:none!important}}
+</style>
+</head>
+<body>
+<div id="print-wm"></div>
+<div class="page">
+
+<header class="site-header">
+  <div>
+    <div class="site-logo">Identi<span>Fi</span></div>
+    <div class="site-cfp">정원준 CFP<span class="site-cfp-sub"> · 가치 기반 재무설계</span></div>
+  </div>
+  <div class="site-sub">George Kinder<br>Life Planning</div>
+</header>
+
+<div class="prog-wrap">
+  <div class="prog-meta">
+    <span class="prog-label" id="pLabel">소개</span>
+    <span class="prog-count" id="pInfo">1 / 10</span>
+  </div>
+  <div class="prog-track"><div class="prog-fill" id="pFill" style="width:0%"></div></div>
+</div>
+
+<div class="con">
+
+<!-- ─── 0: INTRO ─── -->
+<div class="step active" id="step-0">
+  <div class="card">
+    <div class="i-hero">
+      <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--ink);letter-spacing:.04em;line-height:1.1">LIFE PLANNING</div>
+      <div style="font-size:15px;color:var(--ink-3);margin-top:.2rem;margin-bottom:.1rem">가치 기반 재무설계</div>
+      <div class="philosophy" style="margin:.75rem 0 .85rem">
+        <div class="ph-title">진정한 열망을 다시 찾습니다.</div>
+        <div class="ph-text">인간은 자신의 삶을 <em>의미 있는 일과 관계로 채우고자 하는 강렬한 소망</em>을 지니고 있습니다.<br>재무목표는 세우는 것이 아닙니다. 가치관이 명확해질 때 자연스럽게 <em>드러나고 발견되는</em> 것입니다.<br>EVOKE는 재무설계사와 함께 진행하는 라이프 플래닝 전 과정입니다. 이 도구는 그 과정을 만나기 전에 <strong style="color:var(--gold-light)">미리 스스로 탐구해볼 수 있도록</strong> 만들어졌습니다.</div>
+      </div>
+      <div class="i-grid">
+        <div class="i-box"><div class="i-num">1</div><div class="i-lbl">킨더의<br>3가지 질문</div></div>
+        <div class="i-box"><div class="i-num">2</div><div class="i-lbl">핵심 가치<br>발견</div></div>
+        <div class="i-box"><div class="i-num">3</div><div class="i-lbl">내면의 소리<br>3×3</div></div>
+        <div class="i-box"><div class="i-num">4</div><div class="i-lbl">목표달성<br>매트릭스</div></div>
+      </div>
+    </div>
+    <div style="margin-bottom:.7rem">
+      <div style="font-size:12px;color:var(--ink-4);text-align:center;letter-spacing:.08em;margin-bottom:.5rem">EVOKE · 조지 킨더 라이프 플래닝 5단계</div>
+      <div class="evoke-row">
+        <div class="evoke-box evoke-active"><div class="evoke-letter">E</div><div class="evoke-phase">Exploration</div><div class="evoke-ko">탐구</div></div>
+        <div class="evoke-arrow">›</div>
+        <div class="evoke-box evoke-active"><div class="evoke-letter">V</div><div class="evoke-phase">Vision</div><div class="evoke-ko">비전 만들기</div></div>
+        <div class="evoke-arrow">›</div>
+        <div class="evoke-box evoke-active"><div class="evoke-letter">O</div><div class="evoke-phase">Obstacles</div><div class="evoke-ko">장애물 건너기</div></div>
+        <div class="evoke-arrow" style="font-size:13px;color:var(--paper-3);margin-top:14px">╱</div>
+        <div class="evoke-box" style="border:1px solid var(--paper-3);border-radius:var(--radius);padding:4px 6px;opacity:.65"><div class="evoke-letter" style="color:var(--ink-3)">K</div><div class="evoke-phase" style="color:var(--ink-3)">Knowledge</div><div class="evoke-ko">지식의 적용</div></div>
+        <div class="evoke-arrow" style="opacity:.4">›</div>
+        <div class="evoke-box" style="border:1px solid var(--paper-3);border-radius:var(--radius);padding:4px 6px;opacity:.65"><div class="evoke-letter" style="color:var(--ink-3)">E</div><div class="evoke-phase" style="color:var(--ink-3)">Execution</div><div class="evoke-ko">실행<br>모니터링</div></div>
+      </div>
+      <div class="evoke-explain" style="display:flex;gap:1.5rem;justify-content:center;margin-top:.45rem;flex-wrap:wrap">
+        <div style="font-size:12px;color:var(--gold);font-weight:500">E·V·O — 라이프 플래닝이 과거 재무설계에 더한 핵심 단계 (사람 중심)</div>
+        <div style="font-size:12px;color:var(--ink-4)">K·E — 과거 문제 해결 중심의 재무설계 단계 (효과 미비)</div>
+      </div>
+    </div>
+    <div class="flow">
+      <div class="fbox" style="flex:1;min-width:80px">
+        <div class="fbox-lbl" style="color:var(--gold);font-weight:600">현재상태</div>
+        <div class="fbox-main" style="width:100%;min-height:72px;background:#fff;border-color:var(--paper-3);color:var(--ink-2)">재무 상황<div class="fbox-sub">Financial Reality</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding:0 6px">
+        <div class="flow-label" style="font-size:11px;color:var(--gold);font-weight:600;white-space:nowrap">재무적 선택</div>
+        <div class="flow-label" style="font-size:11px;color:var(--ink-4);white-space:nowrap;margin-bottom:2px">Financial Choices</div>
+        <div style="font-size:22px;color:var(--gold);line-height:1">→</div>
+      </div>
+      <div class="fbox" style="flex:1;min-width:80px">
+        <div class="fbox-lbl" style="color:var(--gold);font-weight:600">다리 · Bridge</div>
+        <div class="fbox-main" style="width:100%;min-height:72px;background:#fff;border-color:var(--paper-3);color:var(--ink-2)">재무목표<div class="fbox-sub">Financial Goals</div><div class="f-hvb" style="margin-top:5px"><span>Having</span><span>Doing</span></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;padding:0 6px">
+        <div style="font-size:22px;color:var(--gold);line-height:1">→</div>
+      </div>
+      <div class="fbox" style="flex:1;min-width:80px">
+        <div class="fbox-lbl" style="color:var(--gold);font-weight:600">도달점 · Destination</div>
+        <div class="fbox-main" style="width:100%;min-height:72px;background:var(--gold);border-color:var(--gold);color:var(--ink);font-size:15px;font-weight:700;box-shadow:0 2px 8px rgba(196,147,63,.35)">삶의 가치<div class="fbox-sub" style="opacity:.8">Values</div><div class="f-hvb" style="margin-top:5px"><span>Being</span></div></div>
+      </div>
+    </div>
+    <div class="step0-extra" style="margin-top:1rem;padding:.95rem;background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius)">
+      <div class="eyebrow" style="margin-bottom:.35rem">George Kinder란?</div>
+      <p style="font-size:14px;color:var(--ink-3);line-height:1.75">하버드 출신 재무설계사이자 명상가로, <strong style="color:var(--ink)">라이프 플래닝(Life Planning)</strong>의 창시자입니다. 돈의 목적은 더 풍요로운 삶을 사는 것이라는 철학을 바탕으로, 40여 개국 수천 명의 재무설계사를 교육했습니다.</p>
+    </div>
+    <div class="step0-extra" style="margin-top:.85rem;padding:.9rem 1.1rem;background:var(--gold-pale);border:1px solid var(--gold-light);border-left:3px solid var(--gold);border-radius:0 var(--radius-lg) var(--radius-lg) 0;font-size:14px;color:var(--ink-2);line-height:1.7">
+      이 도구는 EVOKE의 <strong>E·V·O 단계</strong>를 미리 스스로 탐구해보는 도구입니다. 탐색이 끝나면 이 결과를 가지고 <strong>E·V·O에 대한 객관적인 해석</strong>을 받거나, <strong>K·E 단계</strong>(지식의 적용·실행)로 이어갈 수 있습니다.
+    </div>
+  </div>
+  <div class="mob-only" style="display:flex;align-items:center;gap:.75rem;background:#f0f4ff;border:1px solid #c5d3f5;border-left:3px solid #6b8cdd;border-radius:var(--radius-lg);padding:.85rem 1.1rem;margin-bottom:.6rem">
+    <div style="font-size:20px;line-height:1;flex-shrink:0">🖥️</div>
+    <div style="font-size:13px;color:#3a4f8a;line-height:1.6"><strong>PC·웹 환경을 권장합니다</strong> — 화면이 넓을수록 매트릭스와 목표설정표를 작성하기 편합니다. 모바일에서도 이용 가능하지만 일부 표는 가로로 스크롤될 수 있습니다.</div>
+  </div>
+  <div id="time-notice" style="display:flex;align-items:center;gap:.75rem;background:#fffbf0;border:1px solid #f0d99a;border-left:3px solid var(--amber);border-radius:var(--radius-lg);padding:.85rem 1.1rem;margin-bottom:.75rem;transition:box-shadow .25s,border-color .25s,background .25s">
+    <div style="font-size:20px;line-height:1;flex-shrink:0">⏱</div>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:500;color:var(--amber);letter-spacing:.05em;margin-bottom:.2rem">충분한 시간이 필요합니다</div>
+      <div style="font-size:14px;color:var(--ink-2);line-height:1.7">이 과정은 빠르게 훑는 설문이 아닙니다. 삶의 방향을 진지하게 탐색하는 시간입니다.<br><strong>최소 40분 이상 조용하고 방해받지 않는 환경</strong>에서 시작하시기를 권장합니다.</div>
+    </div>
+    <label style="display:flex;flex-direction:column;align-items:center;gap:.3rem;flex-shrink:0;cursor:pointer">
+      <input type="checkbox" id="time-check" style="width:20px;height:20px;accent-color:var(--amber);cursor:pointer">
+      <span style="font-size:11px;color:var(--ink-3);white-space:nowrap">확인했습니다</span>
+    </label>
+  </div>
+  <div class="nav" style="justify-content:center"><button class="btn btn-p" onclick="go(1)">시작하기</button></div>
+</div>
+
+<!-- ─── 1: Q1 ─── -->
+<div class="step" id="step-1">
+  <div class="card-w">
+    <div class="eyebrow">E — Exploration · <span class="ke-web">조지 킨더의 세 가지 질문</span><span class="ke-mob">세 가지 질문</span> 1/3</div>
+    <div style="background:var(--ink);color:#fff;border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:.9rem;font-size:14px;line-height:1.7">
+      <span style="color:var(--gold-light);font-weight:500">탐구(Exploration)란?</span> — 나는 누구인가? 나에게 정말로 중요한 것은 무엇인가? 재정 상태를 서둘러 들여다보기 <em>전에</em>, 나 자신을 먼저 알고 살피는 단계입니다.
+    </div>
+    <h2>재정적 자유가 있다면?</h2>
+    <p class="desc">돈 걱정이 완전히 사라진 상황을 상상해보세요.</p>
+    <div class="q-box">💰 당신은 재무적으로 완전히 안정되어 있습니다. 지금과 앞으로의 모든 니즈를 해결할 수 있는 충분한 돈을 가지고 있다고 해볼까요? 그렇다면 당신은 어떤 삶을 사시겠습니까? 그 돈을 가지고 무엇을 하시겠습니까? 삶에서 어떤 것을 바꾸시겠습니까? 당신이 생각하는 완전하고 풍요로운 삶을 자세히 표현해 보세요.</div>
+    <textarea class="answer" id="q1" placeholder="자유롭게 작성해주세요. 여행, 가족, 일, 취미, 봉사... 무엇이든 떠오르는 대로 적어보세요."></textarea>
+    <p class="hint">정답이 없습니다. 솔직하고 구체적일수록 좋습니다.</p>
+  </div>
+  <div class="nav"><button class="btn btn-s" onclick="go(0)">← 이전</button><button class="btn btn-p" onclick="goQ('q1',2)">다음 →</button></div>
+</div>
+
+<!-- ─── 2: Q2 ─── -->
+<div class="step" id="step-2">
+  <div class="card-w">
+    <div class="eyebrow">E — Exploration · <span class="ke-web">조지 킨더의 세 가지 질문</span><span class="ke-mob">세 가지 질문</span> 2/3</div>
+    <h2>시간이 얼마 남지 않았다면?</h2>
+    <p class="desc">돈의 걱정은 없지만, 이제는 시간이 제한됩니다.</p>
+    <div class="q-box">⏳ 건강검진을 위해 의사를 찾아갔습니다. 그런데 의사가 남은 삶이 짧으면 5년, 길면 10년밖에 남지 않았다고 합니다. 좋은 점은 그 순간이 올 때까지 굉장히 건강할 것이라는 사실입니다. 남은 기간 동안 당신은 무엇을 하겠습니까? 현재의 삶을 바꾸겠습니까? 그렇다면 어떻게 바꾸겠습니까?</div>
+    <div style="padding:.5rem .85rem;background:var(--gold-pale);border-left:3px solid var(--gold);border-radius:0 var(--radius) var(--radius) 0;font-size:13px;color:var(--ink-2);margin-bottom:.65rem;line-height:1.6">
+      ※ <strong>60대 이상이시라면</strong> '5~10년'을 <strong>'3~5년'</strong>으로 생각하고 답해주세요.
+    </div>
+    <textarea class="answer" id="q2" placeholder="시간이 한정되어 있다면 무엇이 가장 중요하게 느껴지나요?"></textarea>
+    <p class="hint">첫 번째 질문과 달라지는 것이 있다면, 그것이 당신에게 더 깊은 가치일 수 있습니다.</p>
+  </div>
+  <div class="nav"><button class="btn btn-s" onclick="go(1)">← 이전</button><button class="btn btn-p" onclick="goQ('q2',3)">다음 →</button></div>
+</div>
+
+<!-- ─── 3: Q3 ─── -->
+<div class="step" id="step-3">
+  <div class="card-w">
+    <div class="eyebrow">E — Exploration · <span class="ke-web">조지 킨더의 세 가지 질문</span><span class="ke-mob">세 가지 질문</span> 3/3</div>
+    <h2>오늘이 마지막 날이라면?</h2>
+    <p class="desc">이제 돈도, 시간도 의미가 없습니다. 오직 지금 이 순간만 있습니다.</p>
+    <div class="q-box">🕊️ 의사가 충격적인 소식을 들려줍니다. 당신에게 남은 시간은 이제 하루밖에 없습니다. 이런 사실에 직면할 때 어떤 느낌이 생기는지 관찰해 보세요. 이루지 못한 당신의 꿈은 무엇입니까? 하지 못해 후회스러운 것은 무엇입니까? 내가 챙겨 주어야 했는데 그렇게 하지 못한 사람은 누구인가요?</div>
+    <textarea class="answer" id="q3" placeholder="후회, 아쉬움, 그리고 그 너머에 있는 당신의 진정한 바람을 적어보세요."></textarea>
+    <p class="hint">이 질문에서 나오는 감정이 당신의 가장 핵심적인 가치를 드러냅니다.</p>
+
+  </div>
+  <div class="nav"><button class="btn btn-s" onclick="go(2)">← 이전</button><button class="btn btn-p" onclick="goQ('q3',4)">다음 →</button></div>
+</div>
+
+<div class="step" id="step-4">
+  <div class="card-w">
+    <div class="eyebrow">E — Exploration · 탐구 마무리</div>
+    <h2>가장 깊은 울림이 있었던 질문은?</h2>
+    <p class="desc">세 가지 질문을 돌아보며, 특히 마음에 강하게 닿은 질문을 선택해주세요.(복수선택 가능)</p>
+    <div style="display:flex;flex-direction:column;gap:.6rem;margin:1rem 0" id="resonance-opts">
+      <label style="display:flex;align-items:center;gap:.65rem;cursor:pointer;padding:.75rem 1rem;background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius);font-size:15px;color:var(--ink-2)">
+        <input type="checkbox" name="resonance" value="q1" onchange="selResonance()" style="accent-color:var(--gold);width:15px;height:15px;flex-shrink:0">
+        💰 질문 1 — 재정적 자유가 있다면?
+      </label>
+      <label style="display:flex;align-items:center;gap:.65rem;cursor:pointer;padding:.75rem 1rem;background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius);font-size:15px;color:var(--ink-2)">
+        <input type="checkbox" name="resonance" value="q2" onchange="selResonance()" style="accent-color:var(--gold);width:15px;height:15px;flex-shrink:0">
+        ⏳ 질문 2 — 시간이 얼마 남지 않았다면?
+      </label>
+      <label style="display:flex;align-items:center;gap:.65rem;cursor:pointer;padding:.75rem 1rem;background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius);font-size:15px;color:var(--ink-2)">
+        <input type="checkbox" name="resonance" value="q3" onchange="selResonance()" style="accent-color:var(--gold);width:15px;height:15px;flex-shrink:0">
+        🕊️ 질문 3 — 오늘이 마지막 날이라면?
+      </label>
+    </div>
+    <p style="font-size:13px;color:var(--ink-4)">울림이 큰 질문일수록 그 안에 당신의 핵심 가치가 담겨 있습니다. 결과에 반영됩니다.</p>
+  </div>
+  <div class="nav"><button class="btn btn-s" onclick="go(3)">← 이전</button><button class="btn btn-p" onclick="go(5)">가치 선택 →</button></div>
+</div>
+
+<!-- ─── 5: VALUE SELECTION ─── -->
+<div class="step" id="step-5">
+  <div class="card-w">
+    <div class="eyebrow">V — Vision · 핵심 가치 발견</div>
+    <h2>나의 핵심 가치 선택</h2>
+    <p class="desc">3가지 질문에서 떠올린 것들과 연결되는 가치를 선택해주세요. 두 분류 체계 중 어디서든 <strong>최대 10개</strong>까지 선택할 수 있습니다.</p>
+    <div class="cnt" id="tc" style="text-align:right;margin-bottom:.5rem">전체 0개 선택됨</div>
+    <div class="val-2col">
+      <!-- LEFT: Rokeach -->
+      <div>
+        <div class="val-col-title">로키치 가치 체계 (Rokeach)</div>
+        <div class="sub-sec">
+          <div class="sub-sec-h">궁극적 가치 Terminal — 삶의 최종 목적 상태</div>
+          <div class="chips" id="tv-chips"></div>
+        </div>
+        <div class="sub-sec">
+          <div class="sub-sec-h">수단적 가치 Instrumental — 목적을 위한 행동·태도</div>
+          <div class="chips" id="iv-chips"></div>
+        </div>
+      </div>
+      <!-- RIGHT: Personal/Social/Environmental -->
+      <div>
+        <div class="val-col-title">삶의 영역별 가치</div>
+        <div class="sub-sec">
+          <div class="sub-sec-h">개인적 가치 Personal — 나 자신을 위한 내면 가치</div>
+          <div class="chips" id="pv-chips"></div>
+        </div>
+        <div class="sub-sec">
+          <div class="sub-sec-h">사회적 가치 Social — 관계와 공동체를 위한 가치</div>
+          <div class="chips" id="sv-chips"></div>
+        </div>
+        <div class="sub-sec">
+          <div class="sub-sec-h">환경적 가치 Environmental — 세상과 미래를 위한 가치</div>
+          <div class="chips" id="ev-chips"></div>
+        </div>
+      </div>
+    </div>
+    <div class="vdesc" id="vdesc">가치 항목에 마우스를 올리면 설명이 표시됩니다.</div>
+    <div class="chips" id="custom-chips" style="margin-top:.5rem;margin-bottom:0"></div>
+    <div class="custom-val-row" style="margin-top:.5rem;display:flex;align-items:center;gap:.5rem;padding:.55rem .85rem;background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--radius)">
+      <span style="font-size:12px;color:var(--ink-4);white-space:nowrap;flex-shrink:0">직접 입력</span>
+      <span style="color:var(--paper-3);flex-shrink:0">|</span>
+      <input type="text" id="custom-val-input" placeholder="예: 유머, 소박함, 여유..." maxlength="12"
+        style="flex:1;border:none;background:transparent;font-size:13px;font-family:'Noto Sans KR',sans-serif;color:var(--ink);outline:none"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomVal()}">
+      <button onclick="addCustomVal()" style="padding:.15rem .6rem;background:var(--ink);color:var(--gold-light);border:none;border-radius:var(--radius);font-size:12px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0">+ 추가</button>
+    </div>
+  </div>
+  <div class="nav"><button class="btn btn-s" onclick="go(4)">← 이전</button><button class="btn btn-p" onclick="goPri()">우선순위 정하기 →</button></div>
+</div>
+
+<!-- ─── 5: PRIORITY ─── -->
+<div class="step" id="step-6">
+  <div class="card-w">
+    <div class="eyebrow">가치 우선순위</div>
+    <h2>핵심 가치 순위 정하기</h2>
+    <p class="desc">가장 중요한 순서로 정렬해주세요. <strong>상위 3개</strong>가 결과 화면에 핵심 가치로 표시됩니다.</p>
+    <p style="font-size:12px;color:var(--ink-4);text-align:center;margin-bottom:.6rem">▲ ▼ 버튼으로 순서를 바꿔보세요</p>
+    <div id="emp-p" class="empty-p">← 이전 단계에서 가치를 선택해주세요</div>
+    <ul class="plist" id="plist"></ul>
+  </div>
+  <div class="nav"><button class="btn btn-s" onclick="go(5)">← 이전</button><button class="btn btn-p" onclick="go(7)">내면의 소리 3×3 →</button></div>
+</div>
+
+<!-- ─── 6: 3×3 MATRIX ─── -->
+<div class="step" id="step-7">
+  <div class="card-w">
+    <div class="eyebrow">V — Vision · 청사진 1</div>
+    <h2>내면의 소리 — 핵심가치 탐색</h2>
+    <p class="desc">킨더 3가지 질문의 답에서 발견한 목표들을 아래 매트릭스에 채워보세요. 이것이 <strong>첫 번째 청사진</strong> — 내가 소유하고(Have), 체험하고(Do), 되고자 하는(Be) 것들의 전체 지형도입니다.</p>
+    <div class="guide-box">
+      <strong>작성 안내</strong> — 이 매트릭스는 <strong>진정한 열망(Desire) / 의무(Obligation) / 바람·필요(Want·Need)</strong>를 구분합니다
+      <ul style="margin-top:.55rem">
+        <li><strong style="color:var(--gold)">❤️ 내면의 소리 (Heart's Core)</strong>: 하지 않으면 삶이 의미를 잃는 것. 이성이 아니라 가슴이 부르는 것. 업무는 산더미처럼 쌓여있어도 "아이들과 보내고 싶은 시간"처럼 — 설명하기 어렵지만 가슴에 남아있는 것들.<br><span style="color:var(--gold)">→ 나의 핵심가치는 어떻게 표현될까요?</span></li>
+        <li><strong style="color:var(--ink-2)">✅ 해야 하는 것 (Ought to)</strong>: 가져야·해야·되어야 한다고 <em>느끼는</em> 것. 주의: 이 항목들은 <strong>무의식적 신념</strong>이나 타인의 기대를 내면화한 것일 수 있습니다. '왜 해야 하는가?'를 함께 탐색해보세요.</li>
+        <li><strong style="color:var(--ink-2)">✨ 하면 좋은 것 (Fun to)</strong>: "파리에서 한 달 휴가"처럼 엉뚱해 보여도 설레는 것들. 현실적이지 않아도 됩니다.</li>
+        <li style="margin-top:.35rem"><strong>소유(Have)</strong>: 가지고 싶은 것 | <strong>체험(Do)</strong>: 성취·경험하고 싶은 것 | <strong>존재(Be)</strong>: 어떤 사람이 되고 싶은지</li>
+      </ul>
+    </div>
+    <div class="m3-wrap">
+      <table class="m3">
+        <thead>
+          <tr>
+            <th class="m3-empty"></th>
+            <th class="m3-th m3-th-h">소유 (Have)<span class="m3-th-sub">가지고 싶은 것</span></th>
+            <th class="m3-th m3-th-d">체험 (Do)<span class="m3-th-sub">경험·성취하고 싶은 것</span></th>
+            <th class="m3-th m3-th-b">존재 (Be)<span class="m3-th-sub">되고 싶은 사람</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m3-rh m3-rh-core">❤️ 내면의 소리<span class="m3-rh-sub">Heart's Core<br>진정한 열망(Desire)<br>하지 않으면 삶이 의미를 잃음</span></td>
+            <td class="m3-cell"><textarea class="m3-ta" id="m-core-have" placeholder="예: 시간의 자유를 주는 자산" oninput="save()"></textarea></td>
+            <td class="m3-cell"><textarea class="m3-ta" id="m-core-do" placeholder="예: 가족과 깊은 추억 만들기" oninput="save()"></textarea></td>
+            <td class="m3-cell"><textarea class="m3-ta" id="m-core-be" placeholder="예: 평온하고 자유로운 사람" oninput="save()"></textarea></td>
+          </tr>
+          <tr>
+            <td class="m3-rh m3-rh-ought">✅ 해야 하는 것<span class="m3-rh-sub">Ought to<br>의무(Obligation)<br>무의식적 신념과 연결될 수 있음</span></td>
+            <td class="m3-cell"><textarea class="m3-ta" id="m-ought-have" placeholder="예: 은퇴자금 확보" oninput="save()"></textarea></td>
+            <td class="m3-cell"><textarea class="m3-ta" id="m-ought-do" placeholder="예: 건강관리" oninput="save()"></textarea></td>
+            <td class="m3-cell"><textarea class="m3-ta" id="m-ought-be" placeholder="예: 책임감 있는 가장" oninput="save()"></textarea></td>
+          </tr>
+          <tr>
+            <td class="m3-rh m3-rh-fun">✨ 하면 좋은 것<span class="m3-rh-sub">Fun to<br>바람·필요(Want·Need)<br>도전적이고 설레는 것</span></td>
+            <td class="m3-cell"><textarea class="m3-ta" id="m-fun-have" placeholder="예: 더 큰 집" oninput="save()"></textarea></td>
+            <td class="m3-cell"><textarea class="m3-ta" id="m-fun-do" placeholder="예: 유럽 장기여행" oninput="save()"></textarea></td>
+            <td class="m3-cell"><textarea class="m3-ta" id="m-fun-be" placeholder="예: 세련된 사람으로 보이기" oninput="save()"></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+    <div class="obs-wrap">
+      <div style="display:inline-block;padding:3px 10px;background:var(--ink);color:var(--gold-light);font-size:12px;font-weight:500;border-radius:1px;margin-bottom:.65rem;letter-spacing:.08em">O — Obstacles · 장애물 건너기</div>
+      <div class="obs-title">내면의 소리를 막고 있는 것은 무엇인가요?</div>
+      <div class="obs-desc">위 매트릭스를 채우면서, 특히 <strong>❤️ 내면의 소리</strong> 항목들을 실현하는 데 어떤 것이 막고 있는지 솔직하게 탐색해보세요. 재정적 장벽만이 아니라 심리적·시간적·관계적 장벽도 모두 포함합니다. 장애물을 명확히 인식하는 것이 라이프 플래닝의 핵심입니다.</div>
+      <div class="obs-grid">
+        <div class="obs-item">
+          <label>💰 재정적 장벽</label>
+          <textarea id="obs-fin" placeholder="예: 지금 당장 모을 여유 자금이 없다, 부채가 많다..." oninput="save()"></textarea>
+        </div>
+        <div class="obs-item">
+          <label>🧠 심리적·내면적 장벽</label>
+          <textarea id="obs-psy" placeholder="예: '나 같은 사람이 이런 걸 해도 될까'라는 의심, 실패에 대한 두려움..." oninput="save()"></textarea>
+        </div>
+        <div class="obs-item">
+          <label>⏰ 시간·관계·환경적 장벽</label>
+          <textarea id="obs-ext" placeholder="예: 가족의 반대, 지금 직장, 시간이 없다..." oninput="save()"></textarea>
+        </div>
+      </div>
+    </div>
+  <div class="nav"><button class="btn btn-s" onclick="go(6)">← 이전</button><button class="btn btn-p" onclick="goMatrix()">목표설정 매트릭스 →</button></div>
+</div>
+
+<!-- ─── 7: PERIOD TABLE ─── -->
+<div class="step" id="step-8">
+  <div class="card-w">
+    <div class="eyebrow">V — Vision · 청사진 2</div>
+    <h2>목표설정 매트릭스 — 시간을 더하다</h2>
+    <div style="background:var(--ink);color:var(--gold-light);border-radius:var(--radius);padding:.8rem 1rem;margin-bottom:.9rem;font-size:14px;line-height:1.7">
+      <strong>두 번째 청사진</strong> — 내면의 소리 3×3이 <em>무엇을</em> 원하는지의 지도라면, 이 매트릭스는 그것에 <em>언제</em>라는 시간을 더한 실행 청사진입니다. 내면의 소리에서 발견한 핵심가치들이 1개월·1년·10년 뒤 어떤 모습으로 펼쳐지는지 구체화해보세요.
+    </div>
+    <p class="desc">삶의 카테고리별로, 각 기간에 이루고 싶은 목표를 적어보세요.</p>
+    <div class="guide-box">
+      <strong>작성 안내</strong>
+      <ol>
+        <li>맨 왼쪽 칸을 자신의 삶에 어울리는 주제(카테고리)로 분류합니다. 카테고리명은 직접 수정 가능합니다.</li>
+        <li>위에 표시된 마감시한을 참고해 이루고 싶은 목표들로 적어 나간다.</li>
+        <li>모든 칸을 채울 필요는 없지만, <strong>최소한 8칸</strong> 정도는 채우는 것이 좋습니다.</li>
+        <li>목표를 채운 후, <strong>우선순위 설정 모드</strong>를 켜고 마음에 '<em>소리쳐 부르는</em>' 칸을 순서대로 클릭하세요.</li>
+        <li>이 작업은 이성적이기보다 <strong>직관적으로</strong> 진행합니다. 현실적이지 않아도 됩니다.</li>
+      </ol>
+    </div>
+    <div class="pt-ctrls">
+      <button class="prio-btn" id="prio-mode-btn" onclick="togglePrioMode()">우선순위 설정 모드</button>
+      <span class="prio-count" id="prio-count"></span>
+    </div>
+    <div class="pt-wrap">
+      <table class="pt" id="period-table">
+        <thead>
+          <tr>
+            <th class="cat-head" style="min-width:72px">카테고리</th>
+            <th>1개월</th><th>3개월</th><th>1년</th><th>3년</th><th>5년</th><th>10년</th><th>20년</th><th>평생</th>
+          </tr>
+        </thead>
+        <tbody id="period-tbody"></tbody>
+      </table>
+    </div>
+    <button class="add-cat-btn" onclick="addCat()">+ 카테고리 추가</button>
+  </div>
+  <div class="nav"><button class="btn btn-s" onclick="step8Back()">← 이전</button><span id="pt-warn" style="display:none;font-size:13px;color:var(--red);font-weight:500">목표를 최소 1개 이상 입력해주세요.</span><button class="btn btn-p" id="step7-final-btn" onclick="startPriority()">우선순위 설정하기 →</button></div>
+</div>
+
+<!-- ─── 8: FINAL (2 TABS) ─── -->
+<div class="step" id="step-9">
+
+  <div class="final-tabs">
+    <button class="final-tab active" id="tab-ref" onclick="switchFinalTab('ref')">
+      <span class="final-tab-icon">📋</span> SMARTER &amp; 아이젠하워
+    </button>
+    <button class="final-tab" id="tab-result" onclick="switchFinalTab('result')">
+      <span class="final-tab-icon">🎯</span> 나의 결과
+    </button>
+  </div>
+
+  <!-- TAB 1: REFERENCE -->
+  <div id="panel-ref" class="final-panel active">
+    <div class="card-w">
+      <div class="eyebrow" style="margin-bottom:.5rem">라이프 플래닝 방법론</div>
+      <div class="e-section-title">EVOKE 5단계 — 조지 킨더</div>
+      <p style="font-size:15px;color:var(--ink-3);line-height:1.7;margin-bottom:1rem">라이프 플래닝은 재무설계사와 함께 EVOKE 전 과정을 진행합니다. 과거 재무설계는 K·E(지식→실행)에서 시작하는 경향이 있어 효과가 제한될 수 있습니다. 라이프 플래닝은 그 앞에 E·V·O(탐구→비전→장애물)를 먼저 진행함으로써 인간의 근원적 욕망—<em>의미 있는 일과 관계로 삶을 채우려는 강렬한 소망</em>—을 건드립니다. 이 도구는 E·V·O 단계를 미리 탐색해볼 수 있도록 만들어졌습니다.</p>
+      <table class="st">
+        <tr><th style="background:var(--ink)">E</th><td><span class="st-let">Exploration · 탐구</span><span class="st-sub">나는 누구인가? 나에게 정말로 중요한 것은 무엇인가? 이 과정은 <strong style="color:var(--ink)">무의식적 신념</strong>을 파악하고, 그것이 감정에 어떤 영향을 미치며, 결국 삶과 행동으로 어떻게 펼쳐지는지를 탐색합니다. 재정 상태를 살피기 전에 나 자신을 먼저 발견합니다.</span></td></tr>
+        <tr><th style="background:var(--ink)">V</th><td><span class="st-let">Vision · 비전 만들기</span><span class="st-sub">탐구에서 발견된 가치를 바탕으로 삶의 비전을 구체화합니다. 무의식 속 가치관이 의식 위로 올라올 때, 목표는 '세워지는' 것이 아니라 자연스럽게 '드러나고 발견'됩니다.</span></td></tr>
+        <tr><th style="background:var(--ink)">O</th><td><span class="st-let">Obstacles · 장애물 건너기</span><span class="st-sub">내면의 소리를 따르는 데 무엇이 막고 있는지 파악합니다. 재정적 장벽뿐 아니라 심리적·관계적·환경적 장벽, 그리고 오래된 <em>무의식적 신념</em>("나는 돈과 인연이 없어", "나 같은 사람이...")을 명확히 인식하는 것이 변화의 시작입니다.</span></td></tr>
+        <tr><th>K</th><td><span class="st-let">Knowledge · 지식의 적용</span><span class="st-sub">발견한 비전과 목표를 바탕으로, 필요한 재무 지식(투자, 세금, 보험, 은퇴 등)을 계획에 적용합니다. 과거 재무설계는 흔히 이 단계부터 시작하지만, E·V·O 없이 시작하면 <em>'무엇을 위한 계획인지'</em>가 불분명해져 효과가 제한됩니다.</span></td></tr>
+        <tr><th>E</th><td><span class="st-let">Execution · 실행 및 모니터링</span><span class="st-sub">계획을 실행하고, 삶의 변화에 따라 지속적으로 점검하고 수정합니다. 과거 재무설계도 이 단계를 포함하지만, 가치와 연결된 목표가 있을 때 실행력이 훨씬 높아집니다. 재무설계는 한 번의 계획이 아니라 평생의 여정입니다.</span></td></tr>
+      </table>
+    </div>
+
+    <hr class="sec-div">
+    <div class="card-w">
+      <div class="eyebrow" style="margin-bottom:.5rem">우선순위 결정 도구</div>
+      <div class="e-section-title">아이젠하워 매트릭스</div>
+      <p style="font-size:15px;color:var(--ink-3);line-height:1.7;margin-bottom:1.1rem">설정한 목표를 <strong style="color:var(--ink)">중요도</strong>와 <strong style="color:var(--ink)">긴급도</strong> 두 축으로 분류해 우선순위를 결정합니다. 중요한 것과 긴급한 것을 혼동하지 않는 것이 핵심입니다.</p>
+
+      <!-- Eisenhower 2x2 Matrix Table -->
+      <div class="eis-wrap" style="overflow-x:auto;margin-bottom:1.1rem">
+        <table class="eis-table" style="width:100%;border-collapse:collapse;min-width:440px">
+          <thead>
+            <tr>
+              <th style="border:none;background:transparent;width:100px"></th>
+              <th style="padding:8px 12px;background:var(--ink-2);color:#fff;text-align:center;font-size:14px;font-weight:500;border-radius:var(--radius) var(--radius) 0 0;border:1px solid var(--ink-2)">⚡ 긴급함</th>
+              <th style="padding:8px 12px;background:var(--paper-3);color:var(--ink-3);text-align:center;font-size:14px;font-weight:500;border-radius:var(--radius) var(--radius) 0 0;border:1px solid var(--paper-3)">긴급하지 않음</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th style="padding:8px 10px;background:var(--ink-2);color:#fff;font-size:14px;font-weight:500;text-align:center;border-radius:var(--radius) 0 0 var(--radius);border:1px solid var(--ink-2);writing-mode:horizontal-tb;white-space:nowrap">⬆️ 중요함</th>
+              <!-- Q1 -->
+              <td style="padding:14px 16px;border:2px solid var(--paper-3);border-right:2px solid var(--gold);border-bottom:2px solid var(--gold);vertical-align:top;background:var(--paper-2)">
+                <div style="font-size:12px;color:var(--ink-4);font-weight:500;letter-spacing:.08em;margin-bottom:5px">1사분면</div>
+                <div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px">즉시 실행</div>
+                <div class="eis-desc" style="font-size:13px;color:var(--ink-2);line-height:1.65">긴급하고 중요한 일.<br>지금 바로 처리해야 합니다.<br><br><em style="color:var(--ink-3)">예: 긴급 자금 마련, 만기 도래 상품 처리</em></div>
+              </td>
+              <!-- Q2 HIGHLIGHTED -->
+              <td style="padding:14px 16px;border:2px solid var(--gold);vertical-align:top;background:var(--gold-light);position:relative">
+                <div style="font-size:12px;color:var(--ink-2);font-weight:500;letter-spacing:.08em;margin-bottom:5px">💡 2사분면</div>
+                <div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px">계획 수립</div>
+                <div class="eis-desc" style="font-size:13px;color:var(--ink-2);line-height:1.65">중요하지만 긴급하지 않아 미루기 쉽습니다. 그러나 <strong style="color:var(--ink)">삶에 가장 큰 영향을 미치는</strong> 목표가 여기에 있습니다. 가장 많은 시간과 에너지를 투자해야 할 사분면입니다.<br><br><em style="color:var(--ink-3)">예: 노후 자금 준비, 장기 투자 시작, 자녀 교육비 플랜, 꿈꾸던 사업 준비</em></div>
+              </td>
+            </tr>
+            <tr>
+              <th style="padding:8px 10px;background:var(--paper-3);color:var(--ink-3);font-size:14px;font-weight:500;text-align:center;border-radius:0 0 0 var(--radius);border:1px solid var(--paper-3);white-space:nowrap">중요하지 않음</th>
+              <!-- Q3 -->
+              <td style="padding:14px 16px;border:2px solid var(--gold);vertical-align:top;background:var(--paper-2)">
+                <div style="font-size:12px;color:var(--ink-4);font-weight:500;letter-spacing:.08em;margin-bottom:5px">3사분면 ⚠️</div>
+                <div style="font-size:16px;font-weight:600;color:var(--ink-2);margin-bottom:6px">검토 후 축소</div>
+                <div class="eis-desc" style="font-size:13px;color:var(--ink-2);line-height:1.65">긴급하게 느껴지지만 실제로는 중요하지 않습니다. <strong style="color:var(--ink-2)">2사분면과 가장 혼동하기 쉬운 구간</strong>으로, 여기에 자원을 낭비하면 정작 중요한 목표를 위한 여력이 줄어듭니다.<br><br><em style="color:var(--ink-3)">예: 올해 성대한 생일 파티 개최, 매년 떠나야 하는 해외여행, 고가 자동차 구입, 타인의 기대에 맞춘 지출</em></div>
+              </td>
+              <!-- Q4 -->
+              <td style="padding:14px 16px;border:2px solid var(--paper-3);border-left:none;vertical-align:top;background:var(--paper-2)">
+                <div style="font-size:12px;color:var(--ink-4);font-weight:500;letter-spacing:.08em;margin-bottom:5px">4사분면</div>
+                <div style="font-size:16px;font-weight:600;color:var(--ink-4);margin-bottom:6px">제거</div>
+                <div class="eis-desc" style="font-size:13px;color:var(--ink-3);line-height:1.65">중요하지도 긴급하지도 않습니다. 시간과 돈을 가장 먼저 줄여야 할 영역입니다.<br><br><em>예: 무계획적 충동 소비, 가치 없는 반복 지출, 불필요한 구독 서비스</em></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="background:var(--ink);color:#fff;border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:.85rem">
+        <div style="font-size:13px;font-weight:500;color:var(--gold-light);margin-bottom:.5rem;letter-spacing:.06em">⚠️ 가장 흔한 실수 — 2사분면과 3사분면의 혼동</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.82);line-height:1.75">2사분면은 중요하지만 쉽게 보이지 않습니다. 3사분면의 목표는 <em>'지금 당장 해야 할 것 같은 느낌'</em>을 줍니다. 올해 생일 파티, 이번 여행, 지금 당장 바꾸고 싶은 자동차— 이 모든 것들이 긴급하게 느껴집니다. 하지만 10년 뒤 삶을 되돌아볼 때, 그것들이 정말 중요했나요? 반면 노후 준비·투자·꿈의 실현은 오늘 당장 하지 않아도 아무도 재촉하지 않습니다. 그래서 계속 밀립니다. <strong style="color:var(--gold-light)">긴급하다는 느낌과 중요하다는 사실을 분리하는 것</strong>이 재무 계획의 출발점입니다.</div>
+      </div>
+
+    </div>
+
+    <hr class="sec-div">
+    <div class="card-w">
+      <div class="eyebrow" style="margin-bottom:.5rem">목표 설정 방법론</div>
+      <div class="e-section-title">목표 설정 TIP</div>
+      <p style="font-size:15px;color:var(--ink-3);line-height:1.7;margin-bottom:1rem">기존의 SMART 목표설정을 확장한 SMARTER 프레임워크입니다. 7가지 기준으로 목표를 구체화하면 실행 가능성이 크게 높아집니다.</p>
+      <div class="smart-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+        <div class="smart-old">
+          <div style="text-align:center;font-size:13px;font-weight:500;color:var(--ink-3);letter-spacing:.12em;margin-bottom:.5rem;padding-bottom:.35rem;border-bottom:1px solid var(--paper-3);text-transform:uppercase">SMART (기존)</div>
+          <table class="st">
+            <tr><th>S</th><td><span class="st-let">Specific · 구체적</span><span class="st-sub">명확하게 정의된 목표. "저축을 늘린다" 보다 "매달 50만원 적금"이 더 강하다.</span></td></tr>
+            <tr><th>M</th><td><span class="st-let">Measurable · 측정 가능</span><span class="st-sub">수치화된 기준으로 달성 여부를 확인한다.</span></td></tr>
+            <tr><th>A</th><td><span class="st-let">Achievable · 달성 가능</span><span class="st-sub">현실적으로 이룰 수 있는 범위의 목표.</span></td></tr>
+            <tr><th>R</th><td><span class="st-let">Relevant · 관련성</span><span class="st-sub">전체 목적과 삶의 방향에 부합하는 목표.</span></td></tr>
+            <tr><th>T</th><td><span class="st-let">Time-bound · 기한 있는</span><span class="st-sub">명확한 완료 기한을 설정한다.</span></td></tr>
+          </table>
+        </div>
+        <div>
+          <div style="text-align:center;font-size:13px;font-weight:500;color:var(--gold);letter-spacing:.12em;margin-bottom:.5rem;padding-bottom:.35rem;border-bottom:2px solid var(--gold-light);text-transform:uppercase">SMARTER (확장)</div>
+          <table class="st">
+            <tr><th>S</th><td><span class="st-let">Specific · 명확한</span><span class="st-sub">집중력이 곧 힘. 문제 해결력과 노력의 방향을 결정한다. "저축을 늘린다"보다 "매달 50만원을 적금에 넣는다"가 훨씬 강하다.</span></td></tr>
+            <tr><th>M</th><td><span class="st-let">Measurable · 측정 가능한</span><span class="st-sub">수치화된 기준으로 달성 여부를 확인할 수 있어야 한다. 측정할 수 없으면 관리할 수 없다.</span></td></tr>
+            <tr><th>A</th><td><span class="st-let">Actionable · 활동성</span><span class="st-sub">형용사·상태가 아닌 <em>행위 동사</em>로 시작한다. "부자가 되고 싶다"(X) → "매달 100만원 투자한다"(O)</span></td></tr>
+            <tr><th>R</th><td><span class="st-let">Risky · 위험성</span><span class="st-sub">실현 가능성에만 초점을 맞추면 오히려 성과가 낮다. 도전적이되 망상 단계는 피한다. 불편함이 느껴질 정도의 목표가 성장을 만든다.</span></td></tr>
+            <tr><th>T</th><td><span class="st-let">Time-keyed · 시간 기준</span><span class="st-sub">성취 목표 → 데드라인(1회성). 습관 목표 → 시작일·빈도·기간(주기적 활동). 기간이 없는 목표는 미루기 쉽다.</span></td></tr>
+            <tr><th>E</th><td><span class="st-let">Exciting · 흥미진진함</span><span class="st-sub">목표에 내재된 본질을 포착해 설레는 이유를 명확히 한다. "왜 이 목표인가?"에 스스로 답할 수 있어야 한다.</span></td></tr>
+            <tr><th>R</th><td><span class="st-let">Relevant · 적절성</span><span class="st-sub">나의 가치에 부합하고, 삶의 다른 목표와도 조화로운 목표여야 한다. 가치와 연결되지 않는 목표는 달성해도 공허하다.</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" style="margin-top:1.5rem">
+      <button class="btn btn-s" onclick="go(8)">← 목표설정 매트릭스</button>
+      <button class="btn btn-p" onclick="switchFinalTab('result')">나의 결과 보기 →</button>
+    </div>
+  </div>
+
+  <!-- TAB 2: RESULT -->
+  <div id="panel-result" class="final-panel">
+    <div class="card">
+      <div class="res-hero">
+        <h2>가치 기반 재무목표 설정</h2>
+        <p style="font-size:14px;color:var(--ink-3);margin-top:.2rem;line-height:1.8;font-family:'Noto Serif KR',serif">가치에서 출발한 재무목표입니다.<br>현재를 그대로 옮겨 적은 것은 목표가 아닙니다 — 지금의 나를 움직이게 만드는 것, 그것이 진짜 목표입니다.<br>인위적으로 세운 목표는 현재 상황을 움직이지 않습니다.<br>오직 가치에서 피어난 <em>뜨거운 작은 불씨</em>만이 현실에 균열을 만듭니다.</p>
+      </div>
+      <div class="bridge-row">
+        <div class="bx"><div class="bx-l">현재 상황</div><div class="bx-v">Reality</div></div>
+        <div class="barrow"><span class="ke-web">→</span><span class="ke-mob">↓</span></div>
+        <div class="bx hl"><div class="bx-l">재무목표</div><div class="bx-v" id="res-gn" style="text-align:left;align-self:stretch">Goals</div></div>
+        <div class="barrow"><span class="ke-web">→</span><span class="ke-mob">↓</span></div>
+        <div class="bx ac"><div class="bx-l">삶의 가치</div><div class="bx-v" id="res-top">Values</div></div>
+      </div>
+    </div>
+
+    <hr class="res-divider">
+
+    <div class="card-w"><div class="sec-h" style="margin-bottom:.7rem">3가지 질문</div><div id="res-kinder"></div><div id="res-resonance"></div></div>
+
+    <div class="card-w"><div class="sec-h" style="margin-bottom:.7rem">핵심 가치 (상위 3개)</div><div id="res-values"></div></div>
+
+    <hr class="res-divider">
+
+    <div class="card-w"><div class="sec-h" style="margin-bottom:.7rem">내면의 소리 3×3</div><div id="res-matrix"></div><div id="res-interp" style="margin-top:.75rem"></div></div>
+
+    <div class="card-w"><div class="sec-h" style="margin-bottom:.7rem">장애물 (Obstacles)</div><div id="res-obstacles"></div></div>
+    <div class="card-w obstacle-card">
+      <div class="sec-h" style="margin-bottom:.7rem">3단계 장애물 극복하기</div>
+      <p style="font-size:15px;color:var(--ink-3);line-height:1.7;margin-bottom:1rem">장애물 단계는 단순히 문제를 나열하는 것이 아닙니다. 불꽃을 살리고, 내면을 드러내고, 창조적으로 돌파하는 과정입니다.</p>
+      <div class="obstacle-steps" style="margin-bottom:.5rem">
+        <div class="res-row">
+          <div class="res-badge">1</div>
+          <div><div class="res-row-title">불꽃이 계속 타오르게</div><div class="res-row-sub">내면의 소리(Heart's Core)에서 발견한 꿈과 욕망이 식지 않도록 합니다. 어린 시절부터 땅에 묻어온 꿈의 불씨를 다시 꺼내어 그것이 여전히 살아있음을 확인하는 것이 출발점입니다.</div></div>
+        </div>
+        <div class="res-row">
+          <div class="res-badge">2</div>
+          <div><div class="res-row-title">내적 장애물 드러내기</div><div class="res-row-sub">무의식적 신념, 자기 비판, 두려움, "나는 이런 사람이 아니야"라는 내면의 목소리들이 모두 수면 위로 올라오도록 합니다. 드러난 것은 더 이상 무의식적으로 작동하지 않습니다.</div></div>
+        </div>
+        <div class="res-row">
+          <div class="res-badge">3</div>
+          <div><div class="res-row-title">창조적 시나리오 만들기</div><div class="res-row-sub">외적 장애물(자금 부족, 가족 반대, 현실적 제약 등)에 대해 브레인스토밍을 통해 <em>창조적인 우회 경로</em>를 만들어 냅니다. 현실적이지 않아도 됩니다. 가능성의 공간을 먼저 넓히는 것이 목표입니다.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="res-divider">
+
+    <div class="card-w"><div class="sec-h" style="margin-bottom:.7rem">목표설정 매트릭스 우선순위 (상위 8개) — <span style="font-style:italic;font-weight:400;letter-spacing:0;text-transform:none">목표를 달성하는 것은 나의 핵심 가치와 어떻게 연결됩니까?</span></div><div id="res-period"></div></div>
+
+    <div class="next-step-cta" style="background:var(--ink);color:#fff;border-radius:var(--radius-lg);padding:1.25rem 1.5rem;margin:.75rem 0 1rem;text-align:center">
+      <div id="res-kinder-quote"></div>
+      <div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--gold-light);margin-bottom:.6rem">다음 단계</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem;text-align:left">
+        <div style="padding:.8rem 1rem;background:rgba(255,255,255,.07);border-radius:var(--radius);border:1px solid rgba(255,255,255,.12)">
+          <div style="font-size:12px;color:var(--gold-light);font-weight:500;margin-bottom:.35rem;letter-spacing:.06em">OPTION A</div>
+          <div style="font-size:14px;color:#fff;font-weight:500;margin-bottom:.3rem">EVO 심층 해석</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.6">작성한 내용을 바탕으로 <strong style="color:rgba(255,255,255,.85)">정원준 CFP</strong>와 함께 탐구·비전·장애물 단계를 더 깊이 있게 해석하고 진행합니다.</div>
+        </div>
+        <div style="padding:.8rem 1rem;background:rgba(196,147,63,.15);border-radius:var(--radius);border:1px solid rgba(196,147,63,.3)">
+          <div style="font-size:12px;color:var(--gold-light);font-weight:500;margin-bottom:.35rem;letter-spacing:.06em">OPTION B</div>
+          <div style="font-size:14px;color:#fff;font-weight:500;margin-bottom:.3rem">KE단계</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.6"><strong style="color:rgba(255,255,255,.85)">정원준 CFP</strong>와 발견한 비전과 목표를 가지고 지식의 적용·실행 단계(K·E)로 이어갑니다.</div>
+        </div>
+      </div>
+      <a href="mailto:einsteindha@gmail.com" style="display:inline-block;padding:.6rem 1.5rem;background:var(--gold);color:var(--ink);border-radius:var(--radius);font-size:14px;font-weight:500;text-decoration:none;letter-spacing:.04em">IdentiFi 정원준 CFP 상담 문의 →</a>
+    </div>
+
+    <div class="nav">
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-s" onclick="switchFinalTab('ref')">← 이전</button>
+        <button class="btn btn-home" onclick="resetAll()">처음으로</button>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-s" onclick="switchFinalTab('ref')">참고자료 보기</button>
+        <button class="btn btn-print" onclick="_mPrint(function(){buildResult();var _t=document.title;document.title='IdentiFi_LifePlanning';window.print();document.title=_t;})">🖨 인쇄 / 저장</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /step-8 -->
+
+</div><!-- /con -->
+</div><!-- /page -->
+<script>
+// ─── DATA ────────────────────────────────────
+const TV=[
+  {n:'안락한 삶',d:'편안하고 순조로운 삶'},{n:'흥미진진한 삶',d:'활기 넘치고 적극적인 삶'},
+  {n:'성취감',d:'지속적인 공헌을 추구'},{n:'세계 평화',d:'다툼과 갈등이 없음'},
+  {n:'아름다운 세상',d:'자연의 미와 예술을 선호'},{n:'평등',d:'동등한 기회와 배려'},
+  {n:'가족의 안전',d:'사랑하는 가족 보호'},{n:'자유',d:'독립적이고 마음껏 할 수 있음'},
+  {n:'행복',d:'평화롭고 부족함이 없음'},{n:'내적 조화',d:'내적 갈등 없음'},
+  {n:'성숙한 사랑',d:'성적·정신적 친밀감'},{n:'즐거움',d:'인생을 여유 있게 즐김'},
+  {n:'자존',d:'자부심이 강함'},{n:'사회적 인정',d:'존경과 찬사를 원함'},
+  {n:'진정한 우정',d:'친밀한 관계'},{n:'지혜',d:'인생에 대한 통찰'},
+  {n:'구원',d:'죄악으로부터 구제와 영성 추구'},{n:'국가안보',d:'외부로부터 보호'},
+];
+const IV=[
+  {n:'야심적인',d:'열정적이고 포부가 있음'},{n:'관대한',d:'편견이 없고 허심탄회함'},
+  {n:'유능한',d:'능력이 있고 효율적임'},{n:'쾌활한',d:'명랑하고 즐거움을 추구'},
+  {n:'관용적인',d:'타인을 기꺼이 용서함'},{n:'봉사',d:'다른 사람을 위해 일함'},
+  {n:'정직',d:'진지하고 진실함'},{n:'창의적인',d:'창조적이고 거리낌 없음'},
+  {n:'독립적인',d:'자신을 믿고 의지함'},{n:'지적인',d:'이성적이고 사려 깊음'},
+  {n:'논리적인',d:'일관성 있고 합리적임'},{n:'애정적인',d:'자애롭고 상냥함'},
+  {n:'공손한',d:'예의 바르고 정중함'},{n:'신뢰성',d:'의존하고 믿을 만함'},
+  {n:'용감한',d:'신념에 따라 끝까지 밀고 나감'},{n:'자기통제적',d:'자기수련을 추구'},
+  {n:'성실한',d:'맡은 바를 끝까지 책임짐'},{n:'배움',d:'지속적으로 성장하고 배움을 추구'},
+];
+const PV=[
+  {n:'건강',d:'몸과 마음의 온전한 균형 상태'},{n:'성장',d:'끊임없이 발전하고 나아감'},
+  {n:'자율성',d:'스스로 선택하고 결정하는 삶'},{n:'평화',d:'내면의 고요함과 평온'},
+  {n:'창의성',d:'독창적 아이디어와 표현을 추구'},{n:'자기실현',d:'잠재력을 최대한 발휘함'},
+  {n:'용기',d:'두려움에도 불구하고 행동함'},{n:'균형',d:'삶의 다양한 영역을 조화롭게'},
+  {n:'열정',d:'좋아하는 일에 온전히 몰입함'},{n:'절제',d:'욕망과 감정을 조절하고 다스림'},
+  {n:'목적의식',d:'삶의 이유와 방향이 명확함'},{n:'진정성',d:'꾸밈없이 있는 그대로의 모습으로'},
+];
+const SV=[
+  {n:'가족',d:'가족과의 깊은 유대와 헌신'},{n:'우정',d:'신뢰할 수 있는 진실한 관계'},
+  {n:'사랑',d:'무조건적으로 주고받는 정서적 연결'},{n:'공동체',d:'소속된 집단과 함께 살아감'},
+  {n:'공정성',d:'모든 사람이 동등하게 대우받음'},{n:'나눔',d:'가진 것을 기꺼이 베풂'},
+  {n:'배려',d:'타인의 필요와 감정을 먼저 살핌'},{n:'신뢰',d:'말과 행동이 일치하는 사람이 됨'},
+  {n:'협력',d:'함께 이루는 시너지를 추구'},{n:'존중',d:'모든 사람의 가치와 품위를 인정'},
+  {n:'영향력',d:'긍정적 변화를 일으키는 힘'},{n:'리더십',d:'방향을 제시하고 사람을 이끎'},
+];
+const EnV=[
+  {n:'자연',d:'자연과의 교감과 생태적 삶'},{n:'지속가능성',d:'다음 세대를 위한 환경 보전'},
+  {n:'지역사회',d:'살아가는 지역과 이웃에 기여'},{n:'문화·예술',d:'인류의 문화유산을 계승하고 창조'},
+  {n:'영성',d:'종교·명상·초월적 의미를 추구'},{n:'아름다움',d:'세상의 아름다움을 발견하고 만듦'},
+  {n:'세계시민',d:'국경을 넘는 연대와 책임감'},{n:'미래 세대',d:'후손에게 더 나은 세상을 남김'},
+  {n:'전통',d:'오래된 가치와 지혜를 소중히 여김'},{n:'다양성',d:'다른 삶의 방식을 환영하고 존중'},
+];
+const PERIODS=['1개월','3개월','1년','3년','5년','10년','20년','평생'];
+const DEF_CATS_EX=['일','가족','관계','취미','건강','자기개발','신앙생활','지역사회 활동','창조적인 활동'];
+const DEF_CATS=Array(9).fill('');
+const M3F=['m-core-have','m-core-do','m-core-be','m-ought-have','m-ought-do','m-ought-be','m-fun-have','m-fun-do','m-fun-be'];
+const LABELS=['소개','E: 탐구 Q1','E: 탐구 Q2','E: 탐구 Q3','E: 울림 확인','V: 가치 선택','V: 가치 우선순위','V: 청사진 1 — 내면의 소리 · O: 장애물','V: 청사진 2 — 목표설정 매트릭스','참고자료 & 결과'];
+const TOTAL=10;
+
+// ─── STATE ───────────────────────────────────
+let curStep=0;
+let selT=new Set(), selI=new Set();
+let priority=[];
+let periodCats=[...DEF_CATS], periodData={}, nextPrio=1, prioMode=false;
+let resonance=[];
+
+function initPD(){
+  periodCats.forEach((_,ci)=>{
+    if(!periodData[ci]) periodData[ci]={};
+    PERIODS.forEach(p=>{ if(!periodData[ci][p]) periodData[ci][p]={text:'',prio:0}; });
+  });
+}
+
+// ─── NAV ─────────────────────────────────────
+function goQ(qId, toStep){
+  const ta=document.getElementById(qId);
+  if(!ta.value.trim()){
+    ta.classList.add('invalid');
+    ta.scrollIntoView({behavior:'smooth',block:'center'});
+    ta.focus();
+    ta.addEventListener('input',function h(){ ta.classList.remove('invalid'); ta.removeEventListener('input',h); });
+    return;
+  }
+  go(toStep);
+}
+function go(n){
+  if(n===1 && curStep===0 && !document.getElementById('time-check').checked){
+    const notice=document.getElementById('time-notice');
+    notice.style.borderColor='var(--red)';
+    notice.style.boxShadow='0 0 0 3px rgba(148,48,48,.18)';
+    notice.style.background='#fff5f5';
+    notice.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(()=>{
+      notice.style.borderColor='#f0d99a';
+      notice.style.boxShadow='';
+      notice.style.background='#fffbf0';
+    },2000);
+    return;
+  }
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step-'+n).classList.add('active');
+  curStep=n;
+  document.getElementById('pFill').style.width=(n/(TOTAL-1)*100)+'%';
+  document.getElementById('pInfo').textContent=(n+1)+' / '+TOTAL;
+  document.getElementById('pLabel').textContent=LABELS[n]||'';
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(n===7) syncStep7Nav();
+  const autoFocus={1:'q1',2:'q2',3:'q3'};
+  if(autoFocus[n]) setTimeout(()=>document.getElementById(autoFocus[n]).focus(),320);
+  save();
+}
+function goMatrix(){
+  const coreIds=['m-core-have','m-core-do','m-core-be'];
+  const filled=coreIds.some(id=>document.getElementById(id)?.value.trim());
+  if(!filled){
+    const tas=coreIds.map(id=>document.getElementById(id));
+    tas.forEach(ta=>ta.classList.add('invalid'));
+    function clearAll(){ tas.forEach(ta=>{ ta.classList.remove('invalid'); ta.removeEventListener('input',clearAll); }); }
+    tas.forEach(ta=>ta.addEventListener('input',clearAll));
+    tas[0].scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  go(8);
+}
+function goPri(){
+  if(!document.querySelectorAll('#step-5 .chip.sel').length){
+    const cnt=document.getElementById('tc');
+    cnt.style.transition='color .2s';
+    cnt.style.color='var(--red)';
+    cnt.style.fontWeight='600';
+    cnt.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(()=>{ cnt.style.color=''; cnt.style.fontWeight=''; },2000);
+    return;
+  }
+  buildPriority(); go(6);
+}
+function goFinal(){
+  savePeriodDOM();
+  const hasPrio=periodCats.some((_,ci)=>PERIODS.some(p=>periodData[ci]?.[p]?.prio>0));
+  if(!hasPrio){ alert('우선순위를 최소 1개 이상 설정한 후 결과를 확인할 수 있습니다.'); return; }
+  buildResult(); go(9);
+}
+
+function switchFinalTab(tab){
+  document.querySelectorAll('.final-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.final-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='result') buildResult();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── CHIPS ───────────────────────────────────
+let selP=new Set(), selS=new Set(), selEn=new Set();
+let selCustom=new Set(), customVals=[];
+function totalSel(){ return selT.size+selI.size+selP.size+selS.size+selEn.size+selCustom.size; }
+function buildChips(){
+  buildGroup(TV,'tv-chips','T');
+  buildGroup(IV,'iv-chips','I');
+  buildGroup(PV,'pv-chips','P');
+  buildGroup(SV,'sv-chips','S');
+  buildGroup(EnV,'ev-chips','En');
+}
+function buildGroup(data,id,type){
+  const el=document.getElementById(id); if(!el) return; el.innerHTML='';
+  data.forEach(v=>{
+    const c=document.createElement('div');
+    c.className='chip'; c.textContent=v.n; c.dataset.n=v.n; c.dataset.type=type;
+    c.addEventListener('mouseenter',()=>{ document.getElementById('vdesc').innerHTML='<strong>'+v.n+'</strong> — '+v.d; });
+    c.addEventListener('mouseleave',()=>{ document.getElementById('vdesc').textContent='가치 항목에 마우스를 올리면 설명이 표시됩니다.'; });
+    c.addEventListener('click',()=>toggleChip(c,v,type));
+    el.appendChild(c);
+  });
+}
+function makeCustomChip(val){
+  const c=document.createElement('span');
+  c.className='chip sel'; c.textContent=val; c.dataset.n=val; c.dataset.type='C';
+  c.addEventListener('click',()=>{
+    if(selCustom.has(val)){ selCustom.delete(val); c.classList.remove('sel'); }
+    else{ if(totalSel()>=10){ c.style.transform='scale(.93)'; setTimeout(()=>c.style.transform='',140); return; } selCustom.add(val); c.classList.add('sel'); }
+    document.getElementById('tc').textContent='전체 '+totalSel()+'개 선택됨';
+    save();
+  });
+  return c;
+}
+function addCustomVal(){
+  const input=document.getElementById('custom-val-input');
+  const val=input.value.trim();
+  if(!val) return;
+  if(customVals.includes(val)){ input.select(); return; }
+  if(totalSel()>=10){ input.style.borderColor='var(--red)'; setTimeout(()=>input.style.borderColor='',1500); return; }
+  customVals.push(val);
+  selCustom.add(val);
+  document.getElementById('custom-chips').appendChild(makeCustomChip(val));
+  input.value='';
+  document.getElementById('tc').textContent='전체 '+totalSel()+'개 선택됨';
+  save();
+}
+function selResonance(){ resonance=Array.from(document.querySelectorAll('input[name="resonance"]:checked')).map(e=>e.value); save(); }
+function getSet(type){ return type==='T'?selT:type==='I'?selI:type==='P'?selP:type==='S'?selS:selEn; }
+function toggleChip(c,v,type){
+  const set=getSet(type);
+  if(set.has(v.n)){ set.delete(v.n); c.classList.remove('sel'); }
+  else{ if(totalSel()>=10){ c.style.transform='scale(.93)'; setTimeout(()=>c.style.transform='',140); return; } set.add(v.n); c.classList.add('sel'); }
+  document.getElementById('tc').textContent='전체 '+totalSel()+'개 선택됨';
+  save();
+}
+
+// ─── PRIORITY ────────────────────────────────
+function buildPriority(){
+  const all=[
+    ...Array.from(selT).map(n=>({n,t:'궁극적 가치',d:TV.find(v=>v.n===n)?.d||''})),
+    ...Array.from(selI).map(n=>({n,t:'수단적 가치',d:IV.find(v=>v.n===n)?.d||''})),
+    ...Array.from(selP).map(n=>({n,t:'개인적 가치',d:PV.find(v=>v.n===n)?.d||''})),
+    ...Array.from(selS).map(n=>({n,t:'사회적 가치',d:SV.find(v=>v.n===n)?.d||''})),
+    ...Array.from(selEn).map(n=>({n,t:'환경적 가치',d:EnV.find(v=>v.n===n)?.d||''})),
+    ...Array.from(selCustom).map(n=>({n,t:'직접 입력',d:''})),
+  ];
+  if(!priority.length) priority=all;
+  else{ const ns=new Set(all.map(v=>v.n)); priority=priority.filter(v=>ns.has(v.n)); all.forEach(v=>{ if(!priority.find(p=>p.n===v.n)) priority.push(v); }); }
+  renderPriority();
+}
+function renderPriority(){
+  const list=document.getElementById('plist'), emp=document.getElementById('emp-p');
+  if(!priority.length){ emp.style.display='block'; list.innerHTML=''; return; }
+  emp.style.display='none'; list.innerHTML='';
+  priority.forEach((v,i)=>{
+    const li=document.createElement('li'); li.className='pitem';
+    const rc=i===0?'r1':i===1?'r2':i===2?'r3':'';
+    li.innerHTML=`<div class="prank ${rc}">${i+1}</div>
+      <div><div class="pname">${v.n}</div><div class="ptype">${v.t} · ${v.d}</div></div>
+      <div class="rbts">
+        <button class="rbtn" onclick="mUp(${i})" ${i===0?'disabled':''}>▲</button>
+        <button class="rbtn" onclick="mDn(${i})" ${i===priority.length-1?'disabled':''}>▼</button>
+      </div>`;
+    list.appendChild(li);
+  });
+}
+function mUp(i){ if(i<=0)return; [priority[i-1],priority[i]]=[priority[i],priority[i-1]]; renderPriority(); save(); }
+function mDn(i){ if(i>=priority.length-1)return; [priority[i],priority[i+1]]=[priority[i+1],priority[i]]; renderPriority(); save(); }
+
+// ─── PERIOD TABLE ────────────────────────────
+function renderPeriodTable(){
+  const tbody=document.getElementById('period-tbody'); tbody.innerHTML='';
+  periodCats.forEach((cat,ci)=>{
+    if(!periodData[ci]) periodData[ci]={};
+    PERIODS.forEach(p=>{ if(!periodData[ci][p]) periodData[ci][p]={text:'',prio:0}; });
+    const tr=document.createElement('tr');
+    const catTd=document.createElement('td'); catTd.className='cat-cell';
+    const ph=DEF_CATS_EX[ci]||'카테고리';
+    catTd.innerHTML=`<div style="display:flex;align-items:center;gap:3px">
+      <input class="cat-edit" value="${esc(cat)}" placeholder="${ph}" onchange="renameCat(${ci},this.value)">
+      <button class="cat-del" onclick="deleteCat(${ci})" title="행 삭제">×</button>
+    </div>`;
+    tr.appendChild(catTd);
+    const hascat=cat.trim()!=='';
+    PERIODS.forEach(p=>{
+      const cell=periodData[ci][p]; const prio=cell.prio||0;
+      const td=document.createElement('td');
+      td.className='pt-cell'+(prio>0?' assigned':'')+(hascat?'':' cat-empty');
+      td.dataset.ci=ci; td.dataset.p=p;
+      td.innerHTML=`<textarea class="pt-in" id="pti-${ci}-${p}" rows="2" oninput="ptChange(${ci},'${p}',this.value)"${hascat?'':' disabled'}${prioMode?' readonly':''}>${esc(cell.text)}</textarea>
+        <div class="prio-badge" onclick="removePrio(${ci},'${p}')">${prio}</div>`;
+      if(prioMode&&hascat) td.addEventListener('click',e=>{ if(e.target.classList.contains('prio-badge'))return; if(periodData[ci]?.[p]?.prio>0) removePrio(ci,p); else prioClick(ci,p,td); });
+      if(!hascat) td.addEventListener('click',()=>{
+        if(periodCats[ci]?.trim()) return;
+        const inputs=document.querySelectorAll('.cat-edit');
+        if(inputs[ci]){
+          inputs[ci].focus();
+          inputs[ci].style.transition='border-color .2s,background .2s';
+          inputs[ci].style.borderColor='var(--red)';
+          inputs[ci].style.background='#fff5f5';
+          setTimeout(()=>{ inputs[ci].style.borderColor=''; inputs[ci].style.background=''; },1500);
+          _catTip(inputs[ci]);
+        }
+      });
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  updatePrioCount();
+}
+function ptChange(ci,p,val){ if(!periodData[ci])periodData[ci]={}; if(!periodData[ci][p])periodData[ci][p]={text:'',prio:0}; periodData[ci][p].text=val; save(); }
+function renameCat(ci,val){
+  if(val.trim()===''){
+    const hasGoals=PERIODS.some(p=>periodData[ci]?.[p]?.text.trim());
+    if(hasGoals){
+      const inputs=document.querySelectorAll('.cat-edit');
+      if(inputs[ci]){ inputs[ci].value=periodCats[ci]; inputs[ci].style.transition='border-color .2s,background .2s'; inputs[ci].style.borderColor='var(--red)'; inputs[ci].style.background='#fff5f5'; setTimeout(()=>{ inputs[ci].style.borderColor=''; inputs[ci].style.background=''; },1500); }
+      return;
+    }
+  }
+  periodCats[ci]=val; const hc=val.trim()!==''; PERIODS.forEach(p=>{ const ta=document.getElementById('pti-'+ci+'-'+p); if(ta){ ta.disabled=!hc; const td=ta.closest('td'); if(td) td.classList.toggle('cat-empty',!hc); } }); save();
+}
+function addCat(){
+  savePeriodDOM(); periodCats.push('');
+  const ci=periodCats.length-1; periodData[ci]={};
+  PERIODS.forEach(p=>periodData[ci][p]={text:'',prio:0});
+  renderPeriodTable(); save();
+  setTimeout(()=>{ const ins=document.querySelectorAll('.cat-edit'); ins[ins.length-1]?.focus(); },50);
+}
+function deleteCat(ci){
+  if(periodCats.length<=1) return;
+  savePeriodDOM();
+  const newData={};
+  let ni=0;
+  periodCats.forEach((_,oi)=>{ if(oi!==ci){ newData[ni]=periodData[oi]||{}; ni++; } });
+  periodCats.splice(ci,1);
+  periodData=newData;
+  // re-number priorities
+  const all=[];
+  periodCats.forEach((_,c)=>PERIODS.forEach(p=>{ if(periodData[c]?.[p]?.prio>0) all.push({c,p,prio:periodData[c][p].prio}); }));
+  all.sort((a,b)=>a.prio-b.prio);
+  nextPrio=1;
+  all.forEach((it,i)=>{ periodData[it.c][it.p].prio=i+1; nextPrio=i+2; });
+  renderPeriodTable(); save();
+}
+function savePeriodDOM(){ periodCats.forEach((_,ci)=>PERIODS.forEach(p=>{ const el=document.getElementById('pti-'+ci+'-'+p); if(el&&periodData[ci]&&periodData[ci][p]) periodData[ci][p].text=el.value; })); }
+function togglePrioMode(){
+  prioMode=!prioMode;
+  const btn=document.getElementById('prio-mode-btn');
+  btn.classList.toggle('on',prioMode);
+  btn.textContent=prioMode?'✓ 우선순위 설정 중...':'우선순위 설정 모드';
+  savePeriodDOM(); renderPeriodTable();
+  syncStep7Nav();
+}
+function step8Back(){ if(prioMode) togglePrioMode(); else go(7); }
+function syncStep7Nav(){
+  const btn=document.getElementById('step7-final-btn');
+  if(!btn) return;
+  if(prioMode){
+    btn.textContent='결과 보기 →';
+    btn.onclick=goFinal;
+  } else {
+    btn.textContent='우선순위 설정하기 →';
+    btn.onclick=startPriority;
+  }
+}
+function startPriority(){
+  savePeriodDOM();
+  if(!prioMode){
+    const hasAny=periodCats.some((_,ci)=>PERIODS.some(p=>periodData[ci]?.[p]?.text.trim()));
+    if(!hasAny){
+      // 빈 셀 분홍 배경
+      document.querySelectorAll('.pt-cell textarea').forEach(ta=>{
+        ta.style.transition='background .2s';
+        ta.style.background='#fff5f5';
+        setTimeout(()=>ta.style.background='',2000);
+      });
+      // 메시지 표시
+      const warn=document.getElementById('pt-warn');
+      warn.style.display='inline';
+      setTimeout(()=>warn.style.display='none',2500);
+      return;
+    }
+    prioMode=true;
+    const btn=document.getElementById('prio-mode-btn');
+    btn.classList.add('on');
+    btn.textContent='✓ 우선순위 설정 중...';
+    renderPeriodTable();
+    syncStep7Nav();
+    document.getElementById('period-table')?.scrollIntoView({behavior:'smooth',block:'start'});
+  } else {
+    buildResult(); go(9);
+  }
+}
+function prioClick(ci,p,td){
+  const cell=periodData[ci][p];
+  if(!cell.text.trim()||cell.prio>0) return;
+  cell.prio=nextPrio++;
+  td.classList.add('assigned');
+  td.querySelector('.prio-badge').style.display='flex';
+  td.querySelector('.prio-badge').textContent=cell.prio;
+  updatePrioCount(); save();
+}
+function removePrio(ci,p){
+  periodData[ci][p].prio=0; nextPrio=1;
+  const all=[];
+  periodCats.forEach((_,c)=>PERIODS.forEach(pr=>{ if(periodData[c]&&periodData[c][pr]&&periodData[c][pr].prio>0) all.push({c,pr,prio:periodData[c][pr].prio}); }));
+  all.sort((a,b)=>a.prio-b.prio);
+  all.forEach((it,i)=>{ periodData[it.c][it.pr].prio=i+1; nextPrio=i+2; });
+  savePeriodDOM(); renderPeriodTable(); save();
+}
+function resetPrios(){ periodCats.forEach((_,ci)=>PERIODS.forEach(p=>{ if(periodData[ci]&&periodData[ci][p]) periodData[ci][p].prio=0; })); nextPrio=1; if(prioMode){ prioMode=false; const b=document.getElementById('prio-mode-btn'); if(b){ b.classList.remove('on'); b.textContent='우선순위 설정 모드'; } syncStep7Nav(); } savePeriodDOM(); renderPeriodTable(); save(); }
+function updatePrioCount(){ let cnt=0; periodCats.forEach((_,ci)=>PERIODS.forEach(p=>{ if(periodData[ci]&&periodData[ci][p]&&periodData[ci][p].prio>0) cnt++; })); document.getElementById('prio-count').textContent=cnt?cnt+'개 우선순위 설정됨':''; }
+
+// ─── RESULT ──────────────────────────────────
+function buildResult(){
+  const top3=priority.slice(0,3);
+  document.getElementById('res-top').textContent=top3.length?top3.map(v=>v.n).join(' · '):'Values';
+
+  // 우선순위 상위 3개 목표
+  const allGoals=[];
+  periodCats.forEach((cat,ci)=>{ if(!cat.trim()) return; PERIODS.forEach(p=>{ const cell=periodData[ci]?.[p]; if(cell&&cell.prio>0&&cell.text.trim()) allGoals.push({cat,text:cell.text,prio:cell.prio}); }); });
+  allGoals.sort((a,b)=>a.prio-b.prio);
+  const top3Goals=allGoals.slice(0,3);
+  const gnGrouped=[];
+  top3Goals.forEach(g=>{ const ex=gnGrouped.find(x=>x.cat===g.cat); if(ex) ex.goals.push(g.text); else gnGrouped.push({cat:g.cat,goals:[g.text]}); });
+  document.getElementById('res-gn').innerHTML=gnGrouped.map(g=>`<div style="text-align:left;margin-bottom:.3rem"><div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--gold-light);opacity:.8">${g.cat}</div>${g.goals.map(t=>`<div style="font-size:11px;line-height:1.4;opacity:.9">· ${t}</div>`).join('')}</div>`).join('');
+
+  document.getElementById('res-kinder').innerHTML=[
+    {q:'💰 재정적 자유가 있다면?',id:'q1'},
+    {q:'⏳ 5~10년밖에 없다면?',id:'q2'},
+    {q:'🕊️ 오늘이 마지막 날이라면?',id:'q3'},
+  ].map(k=>`<div class="k-ans"><div class="k-q">${k.q}</div><div class="k-a">${esc(document.getElementById(k.id)?.value||'(미작성)')}</div></div>`).join('');
+
+  document.getElementById('res-values').innerHTML=top3.length
+    ?top3.map((v,i)=>`<div class="res-row${i===0?' top1':''}"><div class="res-badge">${i+1}</div><div><div class="res-row-title">${v.n}</div><div class="res-row-sub">${v.t} · ${v.d}</div></div></div>`).join('')
+    :'<p style="color:var(--ink-4);font-size:13px">선택된 가치가 없습니다.</p>';
+
+  // 3x3
+  const rs=[{k:'core',l:'❤️ 내면의 소리'},{k:'ought',l:'✅ 해야 하는 것'},{k:'fun',l:'✨ 하면 좋은 것'}];
+  const cs=[{k:'have',l:'소유'},{k:'do',l:'체험'},{k:'be',l:'존재'}];
+  let mh=`<table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed"><tr><th style="border:1px solid var(--paper-3);padding:4px 6px;background:var(--paper-2);width:22%"></th>`;
+  cs.forEach(c=>mh+=`<th style="border:1px solid var(--paper-3);padding:9px 6px;background:var(--ink);color:var(--gold-light);text-align:center;width:26%">${c.l}</th>`);
+  mh+='</tr>';
+  rs.forEach(r=>{
+    mh+=`<tr><td style="border:1px solid var(--paper-3);padding:4px 6px;font-weight:500;background:var(--paper-2);font-size:12px;word-break:keep-all;text-align:center;vertical-align:middle">${r.l}</td>`;
+    cs.forEach(c=>{ const val=document.getElementById('m-'+r.k+'-'+c.k)?.value||'';
+      mh+=`<td style="border:1px solid var(--paper-3);padding:4px 6px;vertical-align:top;white-space:pre-wrap;font-size:12px;min-height:60px;height:60px">${esc(val)||'<span style="color:var(--ink-4)">-</span>'}</td>`; });
+    mh+='</tr>';
+  });
+  document.getElementById('res-matrix').innerHTML=mh+'</table>';
+
+  // Period
+  const ap=[];
+  periodCats.forEach((cat,ci)=>PERIODS.forEach(p=>{ const cell=periodData[ci]?.[p]; if(cell&&cell.prio>0&&cell.text.trim()) ap.push({cat,p,text:cell.text,prio:cell.prio}); }));
+  ap.sort((a,b)=>a.prio-b.prio);
+  // Resonance interpretation
+  const resLabels={q1:'💰 질문 1 — 재정적 자유',q2:'⏳ 질문 2 — 시간의 한계',q3:'🕊️ 질문 3 — 마지막 하루'};
+  const resHint={
+    q1:'질문 1에서 울림이 컸다는 것은 아직 충족되지 않은 욕망—<em>가지고 싶은 것, 누리고 싶은 것</em>—이 강하게 살아있다는 신호입니다. 현실과의 간극이 클수록, 그 격차를 메우는 재무설계가 삶을 변화시킬 힘이 있습니다.',
+    q2:'질문 2에서 울림이 컸다는 것은 지금 당장 <em>하고 싶은 경험과 성취</em>가 억눌려 있다는 신호입니다. 시간이 한정되었을 때 가장 먼저 떠오른 것들이 당신의 진정한 필요입니다.',
+    q3:'질문 3에서 울림이 컸다는 것은 <em>존재의 차원</em>—어떤 사람으로 기억되고 싶은지, 어떤 관계를 남기고 싶은지—에 대한 갈망이 크다는 신호입니다. 가장 깊은 가치가 여기에 있을 가능성이 높습니다.',
+    all:'세 가지 모두에서 울림을 느꼈다는 것은 욕망·필요·존재 모든 층위에서 삶이 풍요로워질 여지가 크다는 의미입니다. 어느 하나를 억지로 고를 필요 없이, 세 가지 방향을 균형 있게 탐색하세요.',
+  };
+  // George Kinder 인용구 → 다음단계 바로 위
+  const quoteEl=document.getElementById('res-kinder-quote');
+  if(quoteEl){
+    quoteEl.innerHTML='<div style="padding:.85rem 1rem 1rem;margin-bottom:1rem;border-bottom:1px solid rgba(255,255,255,.12)"><div style="font-family:\'Noto Serif KR\',serif;font-size:15px;color:var(--gold-light);font-style:italic;line-height:1.85;margin-bottom:.5rem">"우리 모두는 어린 시절부터 자신의 꿈의 불씨를 땅에 묻는 법만을 배워 왔다."</div><div style="font-size:12px;color:rgba(255,255,255,.45);text-align:right">— George Kinder</div></div>';
+  }
+
+  // 울림이 컸던 질문 → 3가지 질문 카드 아래
+  const resonanceEl=document.getElementById('res-resonance');
+  if(resonanceEl && resonance.length>0){
+    const hintHtml=resonance.map(r=>resHint[r]?`<div style="margin-bottom:.5rem"><strong style="font-size:12px;color:var(--gold);letter-spacing:.06em">${resLabels[r]}</strong><div style="font-size:14px;color:var(--ink-2);line-height:1.75;margin-top:2px">${resHint[r]}</div></div>`:'').filter(Boolean).join('');
+    if(hintHtml) resonanceEl.innerHTML=`<div style="margin-top:.75rem;padding:.9rem 1.1rem;background:var(--gold-pale);border:1px solid var(--gold-light);border-left:3px solid var(--gold);border-radius:0 var(--radius-lg) var(--radius-lg) 0">${hintHtml}</div>`;
+  }
+
+  // 해야 하는 것 해석 → res-interp
+  const interpEl=document.getElementById('res-interp');
+  if(interpEl){
+    const oughtVals=[document.getElementById('m-ought-have')?.value,document.getElementById('m-ought-do')?.value,document.getElementById('m-ought-be')?.value].filter(v=>v&&v.trim());
+    interpEl.innerHTML=oughtVals.length>0?`<div style="padding:.85rem 1.1rem;background:#fff;border:1px solid var(--paper-3);border-left:3px solid var(--ink-3);border-radius:0 var(--radius-lg) var(--radius-lg) 0">
+      <div style="font-size:12px;font-weight:500;color:var(--ink-3);margin-bottom:.35rem;letter-spacing:.08em;text-transform:uppercase">해석 — '해야 하는 것' 항목과 무의식적 신념</div>
+      <div style="font-size:13px;color:var(--ink-2);line-height:1.7">'해야 하는 것(Ought to)' 칸에 적힌 목표들—<em>${esc(oughtVals.join(', '))}</em>—은 순수한 욕망이 아니라 <strong style="color:var(--ink-2)">무의식적 신념, 사회적 기대, 의무감</strong>과 연결되어 있을 수 있습니다. 이 항목들을 달성해야 한다고 느끼는 이유를 한 번 더 탐색해보세요. 진정한 내 것인가, 아니면 누군가의 기대를 내면화한 것인가?</div>
+    </div>`:'';
+  }
+
+  // Obstacles
+  const obsFin=document.getElementById('obs-fin')?.value||'';
+  const obsPsy=document.getElementById('obs-psy')?.value||'';
+  const obsExt=document.getElementById('obs-ext')?.value||'';
+  const obsEl=document.getElementById('res-obstacles');
+  if(obsEl){
+    if(obsFin||obsPsy||obsExt){
+      obsEl.innerHTML=[
+        {l:'💰 재정적 장벽',v:obsFin},{l:'🧠 심리적 장벽',v:obsPsy},{l:'⏰ 시간·관계·환경적 장벽',v:obsExt}
+      ].filter(o=>o.v.trim()).map(o=>`<div class="k-ans"><div class="k-q">${o.l}</div><div class="k-a">${esc(o.v)}</div></div>`).join('');
+    } else {
+      obsEl.innerHTML='<p style="color:var(--ink-4);font-size:13px">(미작성)</p>';
+    }
+  }
+
+  document.getElementById('res-period').innerHTML=ap.slice(0,8).length
+    ?ap.slice(0,8).map(it=>`<div class="res-row${it.prio===1?' top1':''}"><div class="res-badge">${it.prio}</div><div><div class="res-row-sub">${it.cat} · ${it.p}</div><div class="res-row-title">${esc(it.text)}</div></div></div>`).join('')
+    :'<p style="color:var(--ink-4);font-size:13px">우선순위가 설정된 목표가 없습니다. 기간별 목표표에서 설정해주세요.</p>';
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+// ─── LOCALSTORAGE ─────────────────────────────
+const SK='vbfp_v4';
+function save(){
+  try{
+    const m3={}; M3F.forEach(id=>{ const el=document.getElementById(id); if(el) m3[id]=el.value; });
+    localStorage.setItem(SK,JSON.stringify({
+      step:curStep,
+      q1:document.getElementById('q1')?.value||'',
+      q2:document.getElementById('q2')?.value||'',
+      q3:document.getElementById('q3')?.value||'',
+      selT:Array.from(selT),selI:Array.from(selI),
+      selP:Array.from(selP),selS:Array.from(selS),selEn:Array.from(selEn),
+      selCustom:Array.from(selCustom),customVals,
+      priority,periodCats,periodData,nextPrio,m3,
+      resonance,
+      obsFin:document.getElementById('obs-fin')?.value||'',
+      obsPsy:document.getElementById('obs-psy')?.value||'',
+      obsExt:document.getElementById('obs-ext')?.value||'',
+    }));
+  }catch(e){}
+}
+function loadSaved(){
+  let d; try{d=JSON.parse(localStorage.getItem(SK));}catch(e){}
+  if(!d) return;
+  ['q1','q2','q3'].forEach(id=>{ const el=document.getElementById(id); if(el&&d[id]) el.value=d[id]; });
+  if(d.selT){selT=new Set(d.selT); syncChips('tv-chips',selT);}
+  if(d.selI){selI=new Set(d.selI); syncChips('iv-chips',selI);}
+  if(d.selP){selP=new Set(d.selP); syncChips('pv-chips',selP);}
+  if(d.selS){selS=new Set(d.selS); syncChips('sv-chips',selS);}
+  if(d.selEn){selEn=new Set(d.selEn); syncChips('ev-chips',selEn);}
+  if(d.customVals){ customVals=d.customVals; selCustom=new Set(d.selCustom||[]); const cc=document.getElementById('custom-chips'); cc.innerHTML=''; customVals.forEach(v=>{ const c=makeCustomChip(v); if(!selCustom.has(v)) c.classList.remove('sel'); cc.appendChild(c); }); }
+  document.getElementById('tc').textContent='전체 '+totalSel()+'개 선택됨';
+  if(d.resonance){ resonance=Array.isArray(d.resonance)?d.resonance:(d.resonance?[d.resonance]:[]); resonance.forEach(v=>{ const el=document.querySelector(`input[name="resonance"][value="${v}"]`); if(el) el.checked=true; }); }
+  if(d.obsFin){const e=document.getElementById('obs-fin');if(e)e.value=d.obsFin;}
+  if(d.obsPsy){const e=document.getElementById('obs-psy');if(e)e.value=d.obsPsy;}
+  if(d.obsExt){const e=document.getElementById('obs-ext');if(e)e.value=d.obsExt;}
+  if(d.priority?.length){priority=d.priority; renderPriority();}
+  if(d.periodCats) periodCats=d.periodCats;
+  if(d.periodData) periodData=d.periodData;
+  initPD();
+  if(d.nextPrio) nextPrio=d.nextPrio;
+  if(d.m3) M3F.forEach(id=>{ const el=document.getElementById(id); if(el&&d.m3[id]) el.value=d.m3[id]; });
+  renderPeriodTable();
+  if(d.step>0){ if(d.step===9){ buildResult(); go(9); } else go(d.step); }
+}
+function syncChips(cid,set){ document.querySelectorAll('#'+cid+' .chip').forEach(c=>c.classList.toggle('sel',set.has(c.dataset.n))); }
+function resetAll(){ if(!confirm('모든 작성 내용을 초기화하시겠습니까?')) return; localStorage.removeItem(SK); location.reload(); }
+
+// ─── CAT TOOLTIP ──────────────────────────────
+const _catTip=(()=>{
+  const el=document.createElement('div');
+  el.className='cat-tip'; el.textContent='카테고리를 먼저 입력해주세요';
+  document.body.appendChild(el);
+  let _t;
+  return function(anchor){
+    const r=anchor.getBoundingClientRect();
+    el.style.left=(r.left+window.scrollX)+'px';
+    el.style.top=(r.bottom+window.scrollY+6)+'px';
+    el.classList.add('show');
+    clearTimeout(_t); _t=setTimeout(()=>el.classList.remove('show'),2000);
+  };
+})();
+
+// ─── INIT ─────────────────────────────────────
+initPD(); buildChips(); renderPeriodTable(); loadSaved();
+['q1','q2','q3'].forEach(id=>document.getElementById(id)?.addEventListener('input',save));
+M3F.forEach(id=>document.getElementById(id)?.addEventListener('input',save));
+function _mPrint(fn){
+  if(window.matchMedia('(max-width:768px)').matches){
+    var t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:14px 22px;border-radius:10px;font-size:14px;z-index:9999;text-align:center;max-width:280px;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+    t.innerHTML='🖨️ 출력·PDF 저장은<br><b>PC 웹 브라우저</b>에서 이용해 주세요.';
+    document.body.appendChild(t);
+    setTimeout(function(){t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(function(){t.remove();},400);},3000);
+    return;
+  }
+  fn();
+}
+</script>
+</body>
+</html>
