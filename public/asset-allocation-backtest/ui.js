@@ -376,37 +376,50 @@ async function doRunBacktest(){
   const uniqueAssets = new Set();
   activePorts.forEach(p => p.rows.forEach(r => uniqueAssets.add(r.assetId)));
 
-  const steps = ['환율 데이터 로딩', ...Array.from(uniqueAssets).map(id=>ASSET_DEF[id]?.name||id), '백테스트 계산'];
+  const steps = ['데이터 로딩 중...', '백테스트 계산'];
   renderLoadingSteps(steps);
 
   try{
     let stepIdx = 0;
     updateStep(stepIdx++, 'active');
-    const fxMap = await fetchFX(s.startYear, s.endYear);
-    updateStep(stepIdx-1, 'done');
 
-    const assetDataMap = {};
-    const warnings = [];
-    for(const assetId of uniqueAssets){
-      updateStep(stepIdx++, 'active');
-      try{
-        assetDataMap[assetId] = await fetchAssetData(assetId, s.startYear, s.endYear);
-        if(assetDataMap[assetId].proxyNote) warnings.push(`${ASSET_DEF[assetId].name}: ${assetDataMap[assetId].proxyNote}`);
-      }catch(e){
-        warnings.push(`${ASSET_DEF[assetId]?.name||assetId}: 데이터 로드 실패 — 제외됨`);
-      }
-      updateStep(stepIdx-1, 'done');
+    // 서버사이드 데이터 fetching: Yahoo/ECOS를 서버에서 직접 호출 (CORS 없음)
+    const cacheKey = `${Array.from(uniqueAssets).sort().join(',')}_${s.startYear}_${s.endYear}`;
+    let fxMap, assetDataMap;
+    if(dataCache.has(cacheKey)){
+      ({fxMap, assetDataMap} = dataCache.get(cacheKey));
+    } else {
+      const fetchRes = await fetch('/api/fetch-data', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ assetIds: Array.from(uniqueAssets), startYear: s.startYear, endYear: s.endYear }),
+      });
+      if(!fetchRes.ok) throw new Error('데이터 서버 오류');
+      const fetched = await fetchRes.json();
+      fxMap = fetched.fxMap;
+      assetDataMap = fetched.assetData;
+      dataCache.set(cacheKey, {fxMap, assetDataMap});
     }
+
+    const warnings = [];
+    Array.from(uniqueAssets).forEach(id=>{
+      const d = assetDataMap[id];
+      if(!d || d.error) warnings.push(`${ASSET_DEF[id]?.name||id}: 데이터 로드 실패 — 제외됨`);
+      else if(d.proxyNote) warnings.push(`${ASSET_DEF[id].name}: ${d.proxyNote}`);
+    });
+    updateStep(stepIdx-1, 'done');
 
     updateStep(stepIdx++, 'active');
     const assetDefs = {};
+    const cleanAssetDataMap = {};
     Array.from(uniqueAssets).forEach(id => {
       assetDefs[id] = { cur: ASSET_DEF[id]?.cur || 'KRW' };
+      if(assetDataMap[id] && !assetDataMap[id].error) cleanAssetDataMap[id] = assetDataMap[id];
     });
     const apiRes = await fetch('/api/backtest-asset', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ portfolios: activePorts, assetDataMap, fxMap, settings: s, assetDefs }),
+      body: JSON.stringify({ portfolios: activePorts, assetDataMap: cleanAssetDataMap, fxMap, settings: s, assetDefs }),
     });
     if (!apiRes.ok) throw new Error('백테스트 서버 오류');
     const { results: rawResults, error: apiError } = await apiRes.json();

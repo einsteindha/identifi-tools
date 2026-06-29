@@ -2445,7 +2445,14 @@ async function update(){
 
 // 이벤트 리스너
 let _updateTimer=null;
-function debouncedUpdate(){clearTimeout(_updateTimer);_updateTimer=setTimeout(update,150);}
+function debouncedUpdate(){
+  clearTimeout(_updateTimer);
+  _updateTimer=setTimeout(()=>{
+    update().catch(err=>{
+      console.error('시뮬레이션 오류:', err);
+    });
+  },150);
+}
 
 ['s-pension-own','s-pension-survivor'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',debouncedUpdate);});
 ['age','retire','asset','save','save-inc','save-rate','sp-age','sp-retire','sp-save','sp-save-inc','sp-save-rate','me-life','sp-life',
