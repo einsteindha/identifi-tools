@@ -2701,7 +2701,7 @@ renderEvents();
 renderInflows();
 renderCashflows();
 renderFixedPensions();
-update();
+setTimeout(()=>update().catch(err=>console.error('시뮬레이션 오류:',err)),0);
 </script>
 
 <!-- 사용 설명서 모달 -->
