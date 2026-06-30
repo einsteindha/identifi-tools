@@ -302,8 +302,8 @@ let US_STOCKS = [];
   si.placeholder='종목 DB 로딩 중...';
   try{
     const[kr,us]=await Promise.all([
-      fetch('data/kr_stocks.json').then(r=>{if(!r.ok)throw new Error('kr_stocks 로드 실패');return r.json();}),
-      fetch('data/us_stocks.json').then(r=>{if(!r.ok)throw new Error('us_stocks 로드 실패');return r.json();})
+      fetch('/portfolio-backtest/data/kr_stocks.json').then(r=>{if(!r.ok)throw new Error('kr_stocks 로드 실패');return r.json();}),
+      fetch('/portfolio-backtest/data/us_stocks.json').then(r=>{if(!r.ok)throw new Error('us_stocks 로드 실패');return r.json();})
     ]);
     KR_STOCKS=kr; US_STOCKS=us;
     si.disabled=false; sb.disabled=false;
