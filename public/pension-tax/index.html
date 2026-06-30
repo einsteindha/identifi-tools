@@ -1,0 +1,2653 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연금계좌 세금 정리 | IdentiFi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf8f4;
+  --bg2: #f2efe9;
+  --bg3: #e8e4db;
+  --text: #1a1814;
+  --text2: #3d3a35;
+  --text3: #7a776f;
+  --border: rgba(0,0,0,.08);
+  --border2: rgba(0,0,0,.13);
+  --blue: #2b5ea7;
+  --green: #2a7c6f;
+  --amber: #b86e1a;
+  --red: #943030;
+  --purple: #5b4890;
+  --gold: #c4933f;
+  --gold-light: #f0d99a;
+  --gold-pale: #fdf5e0;
+  --accent-bg: #1a1814;
+  --radius: 2px;
+  --radius-lg: 4px;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* ── HEADER ── */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border2);
+  padding: 1.2rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header-left { display: flex; align-items: center; gap: 1.5rem; }
+.logo { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--text); font-weight: 400; text-decoration: none; }
+.logo span { color: var(--gold); font-style: italic; }
+.page-title { font-family: 'Noto Serif KR', serif; font-size: 1.15rem; font-weight: 500; color: var(--text); }
+.page-sub { font-size: .82rem; color: var(--text3); }
+
+/* ── TAB NAV ── */
+.tab-nav {
+  display: flex;
+  background: var(--bg);
+  border-bottom: 1px solid var(--bg3);
+}
+.tab-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-right: 1px solid var(--bg3);
+}
+.tab-group:last-child { border-right: none; }
+.tab-grp-hd {
+  font-size: 9px; font-weight: 600; color: var(--text3);
+  text-align: center;
+  padding: 5px 12px 4px;
+  letter-spacing: .14em; text-transform: uppercase;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--bg3);
+}
+.tab-grp-tabs { display: flex; }
+.tab-btn {
+  flex: 1;
+  padding: 11px 8px;
+  border: none; background: transparent;
+  cursor: pointer; font-size: 13px; font-weight: 400;
+  color: var(--text3); font-family: inherit;
+  white-space: nowrap; border-bottom: 2px solid transparent;
+  transition: all .2s; letter-spacing: .02em; text-align: center;
+}
+.tab-btn:hover { color: var(--text2); }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--gold); }
+@media (max-width: 600px) {
+  .tab-btn { font-size: 11px; padding: 10px 4px; }
+  .tab-grp-hd { font-size: 8px; padding: 4px 8px 3px; }
+}
+
+/* ── LAYOUT ── */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.container { max-width: 1400px; margin: 0 auto; padding: 28px 32px; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+.split-55 { grid-template-columns: 55% 1fr; }
+@media (max-width: 860px) { .split, .split-55 { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .container { padding: 16px; } .site-header { padding: .9rem 1rem; } .page-sub { display: none; } .site-footer { padding: 18px 16px; } }
+
+/* ── CARD ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--bg3);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.card + .card { margin-top: 14px; }
+.card-title {
+  font-size: 11px; font-weight: 500; color: var(--text2);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  letter-spacing: .12em; text-transform: uppercase;
+}
+.card-title::before {
+  content: ''; width: 2px; height: 13px;
+  background: var(--gold); border-radius: 1px; flex-shrink: 0;
+}
+
+/* ── FORM ── */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block; font-size: 10px; font-weight: 500;
+  color: var(--text3); margin-bottom: 5px; letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; line-height: 1.55; }
+.inp-wrap { position: relative; display: flex; align-items: center; }
+.inp-wrap input[type="number"],
+.inp-wrap input[type="date"] {
+  width: 100%; padding: 9px 38px 9px 11px;
+  border: 1px solid var(--bg3); border-radius: var(--radius);
+  background: var(--bg); color: var(--text);
+  font-size: 14px; font-family: inherit; transition: border-color .2s;
+}
+.inp-wrap input[type="date"] { padding: 9px 11px; }
+.inp-wrap input[type="number"]:focus,
+.inp-wrap input[type="date"]:focus { outline: none; border-color: var(--gold); }
+.inp-row { display: flex; align-items: center; gap: 10px; }
+.inp-row .inp-wrap { flex: 2; }
+.inp-row .kr-num { flex: 1; margin-bottom: 0; min-height: auto; }
+.inp-unit {
+  position: absolute; right: 10px;
+  font-size: 11px; color: var(--text3); pointer-events: none;
+}
+input[type="range"] { width: 100%; cursor: pointer; height: 4px; margin-top: 6px; -webkit-appearance: none; appearance: none; background: linear-gradient(to right,var(--gold) 0%,var(--gold) var(--pct,0%),var(--bg3) var(--pct,0%)); border-radius: 4px; padding: 0; border: none; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--gold); border: 2px solid var(--bg); box-shadow: 0 0 0 2px rgba(196,147,63,.3); }
+input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: none; border-radius: 50%; background: var(--gold); border: 2px solid var(--bg); box-shadow: 0 0 0 2px rgba(196,147,63,.3); }
+.range-row { display: flex; justify-content: space-between; font-size: 10px; color: var(--text3); margin-top: 3px; letter-spacing: .04em; }
+.radio-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.radio-opt { flex: 1; min-width: 70px; }
+.radio-opt input[type="radio"] { display: none; }
+.radio-opt label {
+  display: block; padding: 7px 10px; border: 1px solid var(--bg3);
+  border-radius: var(--radius); cursor: pointer; font-size: 12px; font-weight: 400;
+  text-align: center; color: var(--text3); transition: all .2s; white-space: nowrap;
+}
+.radio-opt input:checked + label { background: var(--accent-bg); color: var(--gold-light); border-color: var(--accent-bg); }
+.divider { border: none; border-top: 1px solid var(--bg3); margin: 14px 0; }
+
+/* ── RESULT ── */
+.result-hero {
+  background: var(--accent-bg); border-radius: var(--radius-lg);
+  padding: 20px 22px; margin-bottom: 14px;
+}
+.result-hero-label { font-size: 10px; color: rgba(255,255,255,.45); margin-bottom: 6px; letter-spacing: .12em; text-transform: uppercase; }
+.result-hero-value { font-family: 'DM Serif Display', serif; font-size: 34px; font-weight: 400; color: var(--gold-light); line-height: 1.2; }
+.result-hero-sub { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 6px; }
+
+.rrow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid var(--bg3); font-size: 13px;
+}
+.rrow:last-child { border-bottom: none; }
+.rrow-label { color: var(--text3); }
+.rrow-val { font-weight: 500; }
+.rrow-val.green { color: var(--green); }
+.rrow-val.red   { color: var(--red); }
+.rrow-val.blue  { color: var(--blue); }
+.rrow-val.gold  { color: var(--amber); }
+
+.cmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.cmp-card {
+  background: var(--bg3); border: 1px solid var(--bg3);
+  border-radius: var(--radius); padding: 14px; text-align: center;
+}
+.cmp-card.winner { border-color: var(--green); background: rgba(42,124,111,.07); }
+.cmp-label { font-size: 10px; font-weight: 500; color: var(--text3); margin-bottom: 6px; letter-spacing: .1em; text-transform: uppercase; }
+.cmp-value { font-family: 'DM Serif Display', serif; font-size: 26px; font-weight: 400; color: var(--text); }
+.cmp-card.winner .cmp-value { color: var(--green); }
+.cmp-detail { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.badge-win {
+  display: inline-block; background: var(--green); color: #fff;
+  font-size: 10px; font-weight: 400; padding: 2px 8px; border-radius: 2px; margin-top: 5px; letter-spacing: .05em;
+}
+
+/* ── ALERT ── */
+.alert {
+  padding: 10px 14px; font-size: 12px; margin-bottom: 12px; line-height: 1.65;
+  border-left: 2px solid; border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+.alert-info  { background: #edf2fc; color: var(--blue); border-color: var(--blue); border-top: 1px solid #c8d8f5; border-right: 1px solid #c8d8f5; border-bottom: 1px solid #c8d8f5; }
+.alert-warn  { background: var(--gold-pale); color: var(--amber); border-color: var(--gold); border-top: 1px solid #f0d99a; border-right: 1px solid #f0d99a; border-bottom: 1px solid #f0d99a; }
+.alert-green { background: rgba(42,124,111,.07); color: var(--green); border-color: var(--green); border-top: 1px solid rgba(42,124,111,.18); border-right: 1px solid rgba(42,124,111,.18); border-bottom: 1px solid rgba(42,124,111,.18); }
+
+/* ── TAX FLOW (종합과세 흐름도) ── */
+.tax-flow { display: flex; flex-direction: column; gap: 0; }
+.tf-box { border: 1.5px solid var(--bg3); border-radius: var(--radius); padding: 12px 14px; background: var(--bg); }
+.tf-box-title { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; }
+.tf-auto-row { display: flex; justify-content: space-between; align-items: center; }
+.tf-auto-badge { background: var(--bg3); color: var(--text3); font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 600; margin-left: 5px; vertical-align: middle; }
+.tf-result { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.tf-result-label { font-size: 11px; font-weight: 700; color: var(--text2); }
+.tf-result-value { font-family: 'DM Serif Display', serif; font-size: 15px; color: var(--gold); }
+.tf-arrow { text-align: center; font-size: 11px; color: var(--text3); padding: 4px 0; line-height: 1.4; }
+.tf-step { border-radius: var(--radius); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+.tf-step.neutral { background: var(--bg2); border: 1.5px solid var(--bg3); }
+.tf-step.final   { background: rgba(43,94,167,.06); border: 1.5px solid rgba(43,94,167,.3); }
+.tf-step-label { font-size: 12px; font-weight: 600; color: var(--text1); }
+.tf-step-value { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--gold); }
+
+/* ── SECTION TOGGLE ── */
+.section-toggle {
+  display: none;
+  border: 1px solid var(--bg3); border-radius: var(--radius-lg);
+  margin-top: 14px; overflow: hidden;
+}
+.section-toggle.visible { display: block; }
+.stoggle-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; background: var(--bg3); cursor: pointer;
+  font-size: 11px; font-weight: 500; color: var(--text2);
+  border: none; width: 100%; text-align: left; font-family: inherit;
+  transition: background .2s; letter-spacing: .08em; text-transform: uppercase;
+}
+.stoggle-header:hover { background: #ddd8cf; }
+.stoggle-header .chev { transition: transform .25s; font-style: normal; font-size: 11px; }
+.stoggle-header.open .chev { transform: rotate(180deg); }
+.stoggle-body { padding: 16px; border-top: 1px solid var(--bg3); }
+.stoggle-body.hidden { display: none; }
+
+.sub-title {
+  font-size: 10px; font-weight: 500; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .14em;
+  margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--bg3);
+}
+
+/* ── MODE TOGGLE ── */
+.mode-toggle {
+  display: flex; background: var(--bg3); border: 1px solid var(--bg3);
+  border-radius: var(--radius); padding: 3px; margin-bottom: 16px;
+}
+.mode-btn {
+  flex: 1; padding: 7px 12px; border: none; background: transparent;
+  cursor: pointer; font-size: 12px; font-weight: 400; color: var(--text3);
+  border-radius: var(--radius); transition: all .2s; font-family: inherit;
+}
+.mode-btn.active { background: var(--accent-bg); color: var(--gold-light); }
+.mode-panel { display: none; }
+.mode-panel.active { display: block; }
+
+/* ── TAB 1: FLOW DIAGRAM ── */
+.flow-wrap {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0 20px;
+  align-items: start;
+}
+@media (max-width: 860px) { .flow-wrap { grid-template-columns: 1fr; } }
+.flow-stage { }
+.flow-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px; border-radius: var(--radius) var(--radius) 0 0;
+  font-weight: 500; font-size: 16px; font-family: 'Noto Serif KR', serif;
+}
+.flow-head .num {
+  width: 27px; height: 27px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 400; flex-shrink: 0; font-family: 'DM Serif Display', serif;
+}
+.flow-body {
+  background: var(--bg2); border: 1px solid var(--bg3);
+  border-top: none; border-radius: 0 0 var(--radius) var(--radius); padding: 14px;
+}
+.flow-arrow {
+  display: flex; justify-content: center; align-items: center;
+  height: 28px; font-size: 18px; color: var(--text3);
+  display: none;
+}
+@media (max-width: 860px) { .flow-arrow { display: flex; } }
+
+.fitem {
+  display: flex; gap: 9px; padding: 10px 0;
+  border-bottom: 1px solid var(--bg3); font-size: 13px;
+  align-items: flex-start;
+}
+.fitem:last-child { border-bottom: none; padding-bottom: 0; }
+.fitem-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 1px;
+}
+.fitem-body { flex: 1; }
+.fitem-title { font-weight: 500; color: var(--text); font-size: 14px; font-family: 'Noto Serif KR', serif; }
+.fitem-desc  { font-size: 12px; color: var(--text3); margin-top: 3px; line-height: 1.55; }
+.fitem-rate  { font-size: 12px; font-weight: 500; white-space: nowrap; margin-top: 4px; }
+
+.flow-blue .flow-head { background: rgba(43,94,167,.09); color: var(--blue); }
+.flow-blue .flow-head .num { background: var(--blue); color: #fff; }
+.flow-blue .fitem-dot { background: rgba(43,94,167,.1); color: var(--blue); }
+.flow-purple .flow-head { background: rgba(91,72,144,.09); color: var(--purple); }
+.flow-purple .flow-head .num { background: var(--purple); color: #fff; }
+.flow-purple .fitem-dot { background: rgba(91,72,144,.1); color: var(--purple); }
+.flow-green .flow-head { background: rgba(42,124,111,.09); color: var(--green); }
+.flow-green .flow-head .num { background: var(--green); color: #fff; }
+.flow-green .fitem-dot { background: rgba(42,124,111,.1); color: var(--green); }
+
+.key-box {
+  background: var(--gold-pale);
+  border-left: 2px solid var(--gold);
+  border-top: 1px solid #f0d99a; border-right: 1px solid #f0d99a; border-bottom: 1px solid #f0d99a;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0; padding: 14px 18px;
+  margin-top: 24px;
+}
+.key-box-title { font-size: 10px; font-weight: 500; color: var(--amber); margin-bottom: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.key-pt {
+  font-size: 13px; color: var(--text2); padding: 4px 0;
+  display: flex; gap: 8px; line-height: 1.6;
+}
+.key-pt::before { content: '✓'; color: var(--green); flex-shrink: 0; font-size: 11px; margin-top: 3px; }
+
+/* ── MATRIX ── */
+.matrix-wrap { overflow-x: auto; margin: 14px -20px 0; padding: 0 20px; }
+table.matrix {
+  border-collapse: collapse; width: 100%;
+  font-size: 13px; min-width: 480px;
+}
+table.matrix th, table.matrix td {
+  border: 1px solid var(--bg3); padding: 9px 11px;
+  text-align: center; white-space: nowrap;
+}
+table.matrix th {
+  background: var(--accent-bg); color: var(--gold-light); font-weight: 500;
+}
+table.matrix .rh {
+  background: var(--bg3); font-weight: 500; color: var(--text2);
+  text-align: left; padding-left: 12px;
+}
+.matrix-legend {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  font-size: 11px; margin-top: 10px; color: var(--text2);
+}
+.legend-dot {
+  width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; margin-top: 2px;
+}
+
+/* ── BREAKDOWN BOX ── */
+.breakdown {
+  background: var(--bg3); border-radius: var(--radius);
+  padding: 12px 14px; margin-top: 12px;
+}
+.breakdown-title { font-size: 10px; font-weight: 500; color: var(--text3); margin-bottom: 8px; letter-spacing: .1em; text-transform: uppercase; }
+.breakdown-row {
+  display: flex; justify-content: space-between;
+  font-size: 13px; padding: 3px 0; color: var(--text2);
+}
+.breakdown-row.total {
+  border-top: 1px solid var(--bg3); margin-top: 6px;
+  padding-top: 8px; font-weight: 500; color: var(--text);
+}
+
+/* ── STAGE OVERVIEW ── */
+.t1-overview { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 24px; }
+@media (max-width: 860px) { .t1-overview { grid-template-columns: 1fr; } }
+.isa-down-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+@media (max-width: 600px) { .isa-down-grid { grid-template-columns: 1fr; } }
+
+/* ── LIMIT DIAGRAM ── */
+.limit-bar { display: flex; height: 48px; border-radius: var(--radius); overflow: hidden; margin: 12px 0 4px; }
+.limit-seg { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 4px 6px; font-size: 11px; font-weight: 500; text-align: center; line-height: 1.3; }
+.ls-a { background: var(--accent-bg); color: var(--gold-light); }
+.ls-b { background: rgba(196,147,63,.15); color: var(--gold); }
+.ls-c { background: var(--bg3); color: var(--text3); }
+.limit-ruler { display: flex; justify-content: space-between; font-size: 10px; color: var(--text3); letter-spacing: .04em; }
+
+/* ── KR NUM DISPLAY ── */
+.kr-num { font-family: 'DM Serif Display', serif; font-size: 20px; font-weight: 400; color: var(--gold); min-height: 24px; margin-bottom: 4px; line-height: 1.3; }
+
+/* ── FOOTER ── */
+.site-footer {
+  margin-top: 48px; padding: 22px 32px;
+  background: var(--bg2); border-top: 1px solid var(--bg3);
+}
+.disclaimer {
+  font-size: 11px; color: var(--text3); line-height: 2;
+  text-align: center; max-width: 800px; margin: 0 auto; letter-spacing: .03em;
+}
+
+/* ── WITHDRAWAL TABLE ── */
+.wd-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+.wd-table th { background:var(--accent-bg); color:var(--gold-light); padding:7px 8px; text-align:center; font-weight:500; border:1px solid var(--bg3); font-size:10px; letter-spacing:.06em; text-transform:uppercase; }
+.wd-table td { padding:6px 8px; border:1px solid var(--bg3); vertical-align:middle; }
+.wd-table tbody tr:nth-child(even) td { background:var(--bg2); }
+.wd-table tfoot td { background:var(--bg3); font-weight:600; font-size:12px; border:1px solid var(--bg3); padding:7px 8px; }
+.wd-inp { width:100%; padding:4px 6px; border:1px solid var(--bg3); border-radius:var(--radius); background:var(--bg); color:var(--text); font-size:13px; font-family:inherit; text-align:right; }
+.wd-inp:focus { outline:none; border-color:var(--gold); }
+.wd-add-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 14px; background:var(--accent-bg); color:var(--gold-light); border:none; border-radius:var(--radius); cursor:pointer; font-size:12px; font-family:inherit; margin-top:10px; letter-spacing:.03em; }
+.wd-add-btn:hover { opacity:.85; }
+.wd-del-btn { background:none; border:none; cursor:pointer; color:var(--red); font-size:14px; line-height:1; padding:2px 6px; }
+/* ── MOBILE VISIBILITY ── */
+.mobile-notice { display: none; }
+@media (max-width: 640px) {
+  .hide-mobile { display: none !important; }
+  .mobile-notice { display: block; margin-bottom: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-left">
+    <a href="https://identifi.co.kr" target="_blank" rel="noopener" class="logo">Identi<span>Fi</span></a>
+    <div>
+      <div class="page-title">연금계좌 세금 정리</div>
+      <div class="page-sub">연금저축 · IRP 과세 구조 이해 및 세금 계산 (2026년 기준)</div>
+    </div>
+  </div>
+</header>
+
+<!-- TAB NAV -->
+<nav class="tab-nav">
+  <div class="tab-group">
+    <div class="tab-grp-hd">개요</div>
+    <div class="tab-grp-tabs">
+      <button class="tab-btn active" onclick="switchTab(0)">① 연금 구조</button>
+    </div>
+  </div>
+  <div class="tab-group">
+    <div class="tab-grp-hd">적립(납입)</div>
+    <div class="tab-grp-tabs">
+      <button class="tab-btn" onclick="switchTab(1)">② 세액공제</button>
+    </div>
+  </div>
+  <div class="tab-group">
+    <div class="tab-grp-hd">인출(수령)</div>
+    <div class="tab-grp-tabs">
+      <button class="tab-btn" onclick="switchTab(2)">③ 인출세금 모의계산</button>
+      <button class="tab-btn" onclick="switchTab(3)">④ 퇴직소득세 실효세율</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ════════════════════════════════════════════
+     TAB 1 : 세금 구조
+     ════════════════════════════════════════════ -->
+<div id="tab0" class="tab-content active">
+<div class="container">
+
+  <div class="mobile-notice alert alert-info" style="text-align:center;padding:14px 16px">
+    <strong>PC 웹 브라우저에서 이용을 권장합니다</strong><br>
+    <span style="font-size:12px;line-height:1.8">모바일에서는 표·매트릭스 등 일부 콘텐츠가 생략됩니다.<br>더 많은 정보를 한눈에 보시려면 PC에서 접속해주세요.</span>
+  </div>
+  <div class="card hide-mobile" style="margin-bottom:18px;border-left:3px solid var(--blue)">
+    <div class="card-title" style="margin-bottom:10px">왜 이 도구를 만들었나</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.9">
+      <p style="margin:0 0 10px">재무설계사(CFP)로서 매년 250여 명의 공공영역 상담을 하다 보면, 파편적인 정보에서 비롯된 오해를 자주 마주칩니다.</p>
+      <p style="margin:0 0 10px">연금수령한도가 얼마냐 물으면 "연간 1,500만원", 납입한도를 물으면 "IRP 합산 900만원"이라 답하기도 합니다. 전자는 분리과세 기준선이고, 후자는 세액공제 한도입니다. 제도가 복잡한 만큼 이런 혼동은 자연스럽게 생깁니다. "연금 1,500만원 넘으면 세금폭탄" — 계산해보면 실상은 다른 경우가 많습니다. 퇴직소득세율은 모른 채 "1~10년차는 최소 인출"을 따르다 정작 돈이 필요할 때 유동성을 잃기도 합니다. 반대로 청년층은 세액공제·과세이연에 지나치게 집착해 본인 계획보다 절세방안이 먼저가 되기도 합니다.</p>
+      <p style="margin:0 0 10px">복잡하고 낯설고 어렵다는 이유로 어림짐작에 의존하면, 인지적 편향이 개입하기 쉽습니다. 막연한 두려움이나 근거 없는 안도감 모두 합리적인 의사결정을 방해합니다. 구체적인 수치로 직접 확인하는 것이 그 편향을 예방하는 가장 단순한 방법입니다.</p>
+      <p style="margin:0 0 10px">세금은 재무 의사결정에서 중요한 요소 중 하나일 뿐, 전부가 아닙니다. 세금을 먼저 최소화하고 그에 맞춰 삶을 설계하는 것은 본말이 전도된 것입니다. 절세에 삶의 주도권을 넘기는 셈이니까요. 구체적인 절세 방법에 대한 고민은 세무전문가에게 맡기면 됩니다.</p>
+      <p style="margin:0"><strong>본인의 계획이 먼저입니다.</strong> 가치관, 취향, 삶의 서사에 따라 계획을 세우고 — 세금은 그 결과로 따라오는 숫자입니다. 이 도구는 그 숫자를 투명하게 보여줌으로써, 세금이 아닌 본인의 계획에 집중할 수 있도록 만들었습니다.</p>
+    </div>
+  </div>
+
+  <div class="flow-wrap">
+
+    <!-- ① 적립(납입) 컬럼 -->
+    <div>
+      <div class="flow-stage flow-blue">
+        <div class="flow-head"><div class="num">1</div>적립(납입)</div>
+        <div class="flow-body">
+          <div class="fitem">
+            <div class="fitem-dot">+</div>
+            <div class="fitem-body">
+              <div class="fitem-title">세액공제 혜택</div>
+              <div class="fitem-desc">연금저축 600만 + IRP/DC형 포함 합산 900만원까지 세액공제 가능</div>
+              <div class="fitem-rate" style="color:var(--blue)">13.2% 또는 16.5% 공제</div>
+            </div>
+          </div>
+          <div class="fitem">
+            <div class="fitem-dot">!</div>
+            <div class="fitem-body">
+              <div class="fitem-title">공제율 기준</div>
+              <div class="fitem-desc">총급여 5,500만원 이하(또는 종합소득 4,500만원 이하) → 16.5% · 초과 → 13.2%</div>
+            </div>
+          </div>
+          <div class="fitem">
+            <div class="fitem-dot">i</div>
+            <div class="fitem-body">
+              <div class="fitem-title">한도 초과 납입</div>
+              <div class="fitem-desc">세액공제 한도 초과분은 수령 시 비과세 원금으로 환급</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card hide-mobile" style="margin-top:10px">
+        <div class="card-title" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none" onclick="toggleSection('t0_limit')"><span>납입한도 vs 세액공제한도</span><i id="t0_limit_chev" style="font-size:10px;transition:transform .2s;font-style:normal">▼</i></div>
+        <div id="t0_limit_body" class="stoggle-body hidden" style="padding:0">
+        <div class="alert alert-info" style="margin-bottom:12px;font-size:11px">납입한도(얼마까지 넣을 수 있나)와 공제한도(세금혜택 받는 금액)는 다릅니다. 초과분은 수령 시 비과세.</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px">연금저축 단독</div>
+        <div class="limit-bar">
+          <div class="limit-seg ls-a" style="flex:600">공제<br>600만</div>
+          <div class="limit-seg ls-c" style="flex:1200">초과 납입 (비과세)<br>최대 1,200만</div>
+        </div>
+        <div class="limit-ruler"><span>0</span><span>600만</span><span>1,800만원/년</span></div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin:10px 0 5px">연금저축 + IRP 합산</div>
+        <div class="limit-bar">
+          <div class="limit-seg ls-a" style="flex:600">연금저축<br>600만</div>
+          <div class="limit-seg ls-b" style="flex:300">IRP<br>300만</div>
+          <div class="limit-seg ls-c" style="flex:900">비과세<br>최대 900만</div>
+        </div>
+        <div class="limit-ruler"><span>0</span><span>600만</span><span>900만</span><span>1,800만원/년</span></div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.8;margin-top:10px">
+          <div>· 연금저축: 최대 <strong>600만원/년</strong></div>
+          <div>· IRP 포함 합산: 최대 <strong>900만원/년</strong></div>
+          <div>· 공제율: 16.5% 또는 13.2%</div>
+        </div>
+        <div class="alert alert-info" style="margin-top:10px;font-size:11px">
+          <strong>DC형</strong> — 납입 자체 한도 없음. 세액공제는 IRP와 동일하게 900만원 한도 내 적용.
+        </div>
+        </div>
+      </div>
+
+      <div class="card hide-mobile" style="margin-top:10px">
+        <div class="card-title" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none" onclick="toggleSection('t0_isa')"><span style="color:var(--purple)">ISA 만기금 연금계좌 이전</span><i id="t0_isa_chev" style="font-size:10px;transition:transform .2s;font-style:normal">▼</i></div>
+        <div id="t0_isa_body" class="stoggle-body hidden" style="padding:0">
+        <div style="font-size:12px;color:var(--text2);line-height:1.9">
+          <div>· ISA 만기 후 연금계좌로 이전</div>
+          <div>· 이전금액의 <strong>10%, 최대 300만원</strong> 추가 세액공제</div>
+          <div>· 이전금액은 납입한도(1,800만원) <strong>별도</strong></div>
+        </div>
+        <div class="alert alert-info" style="margin-top:10px;font-size:11px">예) ISA 3,000만원 이전 → 300만원 추가 세액공제</div>
+        </div>
+      </div>
+
+      <div class="card hide-mobile" style="margin-top:10px">
+        <div class="card-title" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none" onclick="toggleSection('t0_down')"><span style="color:var(--amber)">주택 다운사이징 차액 납입</span><i id="t0_down_chev" style="font-size:10px;transition:transform .2s;font-style:normal">▼</i></div>
+        <div id="t0_down_body" class="stoggle-body hidden" style="padding:0">
+        <div style="font-size:12px;color:var(--text2);line-height:1.9">
+          <div>· 실거주 주택을 저가 주택으로 교체 시 차액</div>
+          <div>· 납입한도(1,800만원) <strong>외에 추가 납입</strong> 가능</div>
+          <div>· 노후 자금을 연금계좌로 집중하는 전략</div>
+        </div>
+        <div class="alert alert-warn" style="margin-top:10px;font-size:11px">세무사 또는 CFP 상담 권장</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 운용 컬럼 -->
+    <div>
+      <div class="flow-stage flow-purple">
+        <div class="flow-head"><div class="num">2</div>운용</div>
+        <div class="flow-body">
+          <div class="fitem">
+            <div class="fitem-dot">0</div>
+            <div class="fitem-body">
+              <div class="fitem-title">과세이연 (완전 비과세)</div>
+              <div class="fitem-desc">운용 기간 중 이자·배당·매매차익에 세금 없음</div>
+              <div class="fitem-rate" style="color:var(--purple)">운용수익 과세 0%</div>
+            </div>
+          </div>
+          <div class="fitem">
+            <div class="fitem-dot">vs</div>
+            <div class="fitem-body">
+              <div class="fitem-title">일반 계좌와 비교</div>
+              <div class="fitem-desc">일반 계좌 이자·배당: 15.4% 원천징수 · 금융소득 2,000만 초과: 종합과세</div>
+            </div>
+          </div>
+          <div class="fitem">
+            <div class="fitem-dot">↑</div>
+            <div class="fitem-body">
+              <div class="fitem-title">복리 효과 극대화</div>
+              <div class="fitem-desc">세금을 내지 않고 재투자 → 장기 복리 효과 극대화</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card hide-mobile" style="margin-top:14px">
+        <div class="card-title" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none" onclick="toggleSection('t0_div')"><span style="color:var(--amber)">⚠ 미국 배당 원천징수 주의</span><i id="t0_div_chev" style="font-size:10px;transition:transform .2s;font-style:normal">▼</i></div>
+        <div id="t0_div_body" class="stoggle-body hidden" style="padding:0">
+        <div class="fitem" style="border-bottom:none;padding-bottom:0">
+          <div class="fitem-body">
+            <div class="fitem-desc" style="font-size:13px;color:var(--text2);line-height:1.7">
+              미국 주식·ETF 배당금은 <strong>미국에서 15% 원천징수</strong> 후 입금됩니다.<br>
+              연금계좌는 운용 중 한국 세금이 없어 외국납부세액공제 적용 불가 → <strong>15%가 비용으로 확정</strong><br>
+              반면 <strong>일반계좌</strong>는 한국 배당소득세(15.4%)에서 미국 15%를 공제 → 실질 추가 부담 약 0.4%
+            </div>
+            <div class="alert alert-warn" style="margin-top:10px;margin-bottom:0">
+              고배당 미국 ETF(S&P500 배당형 등)는 ISA·일반계좌 활용이 세후 수익률에 유리할 수 있음
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="card hide-mobile" style="margin-top:14px">
+        <div class="card-title" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none" onclick="toggleSection('t0_dbdc')"><span style="color:var(--blue)">💡 DB형 vs DC형 선택 기준</span><i id="t0_dbdc_chev" style="font-size:10px;transition:transform .2s;font-style:normal">▼</i></div>
+        <div id="t0_dbdc_body" class="stoggle-body hidden" style="padding:0">
+        <div class="fitem" style="border-bottom:none;padding-bottom:0">
+          <div class="fitem-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div style="padding:10px;background:rgba(43,94,167,.07);border-radius:var(--radius);border:1px solid rgba(43,94,167,.2)">
+                <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:5px">DB형 (확정급여형)</div>
+                <div style="font-size:11px;color:var(--text2);line-height:1.7">퇴직급여 = 퇴직 직전<br>평균임금 × 근속연수<br><span style="color:var(--text3)">회사가 운용 책임</span></div>
+                <div style="margin-top:8px;font-size:11px;font-weight:600;color:var(--blue)">임금상승률 高 → 유리</div>
+              </div>
+              <div style="padding:10px;background:rgba(91,72,144,.07);border-radius:var(--radius);border:1px solid rgba(91,72,144,.2)">
+                <div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:5px">DC형 (확정기여형)</div>
+                <div style="font-size:11px;color:var(--text2);line-height:1.7">연간 임금 1/12 매년 적립<br>근로자가 직접 투자 운용<br><span style="color:var(--text3)">투자 손익 본인 귀속</span></div>
+                <div style="margin-top:8px;font-size:11px;font-weight:600;color:var(--purple)">투자수익률 高 → 유리</div>
+              </div>
+            </div>
+            <div class="alert alert-info" style="margin-bottom:0;font-size:11px;line-height:1.8">
+              <strong>판단 기준</strong><br>
+              예상 <strong>임금상승률 &gt; 투자수익률</strong> → DB형 선택<br>
+              예상 <strong>투자수익률 &gt; 임금상승률</strong> → DC형 선택
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 인출(수령) 컬럼 -->
+    <div>
+      <div class="flow-stage flow-green">
+        <div class="flow-head"><div class="num">3</div>인출(수령)</div>
+        <div class="flow-body">
+          <div class="fitem">
+            <div class="fitem-dot">▶</div>
+            <div class="fitem-body">
+              <div class="fitem-title">연금수령 요건 판단</div>
+              <div class="fitem-desc"><strong>개인납입금</strong>: 만 55세 + 계좌개설 5년<br><strong>퇴직급여</strong>: 만 55세 (5년 면제)</div>
+              <div class="fitem-rate" style="color:var(--text3)">요건 미충족 → 기타소득세 16.5%</div>
+            </div>
+          </div>
+          <div class="fitem">
+            <div class="fitem-dot">A</div>
+            <div class="fitem-body">
+              <div class="fitem-title">연 1,500만원 이하 — 저율 분리과세</div>
+              <div class="fitem-desc">분리과세로 종결, 종합소득 신고 불필요</div>
+              <div class="fitem-rate" style="color:var(--green)">3.3% ~ 5.5% (나이별 · 종신 4.4%)</div>
+            </div>
+          </div>
+          <div class="fitem">
+            <div class="fitem-dot">!</div>
+            <div class="fitem-body">
+              <div class="fitem-title">연 1,500만원 초과 — 과세 방법 선택</div>
+              <div class="fitem-desc">분리과세(16.5%) 또는 종합과세 중 유리한 방법 선택</div>
+              <div class="fitem-rate" style="color:var(--amber)">16.5% vs 종합과세 비교</div>
+            </div>
+          </div>
+          <div class="fitem">
+            <div class="fitem-dot">B</div>
+            <div class="fitem-body">
+              <div class="fitem-title">연금외수령 (중도해지·일시금)</div>
+              <div class="fitem-desc">세액공제받은 납입금 + 운용수익에 적용</div>
+              <div class="fitem-rate" style="color:var(--red)">기타소득세 16.5%</div>
+            </div>
+          </div>
+          <div class="fitem">
+            <div class="fitem-dot">0</div>
+            <div class="fitem-body">
+              <div class="fitem-title">세액공제 미적용 원금</div>
+              <div class="fitem-desc">한도 초과 납입분은 어떤 방식으로 수령해도 비과세</div>
+              <div class="fitem-rate" style="color:var(--text3)">비과세</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card hide-mobile" style="margin-top:10px">
+        <div class="card-title" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none" onclick="toggleSection('t0_cond')"><span>수령 조건 & 연금수령한도</span><i id="t0_cond_chev" style="font-size:10px;transition:transform .2s;font-style:normal">▼</i></div>
+        <div id="t0_cond_body" class="stoggle-body hidden" style="padding:0">
+        <div class="sub-title">재원별 수령 개시 요건</div>
+        <div style="background:rgba(55,138,221,.07);border:1px solid rgba(55,138,221,.2);border-radius:var(--radius);padding:10px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">개인 납입금 (연금저축 · IRP)</div>
+          <div style="font-size:12px;line-height:2">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap">필수</span>
+              <span>만 <strong>55세 이상</strong></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap">필수</span>
+              <span>계좌개설 <strong>5년 이상</strong></span>
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(29,158,117,.07);border:1px solid rgba(29,158,117,.2);border-radius:var(--radius);padding:10px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px">퇴직급여 (DC·DB·퇴직IRP)</div>
+          <div style="font-size:12px;line-height:2">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap">필수</span>
+              <span>만 <strong>55세 이상</strong></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="background:var(--bg3);color:var(--text3);border:1px solid var(--border2);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap">면제</span>
+              <span style="color:var(--text3)">5년 요건 <strong>제외</strong></span>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-warn" style="font-size:11px;margin-bottom:12px">요건 미충족 → 기타소득세 16.5%</div>
+
+        <div class="sub-title">연금수령한도 (연차별)</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:6px">평가액 ÷ (11 - 수령연차) × 1.2</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <tr style="background:var(--bg3)">
+            <th style="padding:5px 7px;border:1px solid var(--border);font-weight:600;color:var(--text2)">연차</th>
+            <th style="padding:5px 7px;border:1px solid var(--border);font-weight:600;color:var(--text2)">한도율</th>
+            <th style="padding:5px 7px;border:1px solid var(--border);font-weight:600;color:var(--text2)">1억 기준</th>
+          </tr>
+          <tr><td style="padding:4px 7px;border:1px solid var(--border)">1년차</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center">12.0%</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">1,200만원</td></tr>
+          <tr style="background:var(--bg2)"><td style="padding:4px 7px;border:1px solid var(--border)">2년차</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center">13.3%</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">1,333만원</td></tr>
+          <tr><td style="padding:4px 7px;border:1px solid var(--border)">3년차</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center">15.0%</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">1,500만원</td></tr>
+          <tr style="background:var(--bg2)"><td style="padding:4px 7px;border:1px solid var(--border)">4년차</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center">17.1%</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">1,714만원</td></tr>
+          <tr><td style="padding:4px 7px;border:1px solid var(--border)">5년차</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center">20.0%</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">2,000만원</td></tr>
+          <tr style="background:var(--bg2)"><td style="padding:4px 7px;border:1px solid var(--border)">6년차</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center">24.0%</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">2,400만원</td></tr>
+          <tr><td style="padding:4px 7px;border:1px solid var(--border)">7년차</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center">30.0%</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">3,000만원</td></tr>
+          <tr style="background:var(--bg2)"><td style="padding:4px 7px;border:1px solid var(--border)">8년차</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center">40.0%</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">4,000만원</td></tr>
+          <tr><td style="padding:4px 7px;border:1px solid var(--border)">9년차</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center">60.0%</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">6,000만원</td></tr>
+          <tr style="background:var(--bg2)"><td style="padding:4px 7px;border:1px solid var(--border)">10년차</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center">120.0%</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">1억 2,000만원</td></tr>
+          <tr><td style="padding:4px 7px;border:1px solid var(--border)">11년차~</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:center;color:var(--green);font-weight:700">한도 없음</td><td style="padding:4px 7px;border:1px solid var(--border);text-align:right">—</td></tr>
+        </table>
+        <div style="font-size:11px;color:var(--text3);margin-top:5px">한도 초과 인출 시 기타소득세 16.5%</div>
+        </div>
+      </div>
+
+      <div class="card hide-mobile" style="margin-top:10px">
+        <div class="card-title" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none" onclick="toggleSection('t0_rate')"><span>나이별 연금소득세율</span><i id="t0_rate_chev" style="font-size:10px;transition:transform .2s;font-style:normal">▼</i></div>
+        <div id="t0_rate_body" class="stoggle-body hidden" style="padding:0">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">사적연금 · 지방소득세 포함</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <tr style="background:var(--bg3)">
+            <th style="padding:6px 8px;text-align:left;border:1px solid var(--border);font-weight:600;color:var(--text2)">수령 나이</th>
+            <th style="padding:6px 8px;text-align:center;border:1px solid var(--border);font-weight:600;color:var(--text2)">확정기간</th>
+            <th style="padding:6px 8px;text-align:center;border:1px solid var(--border);font-weight:600;color:var(--text2)">종신수령</th>
+          </tr>
+          <tr>
+            <td style="padding:7px 8px;border:1px solid var(--border)">55 ~ 69세</td>
+            <td style="padding:7px 8px;border:1px solid var(--border);text-align:center;font-weight:700;color:var(--blue)">5.5%</td>
+            <td style="padding:7px 8px;border:1px solid var(--border);text-align:center;font-weight:700;color:var(--green)">4.4%</td>
+          </tr>
+          <tr style="background:var(--bg2)">
+            <td style="padding:7px 8px;border:1px solid var(--border)">70 ~ 79세</td>
+            <td style="padding:7px 8px;border:1px solid var(--border);text-align:center;font-weight:700;color:var(--green)">4.4%</td>
+            <td style="padding:7px 8px;border:1px solid var(--border);text-align:center;font-weight:700;color:var(--green)">4.4%</td>
+          </tr>
+          <tr>
+            <td style="padding:7px 8px;border:1px solid var(--border)">80세 이상</td>
+            <td style="padding:7px 8px;border:1px solid var(--border);text-align:center;font-weight:700;color:var(--amber)">3.3%</td>
+            <td style="padding:7px 8px;border:1px solid var(--border);text-align:center;font-weight:700;color:var(--green)">4.4%</td>
+          </tr>
+        </table>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">종신수령은 80세 이상도 4.4% 고정 — 80세 이상은 확정기간형이 유리</div>
+        </div>
+      </div>
+
+      <div class="card hide-mobile" style="margin-top:10px">
+        <div class="card-title" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none" onclick="toggleSection('t0_ord')"><span>재원별 인출 순서</span><i id="t0_ord_chev" style="font-size:10px;transition:transform .2s;font-style:normal">▼</i></div>
+        <div id="t0_ord_body" class="stoggle-body hidden" style="padding:0">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:12px">소득세법 시행령 제40조의2 — 재원이 섞여 있을 때 자동 적용</div>
+
+        <!-- 범례 -->
+        <div style="display:flex;flex-wrap:wrap;gap:5px 10px;margin-bottom:12px">
+          <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:16px;height:16px;border-radius:50%;background:var(--purple);color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:700">①</span>비과세 (공제X 원금)</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:16px;height:16px;border-radius:50%;background:var(--blue);color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:700">②</span>퇴직소득세 (30~50% 감면)</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:16px;height:16px;border-radius:50%;background:var(--gold);color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:700">③</span>연금소득세 3.3~5.5%</span>
+        </div>
+
+        <!-- IRP (퇴직금 포함) -->
+        <div style="font-size:10px;font-weight:700;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">IRP (퇴직금 포함)</div>
+        <div style="margin-bottom:14px">
+          <div style="border:1.5px solid var(--bg3);border-radius:var(--radius-lg);overflow:hidden">
+            <!-- 단일 통합 그리드 — 헤더+원금+운용수익 행 정렬 -->
+            <div style="display:grid;grid-template-columns:40px 1fr 1fr 1fr">
+              <!-- 헤더 행 -->
+              <div style="background:var(--bg3);padding:5px 4px"></div>
+              <div style="background:var(--bg3);padding:4px 5px;font-size:9px;color:var(--text3);text-align:center;border-left:1px solid var(--bg2);line-height:1.4">이연<br>퇴직소득</div>
+              <div style="background:var(--bg3);padding:4px 5px;font-size:9px;color:var(--text3);text-align:center;border-left:1px solid var(--bg2);line-height:1.4">본인 납입금<br>세액공제O</div>
+              <div style="background:var(--bg3);padding:4px 5px;font-size:9px;color:var(--text3);text-align:center;border-left:1px solid var(--bg2);line-height:1.4">본인 납입금<br>세액공제X</div>
+              <!-- 원금 행 -->
+              <div style="padding:5px 4px;font-size:9px;color:var(--text3);background:var(--bg2);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--bg3)">원금</div>
+              <div style="padding:8px 6px;background:rgba(43,94,167,.08);border-left:3px solid var(--blue);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">②</span>
+                <span style="font-size:10px;color:var(--blue);font-weight:600">퇴직소득세</span>
+              </div>
+              <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span>
+                <span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span>
+              </div>
+              <div style="padding:8px 6px;background:rgba(91,72,144,.07);border-left:3px solid var(--purple);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--purple);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">①</span>
+                <span style="font-size:10px;color:var(--purple);font-weight:600">비과세</span>
+              </div>
+              <!-- 운용수익 행 -->
+              <div style="padding:5px 4px;font-size:9px;color:var(--text3);background:var(--bg2);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--bg3)">수익</div>
+              <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span>
+                <span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span>
+              </div>
+              <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span>
+                <span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span>
+              </div>
+              <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span>
+                <span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span>
+              </div>
+            </div>
+          </div>
+          <!-- 외부 유입 -->
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:6px">
+            <span style="font-size:14px;color:var(--text3)">↑</span>
+            <div style="border:1px solid var(--bg3);border-radius:var(--radius);padding:5px 8px;background:var(--bg2);text-align:center">
+              <div style="font-size:10px;font-weight:600;color:var(--text2)">ISA·다운사이징</div>
+              <div style="font-size:9px;color:var(--text3);margin-top:2px">공제X→① / 공제O→③</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 연금저축 -->
+        <div style="font-size:10px;font-weight:700;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">연금저축</div>
+        <div style="margin-bottom:12px">
+          <div style="border:1.5px solid var(--bg3);border-radius:var(--radius-lg);overflow:hidden">
+            <div style="display:grid;grid-template-columns:40px 1fr 1fr">
+              <!-- 헤더 행 -->
+              <div style="background:var(--bg3);padding:5px 4px"></div>
+              <div style="background:var(--bg3);padding:4px 5px;font-size:9px;color:var(--text3);text-align:center;border-left:1px solid var(--bg2);line-height:1.4">본인 납입금<br>세액공제O</div>
+              <div style="background:var(--bg3);padding:4px 5px;font-size:9px;color:var(--text3);text-align:center;border-left:1px solid var(--bg2);line-height:1.4">본인 납입금<br>세액공제X</div>
+              <!-- 원금 행 -->
+              <div style="padding:5px 4px;font-size:9px;color:var(--text3);background:var(--bg2);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--bg3)">원금</div>
+              <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span>
+                <span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span>
+              </div>
+              <div style="padding:8px 6px;background:rgba(91,72,144,.07);border-left:3px solid var(--purple);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--purple);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">①</span>
+                <span style="font-size:10px;color:var(--purple);font-weight:600">비과세</span>
+              </div>
+              <!-- 운용수익 행 -->
+              <div style="padding:5px 4px;font-size:9px;color:var(--text3);background:var(--bg2);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--bg3)">수익</div>
+              <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span>
+                <span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span>
+              </div>
+              <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span>
+                <span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span>
+              </div>
+            </div>
+          </div>
+          <!-- 외부 유입 -->
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:6px">
+            <span style="font-size:14px;color:var(--text3)">↑</span>
+            <div style="border:1px solid var(--bg3);border-radius:var(--radius);padding:5px 8px;background:var(--bg2);text-align:center">
+              <div style="font-size:10px;font-weight:600;color:var(--text2)">ISA·다운사이징</div>
+              <div style="font-size:9px;color:var(--text3);margin-top:2px">공제X→① / 공제O→③</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-warn" style="margin-bottom:0;font-size:11px">
+          <strong>인출 순서:</strong> ① 세액공제 받지 않은 본인 납입원금(비과세, ISA 원금·다운사이징 포함) → ② 이연퇴직소득(퇴직소득세, IRP만) → ③ 세액공제 받은 본인 납입원금과 계좌 운용수익(연금소득세, ISA 수익분 포함)
+        </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /flow-wrap -->
+
+  <div class="key-box hide-mobile">
+    <div class="key-box-title">핵심 포인트</div>
+    <div class="key-pt">납입 시 세액공제(최대 16.5%) → 운용 중 완전 비과세 → 수령 시 저율(3.3~5.5%): 3단계 모두 세제 혜택</div>
+    <div class="key-pt">연금수령 시 세율(3.3~5.5%)이 해지 시 세율(16.5%)보다 훨씬 낮으므로 연금으로 수령하는 것이 유리</div>
+    <div class="key-pt">연간 사적연금소득 1,500만원 이하이면 분리과세 선택으로 종합소득 신고 불필요</div>
+    <div class="key-pt">퇴직금을 IRP로 수령한 후 연금으로 인출하면 퇴직소득세 30~50% 절감 가능</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TAB 2 : 납입 세액공제
+     ════════════════════════════════════════════ -->
+<div id="tab1" class="tab-content">
+<div class="container">
+<div class="split split-55">
+
+  <!-- 입력 -->
+  <div>
+    <div class="card">
+      <div class="card-title">소득 정보</div>
+
+      <div class="form-group">
+        <label class="form-label">소득 유형</label>
+        <div class="radio-group">
+          <div class="radio-opt">
+            <input type="radio" name="incomeType" id="it_earned" value="earned" checked onchange="tcIncomeHigh=false;calcTC()">
+            <label for="it_earned">근로소득</label>
+          </div>
+          <div class="radio-opt">
+            <input type="radio" name="incomeType" id="it_comp" value="comp" onchange="tcIncomeHigh=false;calcTC()">
+            <label for="it_comp">종합소득</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" id="tc_earnedGroup">
+        <label class="form-label">총급여 (연봉)</label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button id="tc_sal_lo" onclick="tcIncomeHigh=false;calcTC()" style="flex:1;padding:10px 8px;border-radius:var(--radius);border:1.5px solid var(--gold);background:var(--gold);color:#fff;font-size:12px;cursor:pointer;line-height:1.5">
+            <div style="font-weight:700">5,500만원 이하</div>
+            <div style="font-size:11px;opacity:.85">세액공제율 16.5%</div>
+          </button>
+          <button id="tc_sal_hi" onclick="tcIncomeHigh=true;calcTC()" style="flex:1;padding:10px 8px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;cursor:pointer;line-height:1.5">
+            <div style="font-weight:700">5,500만원 초과</div>
+            <div style="font-size:11px;opacity:.85">세액공제율 13.2%</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group" id="tc_compGroup" style="display:none">
+        <label class="form-label">종합소득금액</label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button id="tc_comp_lo" onclick="tcIncomeHigh=false;calcTC()" style="flex:1;padding:10px 8px;border-radius:var(--radius);border:1.5px solid var(--gold);background:var(--gold);color:#fff;font-size:12px;cursor:pointer;line-height:1.5">
+            <div style="font-weight:700">4,500만원 이하</div>
+            <div style="font-size:11px;opacity:.85">세액공제율 16.5%</div>
+          </button>
+          <button id="tc_comp_hi" onclick="tcIncomeHigh=true;calcTC()" style="flex:1;padding:10px 8px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;cursor:pointer;line-height:1.5">
+            <div style="font-weight:700">4,500만원 초과</div>
+            <div style="font-size:11px;opacity:.85">세액공제율 13.2%</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">납입액 입력</div>
+
+      <div class="form-group">
+        <label class="form-label" for="tc_ps">연금저축 연간 납입액</label>
+        <div class="kr-num" id="tc_ps_kr"></div>
+        <div class="inp-wrap">
+          <input type="number" id="tc_ps" value="6000000" min="0" max="18000000" step="100000" oninput="syncI('tc_ps','tc_psR');updateKR('tc_ps');capIRP();calcTC()">
+          <span class="inp-unit">원</span>
+        </div>
+        <input type="range" id="tc_psR" min="0" max="18000000" step="100000" value="6000000" oninput="syncR('tc_ps','tc_psR');updateKR('tc_ps');capIRP();calcTC()">
+        <div class="range-row"><span>0원</span><span>1,800만원</span></div>
+        <div class="form-hint">세액공제 한도: 연간 600만원 (납입 한도 1,800만원)</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="tc_irp">IRP 연간 납입액</label>
+        <div class="kr-num" id="tc_irp_kr"></div>
+        <div class="inp-wrap">
+          <input type="number" id="tc_irp" value="3000000" min="0" max="18000000" step="100000" oninput="syncI('tc_irp','tc_irpR');updateKR('tc_irp');capPS();calcTC()">
+          <span class="inp-unit">원</span>
+        </div>
+        <input type="range" id="tc_irpR" min="0" max="18000000" step="100000" value="3000000" oninput="syncR('tc_irp','tc_irpR');updateKR('tc_irp');capPS();calcTC()">
+        <div class="range-row"><span>0원</span><span>1,800만원</span></div>
+        <div class="form-hint">연금저축 + IRP 합산 세액공제 한도: 900만원</div>
+      </div>
+
+      <!-- 합산 납입 현황 바 -->
+      <div style="background:var(--bg3);border-radius:var(--radius);padding:12px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+          <span style="font-size:12px;font-weight:600;color:var(--text2)">연금저축 + IRP 합산</span>
+          <span style="font-size:13px;font-weight:700" id="tc_totalSum">—</span>
+        </div>
+        <div style="height:7px;background:var(--bg);border-radius:4px;overflow:hidden">
+          <div id="tc_totalBarFill" style="height:100%;background:var(--gold);border-radius:4px;transition:width .3s;width:0%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:3px">
+          <span>0원</span><span>납입 한도 1,800만원</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="tc_dc">DC형 연간 본인 추가납입액</label>
+        <div class="kr-num" id="tc_dc_kr"></div>
+        <div class="inp-wrap">
+          <input type="number" id="tc_dc" value="0" min="0" step="100000" oninput="syncI('tc_dc','tc_dcR');updateKR('tc_dc');calcTC()">
+          <span class="inp-unit">원</span>
+        </div>
+        <input type="range" id="tc_dcR" min="0" max="30000000" step="100000" value="0" oninput="syncR('tc_dc','tc_dcR');updateKR('tc_dc');calcTC()">
+        <div class="range-row"><span>0원</span><span style="color:var(--text3)">한도 없음</span></div>
+        <div class="form-hint">납입 한도 없음 · 세액공제는 IRP와 합산하여 900만원 한도 내</div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="form-group">
+        <label class="form-label" for="tc_isa">ISA 만기이전금액</label>
+        <div class="kr-num" id="tc_isa_kr"></div>
+        <div class="inp-wrap">
+          <input type="number" id="tc_isa" value="0" min="0" step="1000000" oninput="syncI('tc_isa','tc_isaR');updateKR('tc_isa');calcTC()">
+          <span class="inp-unit">원</span>
+        </div>
+        <input type="range" id="tc_isaR" min="0" max="100000000" step="1000000" value="0" oninput="syncR('tc_isa','tc_isaR');updateKR('tc_isa');calcTC()">
+        <div class="range-row"><span>0원</span><span>1억원</span></div>
+        <div class="form-hint">이전금액의 10%·최대 300만원을 추가 세액공제 대상으로 인정 (900만원 한도 외 별도)</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="tc_down">주택 다운사이징 납입금액</label>
+        <div class="kr-num" id="tc_down_kr"></div>
+        <div class="inp-wrap">
+          <input type="number" id="tc_down" value="0" min="0" step="1000000" oninput="syncI('tc_down','tc_downR');updateKR('tc_down');calcTC()">
+          <span class="inp-unit">원</span>
+        </div>
+        <input type="range" id="tc_downR" min="0" max="100000000" step="1000000" value="0" oninput="syncR('tc_down','tc_downR');updateKR('tc_down');calcTC()">
+        <div class="range-row"><span>0원</span><span>1억원</span></div>
+        <div class="form-hint">주택 처분 차액 납입 — 연간 1억원까지 추가 납입 허용, 수령 시 비과세 재원</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 결과 -->
+  <div>
+    <div class="card">
+      <div class="card-title">세액공제 결과</div>
+
+      <div id="tc_rateAlert" class="alert alert-info"></div>
+
+      <div class="result-hero">
+        <div class="result-hero-label">연간 세액공제액</div>
+        <div class="result-hero-value" id="tc_credit">—</div>
+        <div class="result-hero-sub" id="tc_creditSub"></div>
+      </div>
+
+      <div class="rrow">
+        <span class="rrow-label">세액공제 대상 납입액</span>
+        <span class="rrow-val blue" id="tc_eligible">—</span>
+      </div>
+      <div class="rrow">
+        <span class="rrow-label">세액공제율</span>
+        <span class="rrow-val" id="tc_rate">—</span>
+      </div>
+      <hr class="divider">
+
+      <div class="breakdown">
+        <div class="breakdown-title">공제 한도 계산 내역</div>
+        <div class="breakdown-row">
+          <span>연금저축 공제 대상</span>
+          <span id="tc_b_ps">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span>IRP 공제 대상</span>
+          <span id="tc_b_irp">—</span>
+        </div>
+        <div class="breakdown-row" id="tc_b_dc_row" style="display:none">
+          <span>DC형 공제 대상</span>
+          <span id="tc_b_dc">—</span>
+        </div>
+        <div class="breakdown-row" id="tc_b_isa_row" style="display:none">
+          <span>ISA 이전 추가 공제 대상</span>
+          <span id="tc_b_isa" style="color:var(--green)">—</span>
+        </div>
+        <div class="breakdown-row" id="tc_b_down_row" style="display:none">
+          <span>주택 다운사이징 납입 (비과세)</span>
+          <span id="tc_b_down" style="color:var(--green)">—</span>
+        </div>
+        <div class="breakdown-row total">
+          <span>합산 공제 대상액</span>
+          <span id="tc_b_total">—</span>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="rrow">
+          <span class="rrow-label" style="font-size:12px">연금저축 세액공제 한도 초과 납입분</span>
+          <span class="rrow-val green" id="tc_psOver" style="font-size:12px">—</span>
+        </div>
+        <div class="rrow">
+          <span class="rrow-label" style="font-size:12px">IRP 세액공제 한도 초과 납입분</span>
+          <span class="rrow-val green" id="tc_irpOver" style="font-size:12px">—</span>
+        </div>
+        <div class="rrow" id="tc_dcOver_row" style="display:none">
+          <span class="rrow-label" style="font-size:12px">DC형 세액공제 한도 초과 납입분</span>
+          <span class="rrow-val green" id="tc_dcOver" style="font-size:12px">—</span>
+        </div>
+        <div class="rrow" id="tc_isaOver_row" style="display:none">
+          <span class="rrow-label" style="font-size:12px">ISA 추가 세액공제 한도 초과분</span>
+          <span class="rrow-val green" id="tc_isaOver" style="font-size:12px">—</span>
+        </div>
+        <div class="form-hint" style="margin-top:6px">한도 초과분은 수령 시 비과세 처리됩니다</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TAB 3 : 인출 시 세금계산
+     ════════════════════════════════════════════ -->
+<div id="tab2" class="tab-content">
+<div class="container">
+
+<!-- 재원별 인출 순서 (상단 full-width) -->
+<div class="card hide-mobile" style="margin-bottom:14px">
+  <div class="card-title">재원별 인출 순서</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:12px">소득세법 시행령 제40조의2 — 재원이 섞여 있을 때 자동 적용</div>
+  <div style="display:flex;flex-wrap:wrap;gap:5px 10px;margin-bottom:12px">
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:16px;height:16px;border-radius:50%;background:var(--purple);color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:700">①</span>비과세 (세액공제 받지 않은 본인 납입원금)</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:16px;height:16px;border-radius:50%;background:var(--blue);color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:700">②</span>퇴직소득세 (30~50% 감면, IRP만)</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)"><span style="width:16px;height:16px;border-radius:50%;background:var(--gold);color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:700">③</span>연금소득세 3.3~5.5% (세액공제 받은 본인 납입원금과 계좌 운용수익)</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:14px">
+    <!-- IRP -->
+    <div style="flex:1;min-width:260px">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);letter-spacing:.08em;margin-bottom:5px">IRP (퇴직금 포함)</div>
+      <div>
+        <div style="border:1.5px solid var(--bg3);border-radius:var(--radius-lg);overflow:hidden">
+          <div style="display:grid;grid-template-columns:40px 1fr 1fr 1fr">
+            <div style="background:var(--bg3);padding:5px 4px"></div>
+            <div style="background:var(--bg3);padding:4px 5px;font-size:9px;color:var(--text3);text-align:center;border-left:1px solid var(--bg2);line-height:1.4">이연<br>퇴직소득</div>
+            <div style="background:var(--bg3);padding:4px 5px;font-size:9px;color:var(--text3);text-align:center;border-left:1px solid var(--bg2);line-height:1.4">본인 납입금<br>세액공제O</div>
+            <div style="background:var(--bg3);padding:4px 5px;font-size:9px;color:var(--text3);text-align:center;border-left:1px solid var(--bg2);line-height:1.4">본인 납입금<br>세액공제X</div>
+            <div style="padding:5px 4px;font-size:9px;color:var(--text3);background:var(--bg2);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--bg3)">원금</div>
+            <div style="padding:8px 6px;background:rgba(43,94,167,.08);border-left:3px solid var(--blue);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)"><span style="width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">②</span><span style="font-size:10px;color:var(--blue);font-weight:600">퇴직소득세</span></div>
+            <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)"><span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span><span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span></div>
+            <div style="padding:8px 6px;background:rgba(91,72,144,.07);border-left:3px solid var(--purple);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)"><span style="width:18px;height:18px;border-radius:50%;background:var(--purple);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">①</span><span style="font-size:10px;color:var(--purple);font-weight:600">비과세</span></div>
+            <div style="padding:5px 4px;font-size:9px;color:var(--text3);background:var(--bg2);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--bg3)">수익</div>
+            <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)"><span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span><span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span></div>
+            <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)"><span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span><span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span></div>
+            <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)"><span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span><span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:6px">
+          <span style="font-size:14px;color:var(--text3)">↑</span>
+          <div style="border:1px solid var(--bg3);border-radius:var(--radius);padding:5px 8px;background:var(--bg2);text-align:center">
+            <div style="font-size:10px;font-weight:600;color:var(--text2)">ISA·다운사이징</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px">공제X→① / 공제O→③</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 연금저축 -->
+    <div style="flex:1;min-width:200px">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);letter-spacing:.08em;margin-bottom:5px">연금저축</div>
+      <div>
+        <div style="border:1.5px solid var(--bg3);border-radius:var(--radius-lg);overflow:hidden">
+          <div style="display:grid;grid-template-columns:40px 1fr 1fr">
+            <div style="background:var(--bg3);padding:5px 4px"></div>
+            <div style="background:var(--bg3);padding:4px 5px;font-size:9px;color:var(--text3);text-align:center;border-left:1px solid var(--bg2);line-height:1.4">본인 납입금<br>세액공제O</div>
+            <div style="background:var(--bg3);padding:4px 5px;font-size:9px;color:var(--text3);text-align:center;border-left:1px solid var(--bg2);line-height:1.4">본인 납입금<br>세액공제X</div>
+            <div style="padding:5px 4px;font-size:9px;color:var(--text3);background:var(--bg2);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--bg3)">원금</div>
+            <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)"><span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span><span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span></div>
+            <div style="padding:8px 6px;background:rgba(91,72,144,.07);border-left:3px solid var(--purple);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)"><span style="width:18px;height:18px;border-radius:50%;background:var(--purple);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">①</span><span style="font-size:10px;color:var(--purple);font-weight:600">비과세</span></div>
+            <div style="padding:5px 4px;font-size:9px;color:var(--text3);background:var(--bg2);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--bg3)">수익</div>
+            <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)"><span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span><span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span></div>
+            <div style="padding:8px 6px;background:var(--gold-pale);border-left:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--bg3)"><span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span><span style="font-size:10px;color:var(--amber);font-weight:600">연금소득세</span></div>
+          </div>
+        </div>
+        <!-- 외부 유입 -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:6px">
+          <span style="font-size:14px;color:var(--text3)">↑</span>
+          <div style="border:1px solid var(--bg3);border-radius:var(--radius);padding:5px 8px;background:var(--bg2);text-align:center">
+            <div style="font-size:10px;font-weight:600;color:var(--text2)">ISA·다운사이징</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:2px">공제X→① / 공제O→③</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="alert alert-warn" style="margin-top:10px;margin-bottom:0;font-size:11px"><strong>인출 순서:</strong> ① 세액공제 받지 않은 본인 납입원금(비과세) → ② 이연퇴직소득(퇴직소득세, IRP만) → ③ 세액공제 받은 본인 납입원금과 계좌 운용수익(연금소득세)</div>
+</div>
+
+<!-- 메인 2단 레이아웃 -->
+<div class="split split-55">
+
+  <!-- 왼쪽: 입력 -->
+  <div>
+
+    <!-- 공통 수령 정보 -->
+    <div class="card" id="wd_age_card" style="transition:background .3s,border-color .3s;border:1.5px solid transparent">
+      <div class="card-title">본인 정보</div>
+
+      <div class="form-group">
+        <label class="form-label" for="wd_birth">생년월일</label>
+        <div class="inp-row">
+          <div class="inp-wrap">
+            <input type="date" id="wd_birth" value="1961-01-01" oninput="calcWD()">
+          </div>
+          <div id="wd_age_display" class="kr-num"></div>
+        </div>
+      </div>
+
+      <div id="wd_under55_warn" style="display:none;margin-top:6px" class="alert alert-warn">
+        <strong>55세 미만 — 연금 수령 불가</strong><br>
+        연금계좌 인출 요건(만 55세 이상)을 충족하지 않습니다.<br>
+        ③ 세액공제 받은 납입원금·운용수익 재원에 <strong>기타소득세 16.5%</strong> 적용, 연금소득세 감면 혜택 없음.
+      </div>
+
+    </div>
+
+    <!-- 계좌 목록 -->
+    <div class="card" style="margin-top:10px">
+      <div class="card-title">
+        계좌 정보
+        <button onclick="addWdAcc()" style="font-size:11px;padding:4px 10px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);cursor:pointer;margin-left:auto;text-transform:none;letter-spacing:0">+ 계좌 추가</button>
+      </div>
+      <div id="wd_accs"></div>
+    </div>
+
+    <!-- 1500만원 초과 섹션 (자동 노출) -->
+    <div id="wd_overSection" class="card section-toggle" style="margin-top:10px">
+      <div class="card-title">종합과세 모의계산</div>
+      <div id="wd_over_body">
+        <div class="alert alert-warn" style="margin-bottom:12px">연간 사적연금소득(③ 재원 합산)이 1,500만원을 초과하면 분리과세(16.5%) 또는 종합과세 중 선택할 수 있습니다.</div>
+        <div class="tax-flow">
+
+          <!-- ① 소득금액 합산 -->
+          <div class="tf-box">
+            <div class="tf-box-title">① 소득금액 합산</div>
+            <div class="form-group">
+              <div class="tf-auto-row">
+                <span class="form-label" style="margin-bottom:0">사적연금소득 ③ <span class="tf-auto-badge">자동</span></span>
+                <span class="kr-num" id="wd_fl_pension" style="min-height:auto;font-size:15px">—</span>
+              </div>
+              <div class="form-hint" style="margin-top:2px">계좌 수령액 기준 · 연금소득공제 자동 적용</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wd_salary">근로소득 — 총급여</label>
+              <div class="inp-row">
+                <div class="inp-wrap"><input type="number" id="wd_salary" value="0" min="0" step="1000000" oninput="updateKR('wd_salary');calcWD()"><span class="inp-unit">원</span></div>
+                <div class="kr-num" id="wd_salary_kr"></div>
+              </div>
+              <div class="form-hint">근로소득공제 자동 적용</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wd_bizRev">사업소득 — 총수입금액</label>
+              <div class="inp-row">
+                <div class="inp-wrap"><input type="number" id="wd_bizRev" value="0" min="0" step="1000000" oninput="updateKR('wd_bizRev');calcWD()"><span class="inp-unit">원</span></div>
+                <div class="kr-num" id="wd_bizRev_kr"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wd_bizExp">사업소득 — 필요경비</label>
+              <div class="inp-row">
+                <div class="inp-wrap"><input type="number" id="wd_bizExp" value="0" min="0" step="1000000" oninput="updateKR('wd_bizExp');calcWD()"><span class="inp-unit">원</span></div>
+                <div class="kr-num" id="wd_bizExp_kr"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wd_intDiv">금융소득 (이자·배당)</label>
+              <div class="inp-row">
+                <div class="inp-wrap"><input type="number" id="wd_intDiv" value="0" min="0" step="100000" oninput="updateKR('wd_intDiv');calcWD()"><span class="inp-unit">원</span></div>
+                <div class="kr-num" id="wd_intDiv_kr"></div>
+              </div>
+              <div class="form-hint">2,000만원 초과분만 종합소득 합산</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wd_natPen">공적연금소득 (국민연금 등 수령액)</label>
+              <div class="inp-row">
+                <div class="inp-wrap"><input type="number" id="wd_natPen" value="0" min="0" step="100000" oninput="updateKR('wd_natPen');calcWD()"><span class="inp-unit">원</span></div>
+                <div class="kr-num" id="wd_natPen_kr"></div>
+              </div>
+              <div class="form-hint">연금소득공제(최대 900만원) 자동 적용 후 합산</div>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label" for="wd_otherInc">기타소득 총수입금액</label>
+              <div class="inp-row">
+                <div class="inp-wrap"><input type="number" id="wd_otherInc" value="0" min="0" step="100000" oninput="updateKR('wd_otherInc');calcWD()"><span class="inp-unit">원</span></div>
+                <div class="kr-num" id="wd_otherInc_kr"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap">
+                <span style="font-size:11px;color:var(--text3)">필요경비율</span>
+                <select id="wd_otherExp" onchange="calcWD()" style="font-size:11px;padding:2px 4px;border:1px solid var(--bg3);border-radius:var(--radius);background:var(--bg);color:var(--text1)">
+                  <option value="0.60">60% — 강연료·원고료·인적용역 등</option>
+                  <option value="0.80">80% — 광업권·어업권 등 권리 양도</option>
+                </select>
+              </div>
+              <div class="form-hint">기타소득금액(합산분): <span id="wd_otherInc_net" style="color:var(--gold);font-weight:600">—</span><br>복권·경품·승마투표권 등 무조건 분리과세 소득은 종합소득에 합산되지 않으므로 여기 입력 불필요</div>
+            </div>
+            <div class="tf-result">
+              <span class="tf-result-label">종합소득금액</span>
+              <span class="tf-result-value" id="wd_fl_total">—</span>
+            </div>
+          </div>
+
+          <div class="tf-arrow">▼ 소득공제</div>
+
+          <!-- ② 소득공제 -->
+          <div class="tf-box">
+            <div class="tf-box-title">② 소득공제</div>
+            <div class="form-group">
+              <label class="form-label" for="wd_dep">부양가족 수 (본인 제외)</label>
+              <div class="inp-wrap"><input type="number" id="wd_dep" value="0" min="0" max="20" oninput="calcWD()"><span class="inp-unit">명</span></div>
+              <div class="form-hint">기본공제: (1 + 부양가족) × 150만원</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wd_np">국민연금 보험료공제</label>
+              <div class="inp-row">
+                <div class="inp-wrap"><input type="number" id="wd_np" value="0" min="0" step="100000" oninput="updateKR('wd_np');calcWD()"><span class="inp-unit">원</span></div>
+                <div class="kr-num" id="wd_np_kr"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wd_hi">건강보험료 납부액 (연간)</label>
+              <div class="inp-row">
+                <div class="inp-wrap"><input type="number" id="wd_hi" value="0" min="0" step="100000" oninput="updateKR('wd_hi');calcWD()"><span class="inp-unit">원</span></div>
+                <div class="kr-num" id="wd_hi_kr"></div>
+              </div>
+              <div class="form-hint">근로소득자·은퇴자 해당 · 자영업자는 사업소득 필요경비 처리</div>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label" for="wd_otherDed">기타 소득공제</label>
+              <div class="inp-row">
+                <div class="inp-wrap"><input type="number" id="wd_otherDed" value="0" min="0" step="100000" oninput="updateKR('wd_otherDed');calcWD()"><span class="inp-unit">원</span></div>
+                <div class="kr-num" id="wd_otherDed_kr"></div>
+              </div>
+            </div>
+            <div class="tf-result">
+              <span class="tf-result-label">소득공제 합계</span>
+              <span class="tf-result-value" id="wd_fl_ded">—</span>
+            </div>
+          </div>
+
+          <div class="tf-arrow">▼</div>
+
+          <!-- 과세표준 -->
+          <div class="tf-step neutral">
+            <span class="tf-step-label">과세표준</span>
+            <span class="tf-step-value" id="wd_fl_base">—</span>
+          </div>
+
+          <div class="tf-arrow">▼ 세율 6%~45% 적용</div>
+
+          <!-- 종합소득세 -->
+          <div class="tf-step neutral">
+            <span class="tf-step-label">종합소득세 <span style="font-size:10px;font-weight:400;color:var(--text3)">(지방세 포함)</span></span>
+            <span class="tf-step-value" id="wd_fl_comptax">—</span>
+          </div>
+
+          <div class="tf-arrow">▼ 세액공제</div>
+
+          <!-- ③ 세액공제 -->
+          <div class="tf-box">
+            <div class="tf-box-title">③ 세액공제</div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label" for="wd_taxCredit">기타 세액공제 합계 <span style="font-weight:400;color:var(--text3)">(자녀·의료비·교육비 등)</span></label>
+              <div class="inp-row">
+                <div class="inp-wrap"><input type="number" id="wd_taxCredit" value="0" min="0" step="100000" oninput="updateKR('wd_taxCredit');calcWD()"><span class="inp-unit">원</span></div>
+                <div class="kr-num" id="wd_taxCredit_kr"></div>
+              </div>
+              <div class="form-hint">의료비·교육비·기부금·보험료 등 세액공제 합산</div>
+            </div>
+          </div>
+
+          <div class="tf-arrow">▼</div>
+
+          <!-- 결정세액 -->
+          <div class="tf-step final">
+            <span class="tf-step-label">종합과세 결정세액 <span style="font-size:10px;font-weight:400;color:var(--text3)">(전체 소득 기준)</span></span>
+            <span class="tf-step-value" id="wd_fl_final">—</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- 오른쪽: 결과 -->
+  <div>
+
+    <div class="card">
+      <div class="card-title">인출세금 모의계산 결과</div>
+      <div id="wd_under55_notice" style="display:none;margin-bottom:10px" class="alert alert-warn">
+        <strong>연금 외 수령만 가능</strong> — 55세 미만으로 연금수령 요건 미충족.<br>
+        ③ 재원은 기타소득세 16.5% 적용. ①은 비과세, ②는 퇴직소득세 그대로 적용.
+      </div>
+
+      <div class="result-hero">
+        <div class="result-hero-label">세후 연간 수령액 합계</div>
+        <div class="result-hero-value" id="wd_net_annual">—</div>
+        <div class="result-hero-sub" id="wd_net_sub"></div>
+      </div>
+
+      <div class="rrow">
+        <span class="rrow-label">연간 수령액 합계</span>
+        <span class="rrow-val blue" id="wd_gross_total">—</span>
+      </div>
+      <div class="rrow">
+        <span class="rrow-label">총 세금</span>
+        <span class="rrow-val red" id="wd_tax_total">—</span>
+      </div>
+      <div class="rrow">
+        <span class="rrow-label">세후 월 평균 수령액</span>
+        <span class="rrow-val green" id="wd_net_monthly">—</span>
+      </div>
+      <div class="rrow">
+        <span class="rrow-label">실효세율</span>
+        <span class="rrow-val" id="wd_eff_rate">—</span>
+      </div>
+
+      <hr class="divider">
+      <div class="breakdown" id="wd_src_breakdown">
+        <div class="breakdown-title">재원별 세금 내역</div>
+        <div class="breakdown-row">
+          <span><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:14px;height:14px;border-radius:50%;background:var(--purple);color:#fff;font-size:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700">①</span>비과세 원금 인출액</span></span>
+          <span id="wd_b_src1">—</span>
+        </div>
+        <div class="breakdown-row" id="wd_b_src2_row">
+          <span><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:14px;height:14px;border-radius:50%;background:var(--blue);color:#fff;font-size:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700">②</span>이연퇴직소득 인출 세금</span></span>
+          <span id="wd_b_src2" style="color:var(--red)">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:14px;height:14px;border-radius:50%;background:var(--gold);color:#fff;font-size:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700">③</span>연금소득 세금</span></span>
+          <span id="wd_b_src3" style="color:var(--red)">—</span>
+        </div>
+        <div class="breakdown-row total">
+          <span>합산 세금</span>
+          <span id="wd_b_tax_sum">—</span>
+        </div>
+        <div id="wd_over15_notice" style="display:none;font-size:10px;color:var(--text3);padding:5px 2px 0;line-height:1.5">* 사적연금소득 1,500만원 초과 — ③ 세금은 분리과세(16.5%) 기준 반영. 아래 모의계산에서 종합과세와 비교하세요.</div>
+      </div>
+
+      <!-- 계좌별 상세 -->
+      <div id="wd_accs_result" style="margin-top:10px"></div>
+    </div>
+
+    <!-- 퇴직소득세 실효세율 매트릭스 (이연퇴직소득 있을 때 노출) -->
+    <div id="wd_rt_matrix_card" class="hide-mobile" style="display:none;margin-top:10px">
+      <div class="card">
+        <div class="card-title">퇴직소득세 실효세율 매트릭스</div>
+        <div class="alert alert-info" style="margin-bottom:12px;font-size:11px">지방소득세 10% 포함 실효세율. 색이 진할수록 높은 세율.</div>
+        <div class="matrix-wrap">
+          <table class="matrix" id="wd_rt_matrix"></table>
+        </div>
+        <div class="matrix-legend" id="wd_rt_legend"></div>
+      </div>
+    </div>
+
+    <!-- 1500만원 초과 비교 결과 -->
+    <div id="wd_overResult" style="display:none;margin-top:10px">
+      <div class="card">
+        <div class="card-title">과세 방법 모의계산 (1,500만원 초과)</div>
+        <div class="cmp-grid">
+          <div class="cmp-card" id="wd_sepCard">
+            <div class="cmp-label">분리과세</div>
+            <div class="cmp-value" id="wd_sepTax">—</div>
+            <div class="cmp-detail" id="wd_sepDetail">—</div>
+          </div>
+          <div class="cmp-card" id="wd_compCard">
+            <div class="cmp-label">종합과세</div>
+            <div class="cmp-value" id="wd_compTax">—</div>
+            <div class="cmp-detail" id="wd_compDetail">—</div>
+          </div>
+        </div>
+        <div id="wd_recommendation" class="alert" style="margin-top:12px;display:none"></div>
+        <div class="alert" style="margin-top:8px;font-size:10px;color:var(--text3);background:rgba(0,0,0,.03);border-color:var(--border)">⚠ 종합과세 모의계산은 간이 추정값으로 실제 납부세액과 다를 수 있습니다. 정확한 세액은 세무사 등 전문가 상담을 권장합니다.</div>
+        <div class="breakdown" id="wd_compBreakdown" style="display:none">
+          <div class="breakdown-title">종합과세 계산 내역</div>
+          <div class="breakdown-row"><span>사적연금소득금액 (③)</span><span id="wd_b_pension">—</span></div>
+          <div class="breakdown-row"><span>공적연금소득금액</span><span id="wd_b_natpen">—</span></div>
+          <div class="breakdown-row"><span>근로소득금액</span><span id="wd_b_earned">—</span></div>
+          <div class="breakdown-row"><span>사업소득금액</span><span id="wd_b_biz">—</span></div>
+          <div class="breakdown-row"><span>이자·배당(합산분)</span><span id="wd_b_intdiv">—</span></div>
+          <div class="breakdown-row"><span>기타소득금액</span><span id="wd_b_otherinc">—</span></div>
+          <div class="breakdown-row total"><span>종합소득금액</span><span id="wd_b_total">—</span></div>
+          <div class="breakdown-row"><span>종합소득공제</span><span id="wd_b_ded">—</span></div>
+          <div class="breakdown-row total"><span>과세표준</span><span id="wd_b_base">—</span></div>
+          <div class="breakdown-row"><span>종합소득세 (지방세 포함)</span><span id="wd_b_comptax">—</span></div>
+          <div class="breakdown-row"><span style="padding-left:10px;color:var(--text3)">└ 사적연금③ 귀속분 추정 (한계세율)</span><span id="wd_b_pencomp" style="color:var(--red)">—</span></div>
+        </div>
+      </div>
+    </div>
+
+
+  </div><!-- /right -->
+
+</div><!-- /split -->
+
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TAB 4 : 퇴직급여 계산 구조
+     ════════════════════════════════════════════ -->
+<div id="tab3" class="tab-content">
+<div class="container">
+
+<!-- 개념 설명 (full width) -->
+<div class="card hide-mobile" style="margin-bottom:14px">
+  <div class="card-title">퇴직급여 수령 방식 비교</div>
+
+  <!-- 퇴직급여 발생 -->
+  <div style="text-align:center;margin-bottom:10px">
+    <div style="display:inline-block;background:var(--accent-bg);color:#fff;font-size:12px;font-weight:700;padding:7px 24px;border-radius:var(--radius-lg);letter-spacing:.04em">퇴직급여 발생</div>
+  </div>
+  <div style="display:flex;justify-content:center;gap:0;margin-bottom:0">
+    <div style="width:2px;height:16px;background:var(--bg3);margin:0 auto"></div>
+  </div>
+
+  <!-- 2갈래 분기 -->
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+
+    <!-- 경로 A: IRP 직접 수령 -->
+    <div style="flex:1;min-width:220px">
+      <div style="border:2px solid var(--blue);border-radius:var(--radius-lg);overflow:hidden">
+        <div style="background:var(--blue);padding:7px 12px;text-align:center">
+          <div style="font-size:11px;font-weight:700;color:#fff;letter-spacing:.04em">경로 A — IRP 직접 수령</div>
+        </div>
+        <div style="padding:10px 12px;font-size:12px;color:var(--text2)">
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:5px">
+            <span style="background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;white-space:nowrap">Step 1</span>
+            <span>퇴직급여 <strong>세전 전액</strong> IRP 입금</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <span style="background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;white-space:nowrap">Step 2</span>
+            <span>퇴직소득세 <strong style="color:var(--blue)">이연</strong> → 인출 시 30~50% 감면 적용</span>
+          </div>
+        </div>
+        <div style="background:rgba(43,94,167,.07);padding:6px 12px;font-size:11px;color:var(--blue);font-weight:600;border-top:1px solid rgba(43,94,167,.15)">✓ 세금 이연 · 운용수익 비과세</div>
+      </div>
+    </div>
+
+    <!-- 경로 B: 일반계좌 수령 -->
+    <div style="flex:1;min-width:220px">
+      <div style="border:2px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden">
+        <div style="background:var(--bg3);padding:7px 12px;text-align:center">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.04em">경로 B — 일반계좌 수령</div>
+        </div>
+        <div style="padding:10px 12px;font-size:12px;color:var(--text2)">
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
+            <span style="background:var(--text3);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;white-space:nowrap">Step 1</span>
+            <span>퇴직소득세 <strong style="color:var(--red)">원천징수</strong> 후 세후 금액 수령</span>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px;padding-left:2px">이후 선택 ↓</div>
+
+          <!-- B-1: 그냥 보유 -->
+          <div style="border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;background:rgba(148,48,48,.04)">
+            <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:3px">B-1. 그대로 보유</div>
+            <div style="font-size:11px;color:var(--text2)">세후 금액 수령으로 종결 · 이연 불가</div>
+          </div>
+
+          <!-- B-2: 60일 이내 IRP -->
+          <div style="border:1.5px solid var(--green);border-radius:var(--radius);padding:8px 10px;background:rgba(42,124,111,.05)">
+            <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:3px">B-2. 60일 이내 IRP 이체</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.7">
+              <div>· 세전 금액 <strong>전액</strong> IRP로 이체 시</div>
+              <div>· 원천징수 세금 <strong style="color:var(--green)">환급</strong> → 경로 A와 동일 처리</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="background:rgba(43,94,167,.06);border:1px solid rgba(43,94,167,.2);border-radius:var(--radius);padding:10px 12px;margin-bottom:10px">
+    <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">IRP 연금 수령 시 퇴직소득세 감면율</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px">
+      <div style="flex:1;min-width:120px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;text-align:center">
+        <div style="font-weight:700;color:var(--text2)">10년 이하 수령</div>
+        <div style="font-size:20px;font-weight:700;color:var(--green);margin:4px 0">30%↓</div>
+        <div style="font-size:11px;color:var(--text3)">퇴직소득세 × 70% 납부</div>
+      </div>
+      <div style="flex:1;min-width:120px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;text-align:center">
+        <div style="font-weight:700;color:var(--text2)">10~20년 수령</div>
+        <div style="font-size:20px;font-weight:700;color:var(--green);margin:4px 0">40%↓</div>
+        <div style="font-size:11px;color:var(--text3)">퇴직소득세 × 60% 납부</div>
+      </div>
+      <div style="flex:1;min-width:120px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;text-align:center">
+        <div style="font-weight:700;color:var(--text2)">20년 초과 수령</div>
+        <div style="font-size:20px;font-weight:700;color:var(--green);margin:4px 0">50%↓</div>
+        <div style="font-size:11px;color:var(--text3)">퇴직소득세 × 50% 납부</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 연금수령한도 초과 시 퇴직소득세 -->
+  <div style="background:rgba(148,48,48,.05);border:1.5px solid rgba(148,48,48,.25);border-radius:var(--radius);padding:10px 12px;margin-bottom:10px">
+    <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px">⚠ 연금수령한도 초과 인출 시 — 감면 소멸</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      <div style="flex:1;min-width:160px;background:rgba(42,124,111,.07);border:1px solid rgba(42,124,111,.2);border-radius:var(--radius);padding:8px 10px">
+        <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px">한도 이내 인출</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.7">연금수령으로 인정<br>퇴직소득세 × <strong>(1 − 감면율)</strong><br><span style="color:var(--green)">30~50% 절세 적용</span></div>
+      </div>
+      <div style="display:flex;align-items:center;font-size:18px;color:var(--text3)">vs</div>
+      <div style="flex:1;min-width:160px;background:rgba(148,48,48,.05);border:1px solid rgba(148,48,48,.2);border-radius:var(--radius);padding:8px 10px">
+        <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">한도 초과 인출</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.7">연금외수령으로 간주<br>퇴직소득세 <strong>100% 납부</strong><br><span style="color:var(--red)">감면 없음</span></div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);line-height:1.8;background:var(--bg2);border-radius:var(--radius);padding:8px 10px">
+      <div>· 한도 초과분은 <strong>이연퇴직소득 비율에 따라</strong> 퇴직소득세 안분 납부</div>
+      <div>· 예) 총 IRP 잔액 2억(이연퇴직소득 1억, 개인납입 1억) 중 한도 초과 1,000만원 인출</div>
+      <div style="padding-left:10px;color:var(--text3)">→ 초과분 중 이연퇴직소득 비율(50%)인 500만원에 대해 퇴직소득세 감면 없이 납부</div>
+    </div>
+  </div>
+
+  <div style="background:rgba(42,124,111,.06);border:1px solid rgba(42,124,111,.2);border-radius:var(--radius);padding:10px 12px">
+    <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px">수령연차 카운팅 방법</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.9">
+      <div>· 수령연차는 <strong>실제 인출한 해</strong>를 1년차로 카운팅</div>
+      <div>· 퇴직한 해 IRP 이전만 하고 인출하지 않으면 연차 미적용</div>
+      <div>· 인출 없이 운용만 하다가 첫 인출한 해가 <strong>1년차</strong></div>
+      <div>· 수령 기간 = 마지막 인출 연도 − 첫 인출 연도 + 1</div>
+    </div>
+  </div>
+</div>
+
+<div class="split split-55">
+
+  <!-- 입력 -->
+  <div>
+    <div class="card">
+      <div class="card-title">퇴직소득세 모의계산</div>
+      <div id="rt_autoPanel">
+        <div class="form-group">
+          <label class="form-label" for="rt_pay">퇴직금(퇴직급여)</label>
+          <div class="kr-num" id="rt_pay_kr"></div>
+          <div class="inp-wrap">
+            <input type="number" id="rt_pay" value="200000000" min="0" step="1000000" oninput="syncI('rt_pay','rt_payR');updateKR('rt_pay');calcRT()">
+            <span class="inp-unit">원</span>
+          </div>
+          <input type="range" id="rt_payR" min="0" max="1000000000" step="5000000" value="200000000" oninput="syncR('rt_pay','rt_payR');updateKR('rt_pay');calcRT()">
+          <div class="range-row"><span>0원</span><span>10억원</span></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="rt_years">근속연수</label>
+<div class="inp-wrap">
+            <input type="number" id="rt_years" value="20" min="1" max="50" oninput="syncI('rt_years','rt_yearsR');calcRT()">
+            <span class="inp-unit">년</span>
+          </div>
+          <input type="range" id="rt_yearsR" min="1" max="40" value="20" oninput="syncR('rt_years','rt_yearsR');calcRT()">
+          <div class="range-row"><span>1년</span><span>40년</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 매트릭스 -->
+    <div class="card hide-mobile">
+      <div class="card-title">실효세율 매트릭스</div>
+      <div class="alert alert-info" style="margin-bottom:12px">지방소득세 10% 포함 실효세율. 색이 진할수록 높은 세율.</div>
+      <div class="matrix-wrap">
+        <table class="matrix" id="rt_matrix"></table>
+      </div>
+      <div class="matrix-legend" id="rt_legend"></div>
+    </div>
+
+  </div>
+
+  <!-- 결과 -->
+  <div>
+    <div class="card">
+      <div class="card-title">퇴직소득세 계산 결과</div>
+
+      <div class="result-hero">
+        <div class="result-hero-label">일시금 수령 시 퇴직소득세</div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:4px">
+          <div class="result-hero-value" id="rt_lumpTax">—</div>
+          <div style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 14px;text-align:center">
+            <div style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:2px;letter-spacing:.4px">실효세율</div>
+            <div style="font-size:22px;font-weight:700;color:#fff;line-height:1" id="rt_lumpRate">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown" id="rt_breakdown" style="display:none">
+        <div class="breakdown-title">자동 계산 내역</div>
+        <div class="breakdown-row"><span>퇴직소득금액</span><span id="rt_b_pay">—</span></div>
+        <div class="breakdown-row"><span>근속연수공제</span><span id="rt_b_ysd">—</span></div>
+        <div class="breakdown-row"><span>환산급여</span><span id="rt_b_conv">—</span></div>
+        <div class="breakdown-row"><span>환산급여공제</span><span id="rt_b_cd">—</span></div>
+        <div class="breakdown-row"><span>과세표준</span><span id="rt_b_base">—</span></div>
+        <div class="breakdown-row total"><span>퇴직소득세 (지방세 포함)</span><span id="rt_b_tax">—</span></div>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="sub-title" style="margin-bottom:8px">수령 기간별 실효세율 비교</div>
+        <table style="width:100%;font-size:11px;border-collapse:collapse">
+          <thead>
+            <tr style="background:var(--bg3)">
+              <th style="padding:6px 8px;text-align:left;border:1px solid var(--border2);font-weight:600">수령 방법</th>
+              <th style="padding:6px 8px;text-align:center;border:1px solid var(--border2);font-weight:600">감면율</th>
+              <th style="padding:6px 8px;text-align:center;border:1px solid var(--border2);font-weight:600">실효세율</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:6px 8px;border:1px solid var(--border2)">일시금 수령</td>
+              <td style="padding:6px 8px;border:1px solid var(--border2);text-align:center;color:var(--text3)">없음</td>
+              <td style="padding:6px 8px;border:1px solid var(--border2);text-align:center" id="rt_lump_eff">—</td>
+            </tr>
+            <tr style="background:rgba(42,124,111,.04)">
+              <td style="padding:6px 8px;border:1px solid var(--border2)">10년 이하 수령</td>
+              <td style="padding:6px 8px;border:1px solid var(--border2);text-align:center;font-weight:700;color:var(--green)">30%↓</td>
+              <td style="padding:6px 8px;border:1px solid var(--border2);text-align:center;color:var(--green)" id="rt_d30_eff">—</td>
+            </tr>
+            <tr style="background:rgba(42,124,111,.07)">
+              <td style="padding:6px 8px;border:1px solid var(--border2)">10~20년 수령</td>
+              <td style="padding:6px 8px;border:1px solid var(--border2);text-align:center;font-weight:700;color:var(--green)">40%↓</td>
+              <td style="padding:6px 8px;border:1px solid var(--border2);text-align:center;color:var(--green)" id="rt_d40_eff">—</td>
+            </tr>
+            <tr style="background:rgba(42,124,111,.11)">
+              <td style="padding:6px 8px;border:1px solid var(--border2)">20년 초과 수령</td>
+              <td style="padding:6px 8px;border:1px solid var(--border2);text-align:center;font-weight:700;color:var(--green)">50%↓</td>
+              <td style="padding:6px 8px;border:1px solid var(--border2);text-align:center;color:var(--green)" id="rt_d50_eff">—</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="form-hint" style="margin-top:6px">감면율은 실제 수령 기간 합산 기준 적용. 연금수령한도 초과 시 해당 부분은 감면 소멸.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</div>
+
+
+
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="disclaimer">
+    <strong>본 계산기는 교육·참고 목적으로 제공되며, 실제 투자·금융·세무 결정의 근거로 사용할 수 없습니다.</strong><br>
+    세율 및 공제 기준은 2026년 소득세법 기준이며, 개인 상황에 따라 실제 세금은 다를 수 있습니다.<br>
+    정확한 세금 계산은 세무사, 정확한 재무설계는 공인재무설계사(CFP)와 상담하시기 바랍니다.<br>
+    <span style="margin-top:6px;display:inline-block">IdentiFi · 정원준 CFP</span>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════
+   HELPERS
+══════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const v = id => parseFloat($(id).value) || 0;
+const fmt = n => Math.round(n).toLocaleString('ko-KR') + '원';
+const fmtN = n => Math.round(n).toLocaleString('ko-KR');
+const fmtPct = n => n.toFixed(2) + '%';
+
+function toKorean(n) {
+  n = Math.round(Math.abs(parseFloat(n) || 0));
+  if (!n) return '';
+  const eok = Math.floor(n / 1e8);
+  const man = Math.floor((n % 1e8) / 1e4);
+  const won = n % 1e4;
+  const parts = [];
+  if (eok) parts.push(eok + '억');
+  if (man) {
+    const ch = Math.floor(man / 1000);
+    const rem = man % 1000;
+    parts.push((ch ? ch + '천' : '') + (rem || '') + '만');
+  }
+  if (won) parts.push(won + '원');
+  return parts.join(' ');
+}
+function updateKR(id) {
+  const el = $(id + '_kr');
+  if (el) el.textContent = toKorean(v(id));
+}
+function syncR(inputId, rangeId) { $(inputId).value = $(rangeId).value; }
+function syncI(inputId, rangeId) { $(rangeId).value = $(inputId).value; }
+
+/* ══════════════════════════════════════
+   TAB SWITCHING
+══════════════════════════════════════ */
+function switchTab(idx) {
+  document.querySelectorAll('.tab-content').forEach((el, i) => el.classList.toggle('active', i === idx));
+  document.querySelectorAll('.tab-btn').forEach((el, i) => el.classList.toggle('active', i === idx));
+  if (idx === 3) { renderMatrix(); calcRT(); }
+  if (idx === 2) { renderWdAccs(); calcWD(); }
+}
+
+/* ══════════════════════════════════════
+   SECTION TOGGLE
+══════════════════════════════════════ */
+function toggleSection(key) {
+  const body = $(key + '_body');
+  const chev = $(key + '_chev');
+  const header = chev?.closest('.stoggle-header');
+  const isOpen = !body.classList.contains('hidden');
+  body.classList.toggle('hidden', isOpen);
+  if (chev) chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+  if (header) header.classList.toggle('open', !isOpen);
+}
+
+/* ══════════════════════════════════════
+   BASE TAX
+══════════════════════════════════════ */
+function baseTax(x) {
+  x = Math.max(0, x);
+  if (x <= 14000000)    return x * 0.06;
+  if (x <= 50000000)    return 840000    + (x - 14000000) * 0.15;
+  if (x <= 88000000)    return 6240000   + (x - 50000000) * 0.24;
+  if (x <= 150000000)   return 15360000  + (x - 88000000) * 0.35;
+  if (x <= 300000000)   return 37060000  + (x - 150000000) * 0.38;
+  if (x <= 500000000)   return 94060000  + (x - 300000000) * 0.40;
+  if (x <= 1000000000)  return 174060000 + (x - 500000000) * 0.42;
+  return 384060000 + (x - 1000000000) * 0.45;
+}
+function earnedDeduction(salary) {
+  if (salary <= 5000000)   return salary * 0.7;
+  if (salary <= 15000000)  return 3500000  + (salary - 5000000)  * 0.4;
+  if (salary <= 45000000)  return 7500000  + (salary - 15000000) * 0.15;
+  if (salary <= 100000000) return 12000000 + (salary - 45000000) * 0.05;
+  return Math.min(14750000 + (salary - 100000000) * 0.02, 20000000);
+}
+function pensionDeduction(total) {
+  let d;
+  if (total <= 3500000)       d = total;
+  else if (total <= 7000000)  d = 3500000  + (total - 3500000) * 0.4;
+  else if (total <= 14000000) d = 4900000  + (total - 7000000) * 0.2;
+  else if (total <= 20000000) d = 6300000  + (total - 14000000) * 0.1;
+  else                         d = 6900000  + (total - 20000000) * 0.05;
+  return Math.min(d, 9000000);
+}
+function calcRetirementTax(pay, years) {
+  years = Math.max(1, Math.round(years));
+  pay = Math.max(0, pay);
+  let ysD;
+  if (years <= 5)       ysD = 1000000 * years;
+  else if (years <= 10) ysD = 5000000  + 2000000 * (years - 5);
+  else if (years <= 20) ysD = 15000000 + 2500000 * (years - 10);
+  else                  ysD = 40000000 + 3000000 * (years - 20);
+  ysD = Math.min(ysD, pay);
+  const net  = Math.max(0, pay - ysD);
+  const conv = net / years * 12;
+  let cD;
+  if (conv <= 8000000)        cD = conv;
+  else if (conv <= 70000000)  cD = 8000000   + (conv - 8000000)  * 0.6;
+  else if (conv <= 100000000) cD = 45200000  + (conv - 70000000) * 0.55;
+  else if (conv <= 300000000) cD = 61700000  + (conv - 100000000)* 0.45;
+  else                         cD = 151700000 + (conv - 300000000)* 0.35;
+  const taxBase = Math.max(0, conv - cD);
+  const retTax  = baseTax(taxBase) / 12 * years;
+  const total   = retTax * 1.1;
+  const rate    = pay > 0 ? total / pay * 100 : 0;
+  return { ysD, conv, cD, taxBase, retTax, total, rate };
+}
+
+/* ══════════════════════════════════════
+   납입 한도 연동
+══════════════════════════════════════ */
+function capIRP() {
+  const maxIrp = Math.max(0, 18000000 - v('tc_ps'));
+  $('tc_irp').max = maxIrp; $('tc_irpR').max = maxIrp;
+  if (v('tc_irp') > maxIrp) { $('tc_irp').value = maxIrp; $('tc_irpR').value = maxIrp; updateKR('tc_irp'); }
+}
+function capPS() {
+  const maxPs = Math.max(0, 18000000 - v('tc_irp'));
+  $('tc_ps').max = maxPs; $('tc_psR').max = maxPs;
+  if (v('tc_ps') > maxPs) { $('tc_ps').value = maxPs; $('tc_psR').value = maxPs; updateKR('tc_ps'); }
+}
+
+/* ══════════════════════════════════════
+   TAB 2 : 세액공제
+══════════════════════════════════════ */
+var tcIncomeHigh = false;
+function calcTC() {
+  const isEarned = $('it_earned').checked;
+  $('tc_earnedGroup').style.display = isEarned ? '' : 'none';
+  $('tc_compGroup').style.display   = isEarned ? 'none' : '';
+  // 소득구간 버튼 활성화 표시
+  ['tc_sal_lo','tc_sal_hi','tc_comp_lo','tc_comp_hi'].forEach(function(id) {
+    var btn = $(id); if (!btn) return;
+    var isHi = id.endsWith('_hi');
+    var active = (isHi === tcIncomeHigh);
+    btn.style.borderColor = active ? 'var(--gold)' : 'var(--border)';
+    btn.style.background  = active ? 'var(--gold)' : 'var(--bg3)';
+    btn.style.color       = active ? '#fff' : 'var(--text2)';
+  });
+  const ps = v('tc_ps'), irp = v('tc_irp'), dc = v('tc_dc'), isa = v('tc_isa'), down = v('tc_down');
+  const totalInput = ps + irp;
+  const pct = Math.min(totalInput / 18000000 * 100, 100);
+  $('tc_totalSum').innerHTML = '<strong>' + fmtN(Math.round(totalInput/10000)) + '만원</strong><span style="color:var(--text3);font-size:11px;margin-left:4px">/ 1,800만원</span>';
+  $('tc_totalBarFill').style.width = pct + '%';
+  $('tc_totalBarFill').style.background = totalInput > 14000000 ? 'var(--amber)' : 'var(--gold)';
+  const rate = tcIncomeHigh ? 0.132 : 0.165;
+  const psElig  = Math.min(ps, 6000000);
+  const irpRoom = 9000000 - psElig;
+  const irpElig = Math.min(irp, irpRoom);
+  const dcElig  = Math.min(dc, Math.max(0, irpRoom - irpElig));
+  const baseTotal = psElig + irpElig + dcElig;
+  const isaElig = Math.min(isa * 0.1, 3000000);
+  const total  = baseTotal + isaElig;
+  const credit = total * rate;
+  const psOver = Math.max(0, ps - 6000000), irpOver = Math.max(0, irp - irpRoom);
+  const rateStr = (rate * 100).toFixed(1) + '%';
+  const thresh = isEarned ? 5500 : 4500;
+  $('tc_rateAlert').innerHTML = '<strong>세액공제율 ' + rateStr + '</strong> — ' + (isEarned ? '총급여' : '종합소득금액') + ' ' + thresh + '만원 ' + (tcIncomeHigh ? '초과' : '이하') + ' 해당';
+  $('tc_credit').textContent    = fmt(credit);
+  $('tc_creditSub').textContent = isaElig>0 ? 'ISA 추가 ' + fmt(isaElig*rate) + ' 포함' : '';
+  $('tc_eligible').textContent  = fmt(total);
+  $('tc_rate').textContent      = rateStr;
+  $('tc_b_ps').textContent  = fmt(psElig);
+  $('tc_b_irp').textContent = fmt(irpElig);
+  if (dc > 0) {
+    $('tc_b_dc_row').style.display = '';
+    $('tc_b_dc').textContent = dcElig > 0 ? fmt(dcElig) : '0 (한도 소진)';
+    $('tc_b_dc').style.color = dcElig > 0 ? '' : 'var(--amber)';
+  } else { $('tc_b_dc_row').style.display = 'none'; }
+  if (isaElig > 0) { $('tc_b_isa_row').style.display = ''; $('tc_b_isa').textContent = '+' + fmt(isaElig); }
+  else $('tc_b_isa_row').style.display = 'none';
+  if (down > 0) { $('tc_b_down_row').style.display = ''; $('tc_b_down').textContent = fmt(down) + ' (비과세)'; }
+  else $('tc_b_down_row').style.display = 'none';
+  $('tc_b_total').textContent  = fmt(total);
+  const dcOver  = Math.max(0, dc - dcElig);
+  const isaOver = Math.max(0, isa - isaElig);
+  $('tc_psOver').textContent   = psOver  > 0 ? fmt(psOver)  : '없음';
+  $('tc_irpOver').textContent  = irpOver > 0 ? fmt(irpOver) : '없음';
+  if (dc > 0)  { $('tc_dcOver_row').style.display  = ''; $('tc_dcOver').textContent  = dcOver  > 0 ? fmt(dcOver)  : '없음'; }
+  else $('tc_dcOver_row').style.display = 'none';
+  if (isa > 0) { $('tc_isaOver_row').style.display = ''; $('tc_isaOver').textContent = isaOver > 0 ? fmt(isaOver) : '없음'; }
+  else $('tc_isaOver_row').style.display = 'none';
+}
+
+/* ══════════════════════════════════════
+   TAB 3 : 인출 세금계산
+══════════════════════════════════════ */
+var wdAccs = [
+  { type: 'irp', openDate: '2020-01-01', balance: 0, src1: 0, src2: 0, src3: 0, withdrawal: 0, retirePensionYr: 1, retireMode: 'auto', retirePay: 0, retireYears: 20, retireManRate: 10, lifeAnnuity: false },
+  { type: 'ps',  openDate: '2020-01-01', balance: 0, src1: 0, src2: 0, src3: 0, withdrawal: 0, lifeAnnuity: false }
+];
+
+function addWdAcc() {
+  wdAccs.push({ type: 'ps', openDate: '2020-01-01', balance: 0, src1: 0, src2: 0, src3: 0, withdrawal: 0, lifeAnnuity: false });
+  renderWdAccs();
+  calcWD();
+}
+function removeWdAcc(idx) {
+  wdAccs.splice(idx, 1);
+  renderWdAccs();
+  calcWD();
+}
+function setWdAccType(i, type) {
+  wdAccs[i].type = type;
+  if (type === 'oldpen') {
+    wdAccs[i].openDate = '1999-01-01';
+  } else if ((wdAccs[i].openDate || '') < '2001-01-01') {
+    wdAccs[i].openDate = '2020-01-01';
+  }
+  renderWdAccs();
+  calcWD();
+}
+
+function syncWdSrc(i) {
+  var acc = wdAccs[i];
+  acc.withdrawal = (acc.src1||0) + (acc.src2||0) + (acc.src3||0);
+  var numEl = $('wd_wd_num_' + i);
+  if (numEl) numEl.textContent = acc.withdrawal > 0 ? acc.withdrawal.toLocaleString() : '0';
+  var lblEl = $('wd_wd_lbl_' + i);
+  if (lblEl) lblEl.textContent = '원' + (acc.withdrawal > 0 ? ' · ' + toKorean(acc.withdrawal) : '');
+  var kr1 = $('wd_src1_kr_' + i); if (kr1) kr1.textContent = acc.src1 > 0 ? toKorean(acc.src1) : '';
+  var kr2 = $('wd_src2_kr_' + i); if (kr2) kr2.textContent = acc.src2 > 0 ? toKorean(acc.src2) : '';
+  var kr3 = $('wd_src3_kr_' + i); if (kr3) kr3.textContent = acc.src3 > 0 ? toKorean(acc.src3) : '';
+  calcWD();
+}
+
+function updateWdAccLabel(i) {
+  var acc = wdAccs[i];
+  var yrLbl = $('wd_yr_lbl_' + i);
+  if (yrLbl) {
+    var ms = acc.openDate ? (new Date() - new Date(acc.openDate)) : 0;
+    var yrs = Math.max(0, Math.floor(ms / (365.25 * 24 * 3600 * 1000)));
+    yrLbl.textContent = '개설 ' + yrs + '년';
+  }
+  var balLbl = $('wd_bal_lbl_' + i);
+  if (balLbl) balLbl.textContent = acc.balance > 0 ? toKorean(acc.balance) : '';
+}
+
+function renderWdAccs() {
+  var container = $('wd_accs');
+  if (!container) return;
+  var curYear = new Date().getFullYear();
+  var todayStr = new Date().toISOString().slice(0, 10);
+  container.innerHTML = wdAccs.map(function(acc, i) {
+    var isIRP = acc.type === 'irp';
+    var isOldPen = acc.type === 'oldpen';
+    var accOpenMs = acc.openDate ? (new Date() - new Date(acc.openDate)) : 0;
+    var openedYrs = Math.max(0, Math.floor(accOpenMs / (365.25 * 24 * 3600 * 1000)));
+    var yrLabel = '개설 ' + openedYrs + '년';
+    var color = isIRP ? 'var(--blue)' : isOldPen ? 'var(--green)' : 'var(--gold)';
+    var psActive = !isIRP && !isOldPen;
+    var py = acc.retirePensionYr || 1;
+    var pyDisc = py <= 10 ? '30%↓' : py <= 20 ? '40%↓' : '50%↓';
+    var pyColor = py <= 10 ? 'var(--blue)' : py <= 20 ? 'var(--green)' : 'var(--gold)';
+    return [
+      '<div id="wd_acc_card_' + i + '" style="border:1.5px solid var(--border2);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden;transition:border-color .3s,background .3s">',
+        '<div style="background:var(--bg3);padding:8px 12px;display:flex;justify-content:space-between;align-items:center">',
+          '<span style="font-size:12px;font-weight:700;color:var(--text2)">계좌 ' + (i+1) + ' <span style="color:' + color + '">' + (isIRP ? 'IRP' : isOldPen ? '개인연금저축' : '연금저축') + '</span></span>',
+          '<div style="display:flex;gap:8px;align-items:center">',
+            '<div style="display:flex;gap:3px">',
+              '<button style="font-size:10px;padding:3px 8px;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:1px solid ' + (psActive ? 'var(--gold)' : 'var(--border2)') + ';background:' + (psActive ? 'var(--gold)' : 'var(--bg3)') + ';color:' + (psActive ? '#fff' : 'var(--text3)') + ';font-weight:' + (psActive ? '700' : '400') + '" onclick="setWdAccType(' + i + ',\'ps\')">연금저축</button>',
+              '<button style="font-size:10px;padding:3px 8px;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:1px solid ' + (isIRP ? 'var(--blue)' : 'var(--border2)') + ';background:' + (isIRP ? 'var(--blue)' : 'var(--bg3)') + ';color:' + (isIRP ? '#fff' : 'var(--text3)') + ';font-weight:' + (isIRP ? '700' : '400') + '" onclick="setWdAccType(' + i + ',\'irp\')">IRP</button>',
+              '<button style="font-size:10px;padding:3px 8px;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:1px solid ' + (isOldPen ? 'var(--green)' : 'var(--border2)') + ';background:' + (isOldPen ? 'var(--green)' : 'var(--bg3)') + ';color:' + (isOldPen ? '#fff' : 'var(--text3)') + ';font-weight:' + (isOldPen ? '700' : '400') + '" onclick="setWdAccType(' + i + ',\'oldpen\')">개인연금 (\'94~\'00)</button>',
+            '</div>',
+            (wdAccs.length > 1 ? '<button onclick="removeWdAcc(' + i + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;line-height:1;padding:0 4px">✕</button>' : ''),
+          '</div>',
+        '</div>',
+        '<div style="padding:10px 12px">',
+          '<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px">',
+            '<div>',
+              '<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px">계좌 개설일</div>',
+              '<div class="inp-row">',
+                '<div class="inp-wrap">',
+                  '<input type="date" value="' + (acc.openDate||(isOldPen?'1999-01-01':'2020-01-01')) + '"' + (isOldPen ? ' min="1994-06-01" max="2000-12-31"' : ' max="' + todayStr + '"' + (isIRP ? ' min="2012-07-26"' : ' min="2001-01-01"')) + ' oninput="wdAccs[' + i + '].openDate=this.value;updateWdAccLabel(' + i + ');calcWD()">',
+                '</div>',
+                '<div id="wd_yr_lbl_' + i + '" class="kr-num">' + yrLabel + '</div>',
+              '</div>',
+            '</div>',
+            (isOldPen ? '' : [
+              '<div>',
+                '<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px">현재 계좌 평가금액</div>',
+                '<div class="inp-row">',
+                  '<div class="inp-wrap">',
+                    '<input id="wd_bal_input_' + i + '" type="number" value="' + acc.balance + '" min="0" step="1000000" oninput="wdAccs[' + i + '].balance=parseFloat(this.value)||0;updateWdAccLabel(' + i + ');calcWD()">',
+                    '<span class="inp-unit">원</span>',
+                  '</div>',
+                  '<div id="wd_bal_lbl_' + i + '" class="kr-num">' + (acc.balance > 0 ? toKorean(acc.balance) : '') + '</div>',
+                '</div>',
+              '</div>',
+            ].join('')),
+          '</div>',
+          '<div id="wd_under5yr_warn_' + i + '" style="display:none;margin-bottom:8px;padding:8px 10px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);border-radius:var(--radius);font-size:11px;line-height:1.5">' +
+            '<strong>개설 5년 미만 — 연금수령 요건 미충족</strong><br>' +
+            '③ 세액공제 받은 납입원금·운용수익 재원에 <strong>기타소득세 16.5%</strong> 적용. ①은 비과세, ②는 퇴직소득세 유지.' +
+          '</div>',
+          '<div id="wd_nobal_warn_' + i + '" style="display:none;margin-bottom:8px;padding:8px 10px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.35);border-radius:var(--radius);font-size:11px;line-height:1.5">' +
+            '<strong>⚠ 현재 평가금액 미입력</strong> — 연금수령한도 계산을 위해 위 <strong>현재 평가금액</strong>을 입력해주세요.<br>' +
+            '평가금액 입력 전까지 세금 결과가 표시되지 않습니다.' +
+          '</div>',
+          '<div id="wd_overlimit_warn_' + i + '" style="display:none;margin-bottom:8px;padding:8px 10px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.35);border-radius:var(--radius);font-size:11px;line-height:1.5">' +
+            '<strong>⚠ 연금수령한도 초과</strong> — <span id="wd_overlimit_detail_' + i + '"></span><br>' +
+            '초과분 ③→기타소득세 16.5% · 초과분 ②→퇴직소득세 감면 없음(100%)' +
+          '</div>',
+          (isOldPen ? '' : '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">인출금액 (순서: ①→②→③)</div>'),
+          (isOldPen ? '' : (isIRP
+            ? '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;line-height:1.5">② 이연퇴직소득은 원금만 입력(운용수익→③) · ISA이전/주택다운사이징: 세액공제 받은 금액→③, 미적용→①</div>'
+            : '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;line-height:1.5">ISA 만기금/주택다운사이징 모두 연금저축에 납입 가능 · 세액공제 받은 금액→③, 미적용 금액→①</div>')),
+          (isOldPen ? [
+            // 개인연금저축 전용 UI
+            '<div style="margin-bottom:10px;padding:8px 10px;background:rgba(29,158,117,.06);border:1px solid rgba(29,158,117,.25);border-radius:var(--radius);font-size:11px;line-height:1.6;color:var(--text2)">',
+              '<strong style="color:var(--green)">전액 비과세</strong> — 소득세법 §12 연금소득 비과세 (1994.6.1~2000.12.31 가입 구법 계좌)<br>',
+              '<span style="font-size:10px;color:var(--text3)">수령한도 없음 · 세액공제 받지 않은 본인 납입원금(소득공제 방식) · 수익 포함 전액 비과세</span>',
+            '</div>',
+            '<div>',
+              '<div class="form-label">연간 수령 금액</div>',
+              '<div class="inp-row">',
+                '<div class="inp-wrap">',
+                  '<input type="number" value="' + (acc.withdrawal||0) + '" min="0" step="500000" oninput="wdAccs[' + i + '].withdrawal=parseFloat(this.value)||0;calcWD()">',
+                  '<span class="inp-unit">원</span>',
+                '</div>',
+                '<div id="wd_op_kr_' + i + '" class="kr-num">' + ((acc.withdrawal||0) > 0 ? toKorean(acc.withdrawal) : '') + '</div>',
+              '</div>',
+              '<span id="wd_wd_lbl_' + i + '" style="font-size:10px;color:var(--green);margin-top:2px;display:block">' + ((acc.withdrawal||0)>0 ? '비과세' : '') + '</span>',
+            '</div>',
+          ].join('') : [
+            '<div style="display:grid;gap:5px;margin-bottom:8px">',
+              '<div>',
+                '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">',
+                  '<span style="width:18px;height:18px;border-radius:50%;background:var(--purple);color:#fff;font-size:10px;font-style:normal;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">1</span>',
+                  '<span style="font-size:11px;color:var(--text2)">세액공제 받지 않은 본인 납입원금</span>',
+                '</div>',
+                '<div style="padding-left:24px">',
+                  '<div class="inp-row">',
+                    '<div class="inp-wrap">',
+                      '<input type="number" value="' + acc.src1 + '" min="0" step="500000" oninput="wdAccs[' + i + '].src1=parseFloat(this.value)||0;syncWdSrc(' + i + ')">',
+                      '<span class="inp-unit">원</span>',
+                    '</div>',
+                    '<div id="wd_src1_kr_' + i + '" class="kr-num">' + (acc.src1 > 0 ? toKorean(acc.src1) : '') + '</div>',
+                  '</div>',
+                '</div>',
+              '</div>',
+              (isIRP ? [
+                '<div>',
+                  '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">',
+                    '<span style="width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-style:normal;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">2</span>',
+                    '<span style="font-size:11px;color:var(--text2)">이연퇴직소득 원금</span>',
+                  '</div>',
+                  '<div style="padding-left:24px">',
+                    '<div class="inp-row">',
+                      '<div class="inp-wrap">',
+                        '<input type="number" value="' + acc.src2 + '" min="0" step="1000000" oninput="wdAccs[' + i + '].src2=parseFloat(this.value)||0;syncWdSrc(' + i + ')">',
+                        '<span class="inp-unit">원</span>',
+                      '</div>',
+                      '<div id="wd_src2_kr_' + i + '" class="kr-num">' + (acc.src2 > 0 ? toKorean(acc.src2) : '') + '</div>',
+                    '</div>',
+                    '<div style="display:flex;align-items:center;gap:4px;margin-top:5px">',
+                      '<span style="font-size:11px;color:var(--text2)">수령</span>',
+                      '<input type="number" value="' + py + '" min="1" max="50" style="width:42px;padding:3px 4px;border:1px solid var(--border2);border-radius:2px;font-size:12px;text-align:center" oninput="wdAccs[' + i + '].retirePensionYr=parseInt(this.value)||1;calcWD()">',
+                      '<span id="wd_py_lbl_' + i + '" style="font-size:10px;font-weight:600;color:' + pyColor + '">' + py + '년차 (' + pyDisc + ')</span>',
+                    '</div>',
+                  '</div>',
+                '</div>',
+                [
+                  '<div id="wd_rt_block_' + i + '" style="display:' + ((acc.src2||0) > 0 ? '' : 'none') + ';margin:6px 0 4px 24px;padding:8px 10px;background:rgba(43,94,167,.06);border-radius:var(--radius);border:1px solid rgba(43,94,167,.2)">',
+                    '<div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:6px">퇴직급여 세금 정보</div>',
+                    '<div style="display:flex;gap:4px;margin-bottom:7px">',
+                      '<button style="' + (acc.retireMode !== 'manual' ? 'background:var(--blue);color:#fff' : 'background:var(--bg3);color:var(--text2)') + ';font-size:10px;padding:3px 9px;border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer" onclick="setAccRtMode(' + i + ',0)">자동 (근속연수)</button>',
+                      '<button style="' + (acc.retireMode === 'manual' ? 'background:var(--blue);color:#fff' : 'background:var(--bg3);color:var(--text2)') + ';font-size:10px;padding:3px 9px;border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer" onclick="setAccRtMode(' + i + ',1)">실효세율 직접입력</button>',
+                    '</div>',
+                    '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">',
+                      '<div>',
+                        '<div style="font-size:10px;color:var(--text3);margin-bottom:2px">총 퇴직금</div>',
+                        '<div class="inp-wrap">',
+                          '<input type="number" value="' + (acc.retirePay || 0) + '" min="0" step="1000000" oninput="wdAccs[' + i + '].retirePay=parseFloat(this.value)||0;calcWD()">',
+                          '<span class="inp-unit">원</span>',
+                        '</div>',
+                      '</div>',
+                      (acc.retireMode !== 'manual' ? [
+                        '<div>',
+                          '<div style="font-size:10px;color:var(--text3);margin-bottom:2px">근속연수</div>',
+                          '<div style="display:flex;align-items:center;gap:3px">',
+                            '<input type="number" value="' + (acc.retireYears || 20) + '" min="1" max="50" style="width:55px;padding:3px 6px;border:1px solid var(--border2);border-radius:2px;font-size:12px;text-align:center" oninput="wdAccs[' + i + '].retireYears=parseInt(this.value)||1;calcWD()">',
+                            '<span style="font-size:11px;color:var(--text3)">년</span>',
+                          '</div>',
+                        '</div>',
+                      ].join('') : [
+                        '<div>',
+                          '<div style="font-size:10px;color:var(--text3);margin-bottom:2px">실효세율</div>',
+                          '<div style="display:flex;align-items:center;gap:3px">',
+                            '<input type="number" value="' + (acc.retireManRate || 10) + '" min="0" max="50" step="0.1" style="width:55px;padding:3px 6px;border:1px solid var(--border2);border-radius:2px;font-size:12px;text-align:center" oninput="wdAccs[' + i + '].retireManRate=parseFloat(this.value)||0;calcWD()">',
+                            '<span style="font-size:11px;color:var(--text3)">%</span>',
+                          '</div>',
+                        '</div>',
+                      ].join('')),
+                      '<div id="wd_rt_pay_kr_' + i + '" class="kr-num" style="margin-bottom:0;align-self:center">' + (acc.retirePay > 0 ? toKorean(acc.retirePay) : '') + '</div>',
+                    '</div>',
+                    '<div id="wd_rt_result_' + i + '" style="font-size:10px;color:var(--text3);margin-top:6px;padding-top:5px;border-top:1px solid rgba(43,94,167,.15)">퇴직소득세: —</div>',
+                  '</div>'
+                ].join(''),
+              ].join('') : ''),
+              '<div>',
+                '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">',
+                  '<span style="width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;font-style:normal;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">3</span>',
+                  '<span style="font-size:11px;color:var(--text2)">세액공제 받은 본인 납입원금과 계좌 운용수익</span>',
+                '</div>',
+                '<div style="padding-left:24px">',
+                  '<div class="inp-row">',
+                    '<div class="inp-wrap">',
+                      '<input type="number" value="' + acc.src3 + '" min="0" step="500000" oninput="wdAccs[' + i + '].src3=parseFloat(this.value)||0;syncWdSrc(' + i + ')">',
+                      '<span class="inp-unit">원</span>',
+                    '</div>',
+                    '<div id="wd_src3_kr_' + i + '" class="kr-num">' + (acc.src3 > 0 ? toKorean(acc.src3) : '') + '</div>',
+                  '</div>',
+                '</div>',
+              '</div>',
+            '</div>',
+            '<div>',
+              '<div style="font-size:11px;color:var(--text3);margin-bottom:3px">연간 수령 금액 <span style="font-size:10px;opacity:.7">(①+②+③ 합산)</span></div>',
+              '<div style="display:flex;align-items:center;gap:6px">',
+                '<div style="padding:5px 10px;background:var(--bg3);border:1.5px solid var(--border);border-radius:2px;font-size:13px;font-weight:600;color:var(--text1);min-width:130px"><span id="wd_wd_num_' + i + '">' + ((acc.withdrawal||0) > 0 ? (acc.withdrawal).toLocaleString() : '0') + '</span></div>',
+                '<span id="wd_wd_lbl_' + i + '" style="font-size:11px;color:var(--text3)">원' + (acc.withdrawal > 0 ? ' · ' + toKorean(acc.withdrawal) : '') + '</span>',
+                '<label style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px;cursor:pointer;margin-left:4px">' +
+                '<input type="checkbox" ' + (acc.lifeAnnuity ? 'checked' : '') + ' style="cursor:pointer" onchange="wdAccs[' + i + '].lifeAnnuity=this.checked;calcWD()">' +
+                '종신수령</label>',
+              '</div>',
+            '</div>',
+            '<div id="wd_limit_block_' + i + '"></div>',
+          ].join('')),
+        '</div>',
+      '</div>'
+    ].join('');
+  }).join('');
+}
+
+function setAccRtMode(i, isManual) {
+  wdAccs[i].retireMode = isManual ? 'manual' : 'auto';
+  renderWdAccs();
+  calcWD();
+}
+
+function calcWD() {
+  var curYear = new Date().getFullYear();
+  var today = new Date();
+  var birthVal = $('wd_birth').value;
+  var birth = birthVal ? new Date(birthVal) : new Date(today.getFullYear() - 65, today.getMonth(), today.getDate());
+  var age = (today - birth) / (365.25 * 24 * 3600 * 1000);
+  var date55 = new Date(birth.getFullYear() + 55, birth.getMonth(), birth.getDate());
+  var elig55 = today >= date55;
+  var ageDisp = $('wd_age_display');
+  if (ageDisp) ageDisp.textContent = '만 ' + Math.floor(age) + '세';
+
+  var isPre2013 = wdAccs.some(function(a) { return a.openDate && a.openDate <= '2013-02-28'; });
+
+  var totalSrc2 = wdAccs.reduce(function(s, a) { return s + (a.type === 'irp' ? (a.src2 || 0) : 0); }, 0);
+  var hasRetirement = totalSrc2 > 0;
+  if ($('wd_rt_matrix_card')) {
+    $('wd_rt_matrix_card').style.display = hasRetirement ? '' : 'none';
+    if (hasRetirement) renderMatrix('wd_rt_matrix', 'wd_rt_legend');
+  }
+
+  var _accOpenYrs = function(a) {
+    if (!a.openDate) return 0;
+    return Math.max(0, (today - new Date(a.openDate)) / (365.25 * 24 * 3600 * 1000));
+  };
+
+  var ageCard = $('wd_age_card');
+  if (ageCard) {
+    ageCard.style.background = elig55 ? '' : 'rgba(239,68,68,.04)';
+    ageCard.style.borderColor = elig55 ? 'transparent' : 'rgba(239,68,68,.35)';
+  }
+  var u55w = $('wd_under55_warn');   if (u55w) u55w.style.display = elig55 ? 'none' : '';
+  var u55n = $('wd_under55_notice'); if (u55n) u55n.style.display = elig55 ? 'none' : '';
+
+  var totalBal = 0, totalGross = 0;
+  var totalTax2 = 0, totalTax3 = 0;
+  var totalWd1 = 0, totalWd2 = 0, totalWd3 = 0;
+  var totalEligWd3 = 0; var totalEligTax3 = 0;
+  var accResults = [];
+  var needsBalance = false;
+  var needsRetirePay = false;
+
+  wdAccs.forEach(function(acc, i) {
+    var isIRP = acc.type === 'irp';
+    var isOldPen = acc.type === 'oldpen';
+
+    // 개인연금저축 (구법): 전액 비과세, 한도 없음
+    if (isOldPen) {
+      var opWd = acc.withdrawal || 0;
+      totalBal += (acc.balance || 0);
+      totalGross += opWd;
+      totalWd1 += opWd;
+      accResults.push({ label: '계좌 ' + (i+1) + ' 개인연금저축', gross: opWd, tax: 0, tax2: 0, tax3: 0, elig3: 0, eligTax3: 0, eligPS: false });
+      var acc5yrW = $('wd_under5yr_warn_' + i); if (acc5yrW) acc5yrW.style.display = 'none';
+      var nbW = $('wd_nobal_warn_' + i); if (nbW) nbW.style.display = 'none';
+      var olW = $('wd_overlimit_warn_' + i); if (olW) olW.style.display = 'none';
+      var accCd = $('wd_acc_card_' + i); if (accCd) { accCd.style.borderColor = ''; accCd.style.background = ''; }
+      var yrLbl2 = $('wd_yr_lbl_' + i); if (yrLbl2) yrLbl2.textContent = '개설 ' + Math.floor(_accOpenYrs(acc)) + '년';
+      var balLbl2 = $('wd_bal_lbl_' + i); if (balLbl2) balLbl2.textContent = acc.balance > 0 ? toKorean(acc.balance) : '';
+      var opKrEl = $('wd_op_kr_' + i); if (opKrEl) opKrEl.textContent = opWd > 0 ? toKorean(opWd) : '';
+      var wdLbl2 = $('wd_wd_lbl_' + i); if (wdLbl2) wdLbl2.textContent = opWd > 0 ? '비과세' : '';
+      return;
+    }
+
+    var accOpenedYrs = _accOpenYrs(acc);
+    var accOpenDateObj = new Date(acc.openDate || '2020-01-01');
+    var accDate5yr = new Date(accOpenDateObj.getFullYear() + 5, accOpenDateObj.getMonth(), accOpenDateObj.getDate());
+    var eligPS = today >= date55 && today >= accDate5yr;
+    totalBal += (acc.balance || 0);
+    var remaining = acc.withdrawal || 0;
+    var src1 = acc.src1 || 0, src2 = isIRP ? (acc.src2 || 0) : 0, src3 = acc.src3 || 0;
+    var wd1 = Math.min(remaining, src1); remaining -= wd1;
+    var wd2 = Math.min(remaining, src2); remaining -= wd2;
+    var wd3 = Math.min(remaining, src3);
+    totalWd1 += wd1; totalWd2 += wd2; totalWd3 += wd3;
+    totalGross += (wd1 + wd2 + wd3);
+    var accPY = isIRP ? (acc.retirePensionYr || 1) : 1;
+    var accDiscount = accPY <= 10 ? 0.30 : accPY <= 20 ? 0.40 : 0.50;
+    var accRtPay = isIRP ? (acc.retirePay || 0) : 0;
+    if (isIRP && wd2 > 0 && !(accRtPay > 0)) needsRetirePay = true;
+    var accRtTax = 0;
+    if (isIRP && wd2 > 0 && accRtPay > 0) {
+      if ((acc.retireMode || 'auto') === 'manual') {
+        accRtTax = accRtPay * ((acc.retireManRate || 0) / 100);
+      } else {
+        var rtCalc = calcRetirementTax(accRtPay, acc.retireYears || 20);
+        accRtTax = rtCalc.total;
+      }
+    }
+    var accIsLife = !isOldPen && (acc.lifeAnnuity || false);
+    var accPensionRate = accIsLife ? 0.044 : (age >= 80 ? 0.033 : age >= 70 ? 0.044 : 0.055);
+    // 연금수령한도 계산 (eligPS인 계좌만)
+    var accIsPre = acc.openDate && acc.openDate <= '2013-02-28';
+    var accDenom0 = accIsPre ? 6 : 11;
+    var accMaxYr = accDenom0 - 1;
+    var accLimit = Infinity, accPensionYr = 0;
+    if (eligPS) {
+      var accEligDate = new Date(Math.max(date55.getTime(), accDate5yr.getTime()));
+      accPensionYr = Math.max(1, Math.floor((today - accEligDate) / (365.25 * 24 * 3600 * 1000)) + 1);
+      if (acc.balance > 0) {
+        accLimit = acc.balance / (accDenom0 - Math.min(accPensionYr, accDenom0 - 1)) * 1.2;
+      }
+    }
+    var totalWdAcc = wd2 + wd3; // ①은 비과세 원금이므로 한도 계산 제외
+    var overAmt = (eligPS && totalWdAcc > accLimit) ? totalWdAcc - accLimit : 0;
+    var isOverLimit = overAmt > 0;
+    // ③ 한도 분리
+    var wd3_over = Math.min(wd3, overAmt);
+    var wd3_in   = wd3 - wd3_over;
+    // ② 한도 분리 (③ 초과분 소진 후 남은 초과량)
+    var wd2_excess = Math.max(0, overAmt - wd3_over);
+    var wd2_over   = Math.min(wd2, wd2_excess);
+    var wd2_in     = wd2 - wd2_over;
+    // tax2: 한도 내→감면 적용, 한도 초과→감면 없음(100%)
+    var tax2_in   = (wd2_in   > 0 && accRtPay > 0) ? (wd2_in   / accRtPay) * accRtTax * (elig55 ? (1 - accDiscount) : 1) : 0;
+    var tax2_over = (wd2_over > 0 && accRtPay > 0) ? (wd2_over / accRtPay) * accRtTax : 0;
+    var tax2 = tax2_in + tax2_over;
+    // tax3: 한도 내→연금소득세, 한도 초과→기타소득세 16.5%
+    var tax3, accEligTax3 = 0, accElig3 = 0;
+    if (!eligPS) {
+      tax3 = wd3 * 0.165;
+    } else {
+      var tax3_in   = wd3_in   * accPensionRate;
+      var tax3_over = wd3_over * 0.165;
+      tax3 = tax3_in + tax3_over;
+      totalEligWd3  += wd3_in;
+      totalEligTax3 += tax3_in;
+      accEligTax3 = tax3_in;
+      accElig3 = wd3_in;
+    }
+    totalTax2 += tax2; totalTax3 += tax3;
+    accResults.push({ label: '계좌 ' + (i+1) + ' ' + (isIRP ? 'IRP' : '연금저축'), gross: wd1+wd2+wd3, tax: tax2+tax3, tax2: tax2, tax3: tax3, elig3: accElig3, eligTax3: accEligTax3, eligPS: eligPS });
+    var under5yr = today < accDate5yr;
+    var isMissingBal = eligPS && !(acc.balance > 0) && (wd2 + wd3) > 0;
+    if (isMissingBal) needsBalance = true;
+    var acc5yrWarn = $('wd_under5yr_warn_' + i);
+    if (acc5yrWarn) acc5yrWarn.style.display = under5yr ? '' : 'none';
+    var nbWarn = $('wd_nobal_warn_' + i);
+    if (nbWarn) nbWarn.style.display = isMissingBal ? '' : 'none';
+    var balInput = $('wd_bal_input_' + i);
+    if (balInput) balInput.style.borderColor = isMissingBal ? 'rgba(239,68,68,.7)' : '';
+    var olWarn = $('wd_overlimit_warn_' + i);
+    if (olWarn) {
+      olWarn.style.display = (!isMissingBal && isOverLimit) ? '' : 'none';
+      if (!isMissingBal && isOverLimit) {
+        var olDetail = $('wd_overlimit_detail_' + i);
+        if (olDetail) olDetail.textContent = '한도 ' + fmt(Math.round(accLimit)) + ' · 초과 ' + fmt(Math.round(overAmt));
+      }
+    }
+    var accCard = $('wd_acc_card_' + i);
+    if (accCard) {
+      if (under5yr || isMissingBal) {
+        accCard.style.borderColor = 'rgba(239,68,68,.5)';
+        accCard.style.background  = 'rgba(239,68,68,.02)';
+      } else if (isOverLimit) {
+        accCard.style.borderColor = 'rgba(245,158,11,.5)';
+        accCard.style.background  = 'rgba(245,158,11,.02)';
+      } else {
+        accCard.style.borderColor = '';
+        accCard.style.background  = '';
+      }
+    }
+    var yrLbl = $('wd_yr_lbl_' + i);
+    if (yrLbl) yrLbl.textContent = '개설 ' + Math.floor(accOpenedYrs) + '년';
+    var balLbl = $('wd_bal_lbl_' + i);
+    if (balLbl) balLbl.textContent = acc.balance > 0 ? toKorean(acc.balance) : '';
+    var wdNumEl = $('wd_wd_num_' + i);
+    if (wdNumEl) wdNumEl.textContent = (acc.withdrawal||0) > 0 ? (acc.withdrawal).toLocaleString() : '0';
+    var wdLblEl = $('wd_wd_lbl_' + i);
+    if (wdLblEl) wdLblEl.textContent = '원' + (acc.withdrawal > 0 ? ' · ' + toKorean(acc.withdrawal) : '');
+    var pyLblEl = $('wd_py_lbl_' + i);
+    if (pyLblEl && isIRP) {
+      var curPY = acc.retirePensionYr || 1;
+      pyLblEl.textContent = curPY + '년차 (' + (curPY <= 10 ? '30%↓' : curPY <= 20 ? '40%↓' : '50%↓') + ')';
+      pyLblEl.style.color = curPY <= 10 ? 'var(--blue)' : curPY <= 20 ? 'var(--green)' : 'var(--gold)';
+    }
+    var rtBlock = $('wd_rt_block_' + i);
+    if (rtBlock && isIRP) rtBlock.style.display = src2 > 0 ? '' : 'none';
+    var rtResEl = $('wd_rt_result_' + i);
+    if (rtResEl && isIRP) {
+      if (accRtPay > 0) {
+        var effRate = accRtTax > 0 ? (accRtTax / accRtPay * 100).toFixed(1) : '0.0';
+        var tax2Str = (isOverLimit && wd2_over > 0)
+          ? fmt(Math.round(tax2_in)) + '(감면) + ' + fmt(Math.round(tax2_over)) + '(초과 100%)'
+          : fmt(Math.round(tax2));
+        rtResEl.textContent = '퇴직소득세 기준: ' + fmt(Math.round(accRtTax)) + ' (실효 ' + effRate + '%) · 이번 인출분: ' + tax2Str;
+      } else {
+        rtResEl.textContent = '총 퇴직금 금액을 입력해주세요';
+      }
+    }
+    var rtPayKrEl = $('wd_rt_pay_kr_' + i);
+    if (rtPayKrEl && isIRP) rtPayKrEl.textContent = acc.retirePay > 0 ? toKorean(acc.retirePay) : '';
+    // 계좌별 연금수령한도 블록
+    var limitBlock = $('wd_limit_block_' + i);
+    if (limitBlock) {
+      if (eligPS && acc.balance > 0 && accPensionYr <= accMaxYr) {
+        var lbNote = accIsPre ? '2013년 2월 이전 계좌 (5년 기준)' : '2013년 3월 이후 계좌 (10년 기준)';
+        var lbHtml = '<div style="margin-top:8px;padding:8px 10px;background:rgba(43,94,167,.04);border:1px solid rgba(43,94,167,.15);border-radius:var(--radius)">';
+        lbHtml += '<div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:4px">연금수령한도 연차별</div>';
+        lbHtml += '<div style="font-size:10px;color:var(--text3);margin-bottom:6px">' + lbNote + ' &nbsp;·&nbsp; 한도 = 평가액 ÷ (' + accDenom0 + ' − 연차) × 120%</div>';
+        lbHtml += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
+        lbHtml += '<tr style="background:var(--accent-bg)"><th style="padding:4px 6px;border:1px solid var(--bg3);color:var(--gold-light);font-weight:500;text-align:center">연차</th><th style="padding:4px 6px;border:1px solid var(--bg3);color:var(--gold-light);font-weight:500;text-align:center">한도율</th><th style="padding:4px 6px;border:1px solid var(--bg3);color:var(--gold-light);font-weight:500;text-align:right">한도금액</th></tr>';
+        for (var n = 1; n <= accMaxYr; n++) {
+          var lbDenom = accDenom0 - n;
+          var lbRate = lbDenom > 0 ? 1.2 / lbDenom : 1.2;
+          var lbAmt = acc.balance * lbRate;
+          var lbIsCur = (n === accPensionYr);
+          var lbBg = lbIsCur ? 'rgba(196,147,63,.2)' : (n % 2 === 0 ? 'var(--bg2)' : '');
+          var lbFw = lbIsCur ? 'font-weight:700;' : '';
+          var lbCol = lbIsCur ? 'color:var(--amber);' : '';
+          lbHtml += '<tr style="background:' + lbBg + '">';
+          lbHtml += '<td style="padding:4px 6px;border:1px solid var(--bg3);text-align:center;' + lbFw + lbCol + '">' + n + '년차' + (lbIsCur ? ' ◀ 현재' : '') + '</td>';
+          lbHtml += '<td style="padding:4px 6px;border:1px solid var(--bg3);text-align:center;' + lbFw + lbCol + '">' + (lbRate * 100).toFixed(1) + '%</td>';
+          lbHtml += '<td style="padding:4px 6px;border:1px solid var(--bg3);text-align:right;color:var(--blue);' + lbFw + '">' + fmtN(Math.round(lbAmt / 10000)) + '만원</td>';
+          lbHtml += '</tr>';
+        }
+        lbHtml += '<tr><td style="padding:4px 6px;border:1px solid var(--bg3);text-align:center">' + (accMaxYr + 1) + '년차~</td><td colspan="2" style="padding:4px 6px;border:1px solid var(--bg3);text-align:center;color:var(--green);font-weight:600">한도 없음</td></tr>';
+        lbHtml += '</table></div></div>';
+        limitBlock.innerHTML = lbHtml;
+      } else {
+        limitBlock.innerHTML = '';
+      }
+    }
+  });
+
+  // 평가금액 미입력 시 결과 블록
+  if (needsBalance) {
+    ['wd_net_annual','wd_gross_total','wd_tax_total','wd_net_monthly','wd_eff_rate',
+     'wd_b_src1','wd_b_src2','wd_b_src3','wd_b_tax_sum'].forEach(function(id) { if ($(id)) $(id).textContent = '—'; });
+    if ($('wd_net_sub')) $('wd_net_sub').textContent = '평가금액 입력 후 계산됩니다';
+    if ($('wd_accs_result')) $('wd_accs_result').innerHTML = '';
+    if ($('wd_overSection')) $('wd_overSection').classList.remove('visible');
+    if ($('wd_overResult'))  $('wd_overResult').style.display = 'none';
+    if ($('wd_over15_notice')) $('wd_over15_notice').style.display = 'none';
+    return;
+  }
+
+  // 총 퇴직금 미입력 시 결과 블록 (이연퇴직소득 입력된 경우)
+  if (needsRetirePay) {
+    ['wd_net_annual','wd_gross_total','wd_tax_total','wd_net_monthly','wd_eff_rate',
+     'wd_b_src1','wd_b_src2','wd_b_src3','wd_b_tax_sum'].forEach(function(id) { if ($(id)) $(id).textContent = '—'; });
+    if ($('wd_net_sub')) $('wd_net_sub').textContent = '총 퇴직금 입력 후 계산됩니다';
+    if ($('wd_accs_result')) $('wd_accs_result').innerHTML = '';
+    if ($('wd_overSection')) $('wd_overSection').classList.remove('visible');
+    if ($('wd_overResult'))  $('wd_overResult').style.display = 'none';
+    if ($('wd_over15_notice')) $('wd_over15_notice').style.display = 'none';
+    return;
+  }
+
+  var totalTax = totalTax2 + totalTax3;
+  var totalNet = totalGross - totalTax;
+  var effRate  = totalGross > 0 ? totalTax / totalGross * 100 : 0;
+
+  if ($('wd_net_annual'))  $('wd_net_annual').textContent  = fmt(totalNet);
+  if ($('wd_net_sub'))     $('wd_net_sub').textContent     = '총수령 ' + fmt(totalGross) + ' · 세금 ' + fmt(totalTax);
+  if ($('wd_gross_total')) $('wd_gross_total').textContent = fmt(totalGross);
+  if ($('wd_tax_total'))   $('wd_tax_total').textContent   = fmt(totalTax);
+  if ($('wd_net_monthly')) $('wd_net_monthly').textContent = fmt(totalNet / 12);
+  if ($('wd_eff_rate'))    $('wd_eff_rate').textContent    = effRate.toFixed(2) + '%';
+  if ($('wd_b_src1'))      $('wd_b_src1').textContent      = fmt(totalWd1) + ' (비과세)';
+  if ($('wd_b_src2'))      $('wd_b_src2').textContent      = hasRetirement ? fmt(totalTax2) : '—';
+  if ($('wd_b_src2_row'))  $('wd_b_src2_row').style.display = hasRetirement ? '' : 'none';
+  if ($('wd_b_src3'))      $('wd_b_src3').textContent      = fmt(totalTax3);
+  if ($('wd_b_tax_sum'))   $('wd_b_tax_sum').textContent   = fmt(totalTax);
+
+  var useTax = totalEligTax3; // default: over15 없으면 원래 연금소득세 합계
+
+  // 1500만원 초과
+  var over15 = totalEligWd3 > 15000000;
+  if ($('wd_overSection')) $('wd_overSection').classList.toggle('visible', over15);
+  if ($('wd_overResult'))  $('wd_overResult').style.display = over15 ? '' : 'none';
+  if ($('wd_over15_notice')) $('wd_over15_notice').style.display = over15 ? '' : 'none';
+  if (over15) {
+    var sepTax   = totalEligWd3 * 0.165;
+    var salary   = parseFloat($('wd_salary').value)    || 0;
+    var bizRev   = parseFloat($('wd_bizRev').value)    || 0;
+    var bizExp   = parseFloat($('wd_bizExp').value)    || 0;
+    var intDiv   = parseFloat($('wd_intDiv').value)    || 0;
+    var natPen   = parseFloat($('wd_natPen').value)    || 0;
+    var otherGross = parseFloat($('wd_otherInc').value) || 0;
+    var otherExpEl = $('wd_otherExp'); var otherExpRate = otherExpEl ? (parseFloat(otherExpEl.value)||0) : 0.60;
+    var otherInc = Math.max(0, otherGross * (1 - otherExpRate));
+    if ($('wd_otherInc_net')) $('wd_otherInc_net').textContent = otherGross > 0 ? fmt(Math.round(otherInc)) + '원' : '—';
+    var dep      = parseFloat($('wd_dep').value)       || 0;
+    var np       = parseFloat($('wd_np').value)        || 0;
+    var hi       = parseFloat($('wd_hi').value)        || 0;
+    var otherD   = parseFloat($('wd_otherDed').value)  || 0;
+    var taxCredit = parseFloat($('wd_taxCredit').value) || 0;
+    var totalPension = totalEligWd3 + (natPen || 0);
+    var totalPenAmt  = Math.max(0, totalPension - pensionDeduction(totalPension));
+    var penAmt    = totalPension > 0 ? totalPenAmt * (totalEligWd3 / totalPension) : 0;
+    var natPenAmt = totalPension > 0 ? totalPenAmt * ((natPen || 0) / totalPension) : 0;
+    var earnAmt    = salary > 0 ? Math.max(0, salary - earnedDeduction(salary)) : 0;
+    var bizAmt     = Math.max(0, bizRev - bizExp);
+    var intAmt     = Math.max(0, intDiv - 20000000);
+    var totInc     = penAmt + natPenAmt + earnAmt + bizAmt + intAmt + otherInc;
+    var totDed     = (1 + dep) * 1500000 + np + hi + otherD;
+    var taxBase    = Math.max(0, totInc - totDed);
+    var compTaxBefore = baseTax(taxBase) * 1.1;
+    var earnTaxCredit = 0;
+    if (salary > 0 && totInc > 0 && compTaxBefore > 0) {
+      var earnShare = earnAmt / totInc;
+      var earnTaxPart = compTaxBefore * earnShare;
+      earnTaxCredit = earnTaxPart <= 700000 ? earnTaxPart * 0.55 : 385000 + (earnTaxPart - 700000) * 0.30;
+      var earnTCcap = salary <= 55000000 ? 740000 : salary <= 70000000 ? 660000 : 500000;
+      earnTaxCredit = Math.min(earnTaxCredit, earnTCcap);
+    }
+    var compTax = Math.max(0, compTaxBefore - earnTaxCredit - taxCredit);
+    // ── flowchart panel ──
+    if ($('wd_fl_pension')) $('wd_fl_pension').textContent = fmt(totalEligWd3);
+    if ($('wd_fl_total'))   $('wd_fl_total').textContent   = fmt(Math.round(totInc));
+    if ($('wd_fl_ded'))     $('wd_fl_ded').textContent     = fmt(Math.round(totDed));
+    if ($('wd_fl_base'))    $('wd_fl_base').textContent    = fmt(Math.max(0, Math.round(taxBase)));
+    if ($('wd_fl_comptax')) $('wd_fl_comptax').textContent = fmt(Math.max(0, Math.round(compTaxBefore)));
+    if ($('wd_fl_final'))   $('wd_fl_final').textContent   = fmt(Math.max(0, Math.round(compTax)));
+    var penCompTax = (baseTax(totInc) - baseTax(Math.max(0, totInc - penAmt))) * 1.1;
+    var hasInput = salary>0||bizRev>0||intDiv>0||natPen>0||otherGross>0||dep>0||np>0||hi>0||otherD>0||taxCredit>0;
+    var sepEff  = '16.5';
+    var compEff = totalEligWd3 > 0 ? (penCompTax / totalEligWd3 * 100).toFixed(1) : '0.0';
+    if ($('wd_sepTax'))    $('wd_sepTax').textContent    = sepEff + '%';
+    if ($('wd_sepDetail')) $('wd_sepDetail').textContent  = '세금 ' + fmtN(Math.round(sepTax/10000)) + '만원';
+    if ($('wd_compTax'))   $('wd_compTax').textContent   = hasInput ? compEff + '%' : '—';
+    if ($('wd_compDetail')) $('wd_compDetail').textContent = hasInput ? '귀속추정 ' + fmtN(Math.round(penCompTax/10000)) + '만원' : '위 항목 입력';
+    var rec = $('wd_recommendation'), sepCard = $('wd_sepCard'), compCard = $('wd_compCard');
+    if (sepCard)  { sepCard.className  = 'cmp-card'; sepCard.style.outline  = ''; }
+    if (compCard) { compCard.className = 'cmp-card'; compCard.style.outline = ''; }
+    if (hasInput && rec && sepCard && compCard) {
+      var better = penCompTax < sepTax ? 'comp' : 'sep';
+      sepCard.style.outline  = better === 'sep'  ? '2px solid var(--green)' : '';
+      compCard.style.outline = better === 'comp' ? '2px solid var(--green)' : '';
+      rec.style.display = '';
+      rec.className = 'alert alert-info';
+      rec.innerHTML = better === 'sep'
+        ? '<strong>분리과세 16.5%</strong> — 종합과세 귀속추정(' + compEff + '%)보다 절세에 유리합니다.'
+        : '<strong>종합과세 귀속추정 ' + compEff + '%</strong> — 분리과세(16.5%)보다 절세에 유리합니다.';
+      if ($('wd_compBreakdown')) {
+        $('wd_compBreakdown').style.display = '';
+        if ($('wd_b_pension'))  $('wd_b_pension').textContent  = fmt(penAmt);
+        if ($('wd_b_natpen'))   $('wd_b_natpen').textContent   = natPenAmt > 0 ? fmt(natPenAmt) : '—';
+        if ($('wd_b_earned'))   $('wd_b_earned').textContent   = earnAmt   > 0 ? fmt(earnAmt)   : '—';
+        if ($('wd_b_biz'))      $('wd_b_biz').textContent      = bizAmt    > 0 ? fmt(bizAmt)    : '—';
+        if ($('wd_b_intdiv'))   $('wd_b_intdiv').textContent   = intAmt    > 0 ? fmt(intAmt)    : '—';
+        if ($('wd_b_otherinc')) $('wd_b_otherinc').textContent = otherInc  > 0 ? fmt(otherInc)  : '—';
+        if ($('wd_b_total'))    $('wd_b_total').textContent    = fmt(totInc);
+        if ($('wd_b_ded'))      $('wd_b_ded').textContent      = fmt(totDed);
+        if ($('wd_b_base'))     $('wd_b_base').textContent     = fmt(taxBase);
+        if ($('wd_b_comptax'))  $('wd_b_comptax').textContent  = fmt(compTax);
+        if ($('wd_b_pencomp'))  $('wd_b_pencomp').textContent  = fmt(Math.round(penCompTax));
+      }
+    } else if (rec) { rec.style.display = 'none'; }
+    useTax  = hasInput && penCompTax < sepTax ? penCompTax : sepTax;
+    var adjTax3 = (totalTax3 - totalEligTax3) + useTax;
+    var adjTax  = totalTax2 + adjTax3;
+    var adjNet  = totalGross - adjTax;
+    var adjEff  = totalGross > 0 ? adjTax / totalGross * 100 : 0;
+    if ($('wd_net_annual'))  $('wd_net_annual').textContent  = fmt(adjNet);
+    if ($('wd_net_sub'))     $('wd_net_sub').textContent     = '총수령 ' + fmt(totalGross) + ' · 세금 ' + fmt(adjTax);
+    if ($('wd_tax_total'))   $('wd_tax_total').textContent   = fmt(adjTax);
+    if ($('wd_net_monthly')) $('wd_net_monthly').textContent = fmt(adjNet / 12);
+    if ($('wd_eff_rate'))    $('wd_eff_rate').textContent    = adjEff.toFixed(2) + '%';
+    if ($('wd_b_src3'))      $('wd_b_src3').textContent      = fmt(adjTax3);
+    if ($('wd_b_tax_sum'))   $('wd_b_tax_sum').textContent   = fmt(adjTax);
+    var noticeEl = $('wd_over15_notice');
+    if (noticeEl) noticeEl.textContent = hasInput && penCompTax < sepTax
+      ? '* 사적연금소득 1,500만원 초과 — ③ 세금은 종합과세 귀속추정분 반영 (간이 추정값, 전문가 상담 권장).'
+      : '* 사적연금소득 1,500만원 초과 — ③ 세금은 분리과세(16.5%) 기준 반영. 타 소득 입력 시 종합과세와 비교.';
+  }
+
+  // 계좌별 내역 (over15 조정값 반영 후 렌더)
+  var accsEl = $('wd_accs_result');
+  if (accsEl && accResults.length > 1) {
+    var html = '<div class="breakdown"><div class="breakdown-title">계좌별 내역</div>';
+    accResults.forEach(function(r) {
+      var adjTax;
+      if (over15 && r.elig3 > 0 && totalEligWd3 > 0) {
+        var nonEligTax3 = r.tax3 - r.eligTax3;
+        var adjEligTax3 = r.elig3 / totalEligWd3 * useTax;
+        adjTax = r.tax2 + nonEligTax3 + adjEligTax3;
+      } else {
+        adjTax = r.tax;
+      }
+      var rEff = r.gross > 0 ? (adjTax/r.gross*100).toFixed(1)+'%' : '—';
+      html += '<div class="breakdown-row"><span>' + r.label + '</span><span>수령 ' + fmt(r.gross) + ' · 세금 ' + fmt(Math.round(adjTax)) + ' <span style="color:var(--text3)">(실효 ' + rEff + ')</span></span></div>';
+    });
+    html += '</div>';
+    accsEl.innerHTML = html;
+  } else if (accsEl) { accsEl.innerHTML = ''; }
+}
+
+
+
+/* ══════════════════════════════════════
+   TAB 4 : 퇴직소득 실효세율
+══════════════════════════════════════ */
+function calcRT() {
+  var pay = v('rt_pay');
+  var years = v('rt_years');
+  var res = calcRetirementTax(pay, years);
+  var totalTax = res.total; var rate = res.rate;
+
+  $('rt_breakdown').style.display = '';
+  $('rt_b_pay').textContent  = fmt(pay);
+  $('rt_b_ysd').textContent  = fmt(res.ysD);
+  $('rt_b_conv').textContent = fmt(res.conv);
+  $('rt_b_cd').textContent   = fmt(res.cD);
+  $('rt_b_base').textContent = fmt(res.taxBase);
+  $('rt_b_tax').textContent  = fmt(res.total);
+
+  $('rt_lumpTax').textContent  = fmt(totalTax);
+  $('rt_lumpRate').textContent = rate.toFixed(2) + '%';
+
+  // 수령 기간별 실효세율 비교 테이블
+  if ($('rt_lump_eff'))  $('rt_lump_eff').textContent  = rate.toFixed(2) + '%';
+  if ($('rt_d30_eff'))   $('rt_d30_eff').textContent   = (rate * 0.70).toFixed(2) + '%';
+  if ($('rt_d40_eff'))   $('rt_d40_eff').textContent   = (rate * 0.60).toFixed(2) + '%';
+  if ($('rt_d50_eff'))   $('rt_d50_eff').textContent   = (rate * 0.50).toFixed(2) + '%';
+}
+
+function renderMatrix(tblId, legId) {
+  var pays  = [30000000,50000000,100000000,200000000,300000000,500000000,700000000,1000000000];
+  var years = [5,10,15,20,25,30];
+  var payLabels = ['3천만','5천만','1억','2억','3억','5억','7억','10억'];
+  var tbl = $(tblId || 'rt_matrix');
+  if (!tbl) return;
+  var html = '<tr><th>근속연수 \\ 퇴직금</th>';
+  payLabels.forEach(function(l) { html += '<th>' + l + '원</th>'; });
+  html += '</tr>';
+  years.forEach(function(y) {
+    html += '<tr><td class="rh">' + y + '년</td>';
+    pays.forEach(function(p) {
+      var res = calcRetirementTax(p, y);
+      var r = res.rate;
+      var bg = rateColor(r), fg = r > 10 ? '#fff' : '#1a1a2e';
+      html += '<td style="background:' + bg + ';color:' + fg + ';font-weight:600">' + r.toFixed(1) + '%</td>';
+    });
+    html += '</tr>';
+  });
+  tbl.innerHTML = html;
+  var legend = $(legId || 'rt_legend');
+  if (!legend) return;
+  var stops = [{label:'0~3%',color:rateColor(1.5)},{label:'3~6%',color:rateColor(4.5)},{label:'6~10%',color:rateColor(8)},{label:'10~15%',color:rateColor(12.5)},{label:'15%+',color:rateColor(18)}];
+  legend.innerHTML = stops.map(function(s) { return '<span style="display:flex;align-items:center;gap:5px"><span class="legend-dot" style="background:'+s.color+'"></span>'+s.label+'</span>'; }).join('');
+}
+function rateColor(r) {
+  if (r < 3)  return '#c8e6c9';
+  if (r < 6)  return '#81c784';
+  if (r < 10) return '#ffcc02';
+  if (r < 15) return '#ff9800';
+  return '#e53935';
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+['tc_ps','tc_irp','rt_pay','wd_natPen','wd_otherInc','wd_hi','wd_taxCredit'].forEach(updateKR);
+capIRP(); capPS();
+calcTC();
+calcRT();
+renderMatrix();
+renderWdAccs();
+calcWD();
+(function(){function _rp(e){var v=parseFloat(e.value),mn=parseFloat(e.min)||0,mx=parseFloat(e.max)||100;if(mx!==mn)e.style.setProperty('--pct',((v-mn)/(mx-mn)*100).toFixed(1)+'%');}document.querySelectorAll('input[type=range]').forEach(_rp);document.addEventListener('input',function(e){if(e.target.type==='range')_rp(e.target);});})();
+</script>
+</body>
+</html>

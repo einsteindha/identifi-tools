@@ -1,0 +1,2608 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>보장성 보험 소비자 가이드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;}
+:root{--ink:#1a1a2e;--ink-light:#4a4a6a;--ink-faint:#9090aa;--paper:#faf9f6;--paper-warm:#f3f0e8;--accent:#c0392b;--accent-bg:#fdf0ee;--green:#1a6b47;--green-bg:#eaf5ee;--gold:#a0740a;--gold-bg:#fdf5e0;--line:#e2dfd8;--serif:'Noto Serif KR',serif;--sans:'Noto Sans KR',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+html{color-scheme:light;}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.8;min-height:100vh;-webkit-text-size-adjust:100%;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* OPENING */
+.opening{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3rem 1.5rem;}
+.opening-eyebrow{display:inline-block;font-size:.75rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);border:1.5px solid var(--accent);padding:.35rem 1rem;border-radius:3px;margin-bottom:2.2rem;animation:fadeUp .5s .1s ease both;}
+.opening h1{font-family:var(--serif);font-size:clamp(2rem,6vw,3.2rem);font-weight:700;line-height:1.3;letter-spacing:-.03em;margin-bottom:1.5rem;animation:fadeUp .5s .2s ease both;}
+.opening h1 em{font-style:normal;color:var(--accent);border-bottom:3px solid var(--accent);}
+.opening-sub{font-size:.8rem;color:var(--ink-light);line-height:1.95;max-width:480px;margin-bottom:1rem;word-break:keep-all;animation:fadeUp .5s .3s ease both;}
+.opening-warning{font-size:.82rem;font-weight:600;color:var(--accent);margin-bottom:2.5rem;animation:fadeUp .5s .35s ease both;}
+.opening-divider{width:50px;height:3px;background:var(--accent);margin:0 auto 2.5rem;animation:fadeUp .5s .38s ease both;}
+.opening-btn{display:inline-flex;align-items:center;gap:.6rem;background:var(--accent);color:white;border:none;padding:.85rem 2.2rem;border-radius:4px;font-size:.95rem;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .15s,transform .15s;animation:fadeUp .5s .4s ease both;}
+.opening-btn:hover{background:#a93226;transform:translateY(-1px);}
+.opening-btn:hover .arrow{transform:translateX(3px);}
+.arrow{transition:transform .15s;}
+
+/* SHELL */
+.shell{max-width:720px;margin:0 auto;padding:2rem 1.5rem 4rem;display:none;}
+
+/* TOP STEP BAR */
+.top-stepbar{display:flex;align-items:flex-start;margin-bottom:2.2rem;}
+.ts-wrap{display:flex;flex-direction:column;align-items:center;gap:.3rem;}
+.ts-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--ink-faint);background:var(--paper);flex-shrink:0;transition:all .25s;cursor:pointer;}
+.ts-dot.active{border-color:var(--accent);background:var(--accent);color:white;}
+.ts-dot.done{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+.ts-label{font-size:.68rem;font-weight:600;color:var(--ink-faint);}
+.ts-dot.active ~ .ts-label{color:var(--accent);}
+.ts-line{flex:1;height:2px;background:var(--line);transition:background .3s;margin-top:15px;}
+.ts-line.done{background:var(--green);}
+
+/* PANELS */
+.panel{display:none;}.panel.active{display:block;animation:fadeUp .3s ease both;}
+
+/* TYPOGRAPHY */
+.eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem;}
+.panel-title{font-family:var(--serif);font-size:clamp(1.4rem,4vw,1.9rem);font-weight:700;color:var(--ink);letter-spacing:-.03em;line-height:1.35;margin-bottom:.6rem;}
+.panel-desc{font-size:.9rem;color:var(--ink-light);margin-bottom:1.5rem;line-height:1.9;}
+
+/* BOXES */
+.concept-box{background:var(--ink);color:var(--paper);padding:1.8rem 2rem;border-radius:6px;margin-bottom:1.5rem;}
+.concept-box p{font-family:var(--serif);font-size:1rem;line-height:1.9;}.concept-box strong{color:#f5d76e;}
+.warn-box{background:var(--accent-bg);border-left:3px solid var(--accent);padding:1rem 1.2rem;border-radius:0 4px 4px 0;margin:1.2rem 0;}
+.warn-box .lbl{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:.3rem;}
+.warn-box p{font-size:.88rem;color:var(--ink);line-height:1.85;}
+.info-box{background:var(--green-bg);border-left:3px solid var(--green);padding:1rem 1.2rem;border-radius:0 4px 4px 0;margin:1.2rem 0;}
+.info-box .lbl{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:.3rem;}
+.info-box p{font-size:.88rem;color:var(--ink);line-height:1.85;}
+.gold-box{background:var(--gold-bg);border-left:3px solid var(--gold);padding:1rem 1.2rem;border-radius:0 4px 4px 0;margin:1.2rem 0;}
+.gold-box .lbl{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem;}
+.gold-box p{font-size:.88rem;color:var(--ink);line-height:1.85;}
+
+/* DIAG */
+.diag-stack{display:flex;flex-direction:column;gap:1.2rem;margin-bottom:1rem;}
+.diag-row{border:1.5px solid var(--line);border-radius:6px;padding:1.4rem 1.4rem 1.2rem;background:white;transition:border-color .2s;}
+.diag-row.answered{border-color:var(--green);}
+.diag-row-head{display:flex;align-items:flex-start;gap:1rem;margin-bottom:.8rem;}
+.diag-num{font-family:var(--serif);font-size:1.5rem;font-weight:700;color:var(--line);line-height:1;flex-shrink:0;min-width:2rem;}
+.diag-row.answered .diag-num{color:var(--green);}
+.diag-axis{font-size:.65rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.2rem;}
+.diag-title{font-family:var(--serif);font-size:1rem;font-weight:700;color:var(--ink);line-height:1.4;}
+.diag-q{font-size:.85rem;color:var(--ink-light);background:var(--paper-warm);padding:.7rem .9rem;border-radius:4px;margin-bottom:1rem;font-style:italic;line-height:1.8;}
+.diag-options{display:flex;flex-direction:column;gap:.5rem;}
+.diag-opt{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.65rem .9rem;border:1.5px solid var(--line);border-radius:4px;font-size:.88rem;color:var(--ink);cursor:pointer;transition:all .15s;line-height:1.5;}
+.diag-opt:hover{border-color:var(--ink-light);background:var(--paper-warm);}
+.diag-opt.selected{border-color:var(--green);background:var(--green-bg);}
+.opt-tag{flex-shrink:0;font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--ink-faint);background:var(--paper-warm);padding:.15rem .5rem;border-radius:3px;white-space:nowrap;}
+.diag-opt.selected .opt-tag{background:rgba(26,107,71,.15);color:var(--green);}
+
+/* DIAG GROUP */
+.diag-group{display:none;}.diag-group.active{display:block;animation:fadeUp .3s ease both;}
+.group-header{margin-bottom:1.2rem;}
+.group-eyebrow{font-size:.65rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.3rem;}
+.group-title{font-family:var(--serif);font-size:1.1rem;font-weight:700;color:var(--ink);}
+.group-dots{display:flex;align-items:center;gap:.5rem;margin-bottom:1.5rem;}
+.g-dot{width:9px;height:9px;border-radius:50%;background:var(--line);transition:all .2s;}
+.g-dot.done{background:var(--green);}
+.g-dot.active{background:var(--accent);transform:scale(1.3);}
+
+/* NAV */
+.nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--line);}
+.btn{padding:.65rem 1.4rem;border-radius:4px;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .15s;border:1.5px solid var(--line);background:white;color:var(--ink);font-family:var(--sans);}
+.btn:hover{border-color:var(--ink-light);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:white;}
+.btn.primary:hover{background:#a93226;}
+.btn:disabled{opacity:.3;cursor:default;}
+.step-label{font-size:.78rem;color:var(--ink-faint);}
+
+/* RESULT TABS */
+.result-tabs{display:flex;border-bottom:2px solid var(--line);margin-bottom:1.8rem;overflow-x:auto;position:sticky;top:0;z-index:50;background:var(--paper);padding-top:.5rem;scrollbar-width:none;-ms-overflow-style:none;}
+.result-tabs::-webkit-scrollbar{display:none;}
+.rtab{padding:.7rem 1.2rem;font-size:.85rem;font-weight:600;color:var(--ink-faint);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--sans);}
+.rtab:hover{color:var(--ink);}
+.rtab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.rtab-panel{display:none;}.rtab-panel.active{display:block;animation:fadeUp .25s ease both;}
+
+/* GUIDE BLOCKS */
+.guide-block{border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:1rem;}
+.guide-block-head{background:var(--ink);color:var(--paper);padding:.8rem 1.2rem;font-family:var(--serif);font-size:.9rem;font-weight:700;}
+.guide-block-body{padding:1rem 1.2rem;font-size:.88rem;color:var(--ink);line-height:1.9;background:white;}
+.guide-tag{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .6rem;border-radius:3px;margin-right:.4rem;margin-bottom:.3rem;}
+.guide-tag.red{background:var(--accent-bg);color:var(--accent);}
+.guide-tag.green{background:var(--green-bg);color:var(--green);}
+.guide-tag.gold{background:var(--gold-bg);color:var(--gold);}
+
+/* PRINCIPLE */
+.principle-list{display:flex;flex-direction:column;}
+.p-item{padding:1.4rem 0;border-bottom:1px solid var(--line);}
+.p-item:last-child{border-bottom:none;}
+.p-header{display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;gap:1rem;}
+.p-title{font-family:var(--serif);font-size:.98rem;font-weight:700;color:var(--ink);}
+.p-toggle{font-size:1.2rem;color:var(--ink-faint);transition:transform .2s;flex-shrink:0;}
+.p-item.open .p-toggle{transform:rotate(45deg);}
+.p-body{display:none;padding-top:.9rem;font-size:.88rem;color:var(--ink-light);line-height:1.9;}
+.p-item.open .p-body{display:block;}.p-body strong{color:var(--ink);font-weight:600;}
+
+/* TYPE */
+.type-list{display:flex;flex-direction:column;gap:.8rem;}
+.type-row{border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+.type-head{display:grid;grid-template-columns:120px 1fr;cursor:pointer;}
+.type-name{background:var(--ink);color:var(--paper);padding:1rem;font-family:var(--serif);font-size:.88rem;font-weight:700;display:flex;align-items:center;}
+.type-q{padding:.8rem 1rem;font-size:.82rem;color:var(--ink-light);font-style:italic;display:flex;align-items:center;background:var(--paper-warm);}
+.type-body{display:none;border-top:1px solid var(--line);}
+.type-row.open .type-body{display:grid;grid-template-columns:1fr 1fr;}
+.type-yes{padding:.9rem 1rem;background:var(--green-bg);border-right:1px solid var(--line);}
+.type-no{padding:.9rem 1rem;background:var(--accent-bg);}
+.type-lbl{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.3rem;}
+.type-yes .type-lbl{color:var(--green);}.type-no .type-lbl{color:var(--accent);}
+.type-content{font-size:.82rem;color:var(--ink);line-height:1.8;}
+
+/* CHECKLIST */
+.check-list{display:flex;flex-direction:column;}
+.check-item{display:flex;gap:.9rem;align-items:flex-start;padding:1rem .4rem;border-bottom:1px solid var(--line);cursor:pointer;border-radius:4px;transition:background .12s;}
+.check-item:last-child{border-bottom:none;}.check-item:hover{background:var(--paper-warm);}
+.cb{width:20px;height:20px;border:2px solid var(--line);border-radius:3px;flex-shrink:0;margin-top:3px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.check-item.checked .cb{background:var(--green);border-color:var(--green);}
+.cb-tick{display:none;color:white;font-size:11px;font-weight:700;}.check-item.checked .cb-tick{display:block;}
+.check-text strong{display:block;font-size:.9rem;font-weight:600;margin-bottom:.15rem;}
+.check-text span{font-size:.8rem;color:var(--ink-light);}
+.progress-row{display:flex;align-items:center;gap:.8rem;margin-top:1.2rem;}
+.prog-bar{flex:1;height:5px;background:var(--line);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--green);border-radius:3px;transition:width .3s;width:0%;}
+.prog-text{font-size:.8rem;color:var(--ink-faint);white-space:nowrap;}
+
+/* FAQ */
+.faq-list{border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+.faq-item{border-bottom:1px solid var(--line);}.faq-item:last-child{border-bottom:none;}
+.faq-q{padding:1.1rem 1.3rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:.9rem;font-weight:600;color:var(--ink);transition:background .12s;user-select:none;}
+.faq-q:hover{background:var(--paper-warm);}
+.faq-icon{font-size:1rem;color:var(--ink-faint);transition:transform .2s;flex-shrink:0;margin-left:.8rem;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
+.faq-a{display:none;padding:0 1.3rem 1.1rem;font-size:.86rem;color:var(--ink-light);line-height:1.9;background:var(--paper-warm);}
+.faq-item.open .faq-a{display:block;}
+.disclaimer{margin-top:2rem;padding:1.2rem 1.5rem;background:var(--paper-warm);border:1px solid var(--line);border-radius:4px;font-size:.76rem;color:var(--ink-faint);line-height:1.9;}
+
+@media(max-width:560px){
+  .type-row.open .type-body,.type-head{grid-template-columns:1fr;}
+  .shell{padding:1.5rem 1rem 3rem;}
+  .diag-opt{font-size:.82rem;padding:.6rem .8rem;}
+  .opt-tag{font-size:.65rem;}
+  .diag-row{padding:1rem 1rem .9rem;}
+  .diag-title{font-size:.92rem;}
+  .panel-title{font-size:1.4rem;}
+  .guide-block-body{font-size:.84rem;}
+  .top-stepbar{margin-bottom:1.5rem;}
+  .ts-dot{width:28px;height:28px;font-size:.7rem;}
+  .ts-label{font-size:.62rem;}
+  .result-tabs{gap:0;}
+  .rtab{padding:.55rem .65rem;font-size:.74rem;}
+  .type-name{padding:.8rem;}
+  .concept-box{padding:1.4rem 1.2rem;}
+  .p-title{font-size:.9rem;}
+  .check-text strong{font-size:.85rem;}
+
+  /* 오프닝 텍스트 모바일 최적화 */
+  .opening{padding:2.5rem 1.2rem;}
+  .opening h1{font-size:1.55rem;letter-spacing:-.02em;word-break:keep-all;line-height:1.4;}
+  .opening-sub{font-size:.85rem;line-height:1.8;word-break:keep-all;margin-bottom:.8rem;}
+  .opening-warning{font-size:.78rem;word-break:keep-all;margin-bottom:2rem;}
+  .opening-eyebrow{font-size:.68rem;margin-bottom:1.5rem;}
+  .opening-divider{margin:0 auto 2rem;}
+  .opening-btn{font-size:.88rem;padding:.75rem 1.8rem;width:100%;justify-content:center;}
+  .opening-btn-row{flex-direction:column;}
+  .opening-btn-row > div, .opening-btn-row > div + div{flex:unset;width:100%;}
+}
+/* ── 하지 마라 체크 화면 ── */
+.pledge{max-width:720px;margin:0 auto;padding:2rem 1.5rem 4rem;display:none;}
+.pledge-eyebrow{font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:.6rem;}
+.pledge-title{font-family:var(--serif);font-size:clamp(1.4rem,4vw,1.9rem);font-weight:700;color:var(--ink);letter-spacing:-.03em;line-height:1.35;margin-bottom:.6rem;}
+.pledge-desc{font-size:.9rem;color:var(--ink-light);margin-bottom:1.8rem;line-height:1.9;}
+.pledge-list{display:flex;flex-direction:column;gap:0;margin-bottom:1.5rem;}
+.pledge-item{display:flex;gap:.9rem;align-items:flex-start;padding:1rem .4rem;border-bottom:1px solid var(--line);cursor:pointer;border-radius:4px;transition:background .12s;}
+.pledge-item:last-child{border-bottom:none;}
+.pledge-item:hover{background:var(--paper-warm);}
+.pledge-cb{width:22px;height:22px;border:2px solid var(--line);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.pledge-item.checked .pledge-cb{background:var(--accent);border-color:var(--accent);}
+.pledge-tick{display:none;color:white;font-size:12px;font-weight:700;}
+.pledge-item.checked .pledge-tick{display:block;}
+.pledge-text{font-size:.95rem;color:var(--ink);line-height:1.7;font-weight:500;}
+.pledge-item.checked .pledge-text{color:var(--ink-light);text-decoration:line-through;text-decoration-color:var(--accent);}
+.pledge-progress{margin:1rem 0 1.5rem;display:flex;align-items:center;gap:.8rem;}
+.pledge-bar{flex:1;height:4px;background:var(--line);border-radius:2px;overflow:hidden;}
+.pledge-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;width:0%;}
+.pledge-count{font-size:.78rem;color:var(--ink-faint);white-space:nowrap;}
+.pledge-btn{width:100%;padding:.85rem;border-radius:4px;font-size:.95rem;font-weight:700;font-family:var(--sans);cursor:pointer;transition:all .2s;border:none;background:var(--line);color:var(--ink-faint);}
+.pledge-btn.ready{background:var(--accent);color:white;}
+.pledge-btn.ready:hover{background:#a93226;}
+
+/* 모바일 매트릭스 강조 카드 */
+.mobile-matrix-highlight{display:none;}
+.mmh-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem;}
+.mmh-cell{border-radius:6px;padding:.9rem;position:relative;}
+.mmh-focus{background:var(--green-bg);border:2px solid var(--green);}
+.mmh-dim{background:var(--paper-warm);border:1px solid var(--line);opacity:.6;display:flex;flex-direction:column;justify-content:center;}
+.mmh-label{font-family:var(--serif);font-size:.88rem;font-weight:700;color:var(--green);margin-bottom:.3rem;}
+.mmh-sub{font-size:.72rem;font-weight:600;color:var(--green);opacity:.8;margin-bottom:.5rem;}
+.mmh-desc{font-size:.78rem;color:var(--ink);line-height:1.6;margin-bottom:.6rem;}
+.mmh-example{font-size:.72rem;color:var(--ink-faint);font-style:italic;}
+.mmh-tags{display:flex;gap:.3rem;flex-wrap:wrap;}
+.mmh-tags span{font-size:.65rem;font-weight:700;background:rgba(26,107,71,.15);color:var(--green);padding:.15rem .5rem;border-radius:3px;}
+.mmh-label-dim{font-size:.75rem;font-weight:700;color:var(--ink-faint);margin-bottom:.2rem;}
+.mmh-sub-dim{font-size:.65rem;color:var(--ink-faint);}
+.mmh-axis-x{font-size:.68rem;color:var(--ink-faint);text-align:right;margin-top:.2rem;}
+.mmh-axis-y{font-size:.68rem;color:var(--ink-faint);text-align:left;}
+.mobile-matrix-caption{display:none;}
+
+@media(max-width:560px){
+  /* SVG 숨기고 모바일 카드 표시 */
+  .mobile-matrix-highlight{display:block;}
+  svg[role="img"]{display:none;}
+  .section-label[style*="margin-bottom:0.5rem"]{display:none;}
+}
+
+/* ── 보험 요약 카드 ── */
+.ins-summary{margin-bottom:1.5rem;}
+.ins-summary-title{font-family:var(--serif);font-size:.85rem;font-weight:700;color:var(--ink);margin-bottom:.6rem;}
+.ins-summary-grid{display:flex;flex-direction:column;gap:.35rem;}
+.ins-row{display:flex;align-items:center;gap:.7rem;padding:.55rem .8rem;border-radius:5px;font-size:.82rem;}
+.ins-row.yes{background:var(--green-bg);}
+.ins-row.no{background:var(--paper-warm);opacity:.7;}
+.ins-row.maybe{background:var(--gold-bg);}
+.ins-icon{font-size:.85rem;flex-shrink:0;width:1.2rem;text-align:center;}
+.ins-name{font-weight:700;color:var(--ink);flex-shrink:0;min-width:80px;}
+.ins-reason{font-size:.76rem;color:var(--ink-light);flex:1;}
+.ins-row.no .ins-name{color:var(--ink-faint);}
+
+/* ── 실손 전환 가이드 ── */
+.silson-panel{display:none;max-width:720px;margin:0 auto;padding:0 0 4rem;}
+.hero{background:var(--ink);color:var(--paper);padding:3.5rem 1.5rem 2.5rem;text-align:center;}
+.hero-eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#f5d76e;margin-bottom:1.2rem;}
+.hero h1{font-family:var(--serif);font-size:clamp(1.4rem,4vw,2.2rem);font-weight:700;line-height:1.35;letter-spacing:-.03em;margin-bottom:1rem;}
+.hero h1 em{font-style:normal;color:#f5d76e;}
+.hero-sub{font-size:.88rem;color:rgba(250,249,246,.7);line-height:1.9;max-width:480px;margin:0 auto 1.2rem;word-break:keep-all;}
+.hero-source{font-size:.7rem;color:rgba(250,249,246,.4);letter-spacing:.05em;}
+.wrap{max-width:720px;margin:0 auto;padding:2.5rem 1.5rem;}
+.section{margin-bottom:3rem;}
+.section-eyebrow{font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem;}
+.section-title{font-family:var(--serif);font-size:clamp(1.1rem,3vw,1.5rem);font-weight:700;color:var(--ink);letter-spacing:-.03em;margin-bottom:1rem;}
+.section-desc{font-size:.88rem;color:var(--ink-light);line-height:1.9;margin-bottom:1.5rem;}
+.gen-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.gen-table th{background:var(--ink);color:var(--paper);padding:.6rem .7rem;text-align:left;font-weight:600;font-size:.7rem;letter-spacing:.05em;}
+.gen-table td{padding:.6rem .7rem;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6;}
+.gen-table tr:last-child td{border-bottom:none;}
+.gen-table tr:nth-child(even) td{background:var(--paper-warm);}
+.gen-badge{display:inline-block;font-size:.63rem;font-weight:700;padding:.12rem .45rem;border-radius:3px;white-space:nowrap;}
+.badge-red{background:var(--accent-bg);color:var(--accent);}
+.badge-green{background:var(--green-bg);color:var(--green);}
+.badge-gold{background:var(--gold-bg);color:var(--gold);}
+.badge-gray{background:#efefef;color:#666;}
+.gen-cards{display:flex;flex-direction:column;gap:1rem;}
+.gen-card{border:1.5px solid var(--line);border-radius:8px;overflow:hidden;}
+.gen-card-head{display:flex;align-items:center;gap:1rem;padding:.9rem 1.1rem;background:var(--paper-warm);border-bottom:1px solid var(--line);}
+.gen-card-label{font-family:var(--serif);font-size:.92rem;font-weight:700;color:var(--ink);}
+.gen-card-period{font-size:.7rem;color:var(--ink-faint);margin-left:auto;white-space:nowrap;}
+.gen-card-body{padding:1rem 1.1rem;}
+.gen-card-body p{font-size:.85rem;color:var(--ink);line-height:1.9;}
+.gen-card.urgent{border-color:var(--accent);}
+.gen-card.urgent .gen-card-head{background:var(--accent-bg);}
+.gen-card.caution{border-color:var(--gold);}
+.gen-card.caution .gen-card-head{background:var(--gold-bg);}
+.gen-card.safe{border-color:var(--green);}
+.gen-card.safe .gen-card-head{background:var(--green-bg);}
+.criteria-list{display:flex;flex-direction:column;gap:.8rem;}
+.criterion{display:flex;gap:1rem;padding:1rem 1.1rem;border:1px solid var(--line);border-radius:6px;background:white;}
+.criterion-num{font-family:var(--serif);font-size:1.3rem;font-weight:700;color:var(--line);flex-shrink:0;line-height:1;}
+.criterion-title{font-family:var(--serif);font-size:.9rem;font-weight:700;color:var(--ink);margin-bottom:.3rem;}
+.criterion-desc{font-size:.8rem;color:var(--ink-light);line-height:1.8;}
+.criterion-desc strong{color:var(--ink);font-weight:600;}
+.principle-box{background:var(--ink);color:var(--paper);padding:1.5rem 1.8rem;border-radius:6px;margin-bottom:1.2rem;}
+.principle-box p{font-family:var(--serif);font-size:.9rem;line-height:1.95;}
+.principle-box strong{color:#f5d76e;}
+.source-note{padding:1.2rem 1.4rem;background:var(--paper-warm);border:1px solid var(--line);border-radius:4px;font-size:.74rem;color:var(--ink-faint);line-height:1.9;}
+.source-note strong{color:var(--ink-light);}
+.silson-back-btn{display:flex;justify-content:center;padding:2rem 1.5rem 0;}
+
+@media(max-width:560px){
+  .gen-table{font-size:.72rem;}
+  .gen-table th,.gen-table td{padding:.45rem .5rem;}
+  .wrap{padding:2rem 1rem;}
+}
+
+@media (prefers-color-scheme: dark) {
+  html, body { background: #faf9f6 !important; color: #1a1a2e !important; }
+  .opening, .shell, .diag-row, .guide-block-body, .p-body, .faq-a,
+  .type-yes, .type-no, .type-q, .check-item, .rtab-panel,
+  .warn-box, .info-box, .gold-box, .disclaimer {
+    background-color: inherit !important;
+    color: inherit !important;
+  }
+}
+
+/* ── 저축성 보험 패널 ── */
+.savings-panel{display:none;padding:0 0 4rem;}
+.savings-panel .wrap{max-width:none;padding:2rem 2.5rem;}
+.sav-intro{background:var(--paper-warm);border-left:3px solid var(--gold);padding:1rem 1.4rem;border-radius:0 6px 6px 0;margin-bottom:2rem;font-size:.88rem;line-height:1.9;word-break:keep-all;}
+.sim-layout{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;}
+.sim-results-sticky{position:sticky;top:1.5rem;}
+.tax-slider{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;background:var(--line);outline:none;cursor:pointer;margin:.5rem 0 0;}
+.tax-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.tax-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid white;}
+.sav-compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+.sav-card{border:1.5px solid var(--line);border-radius:8px;overflow:hidden;}
+.sav-card-head{padding:.8rem 1rem;font-family:var(--serif);font-size:.88rem;font-weight:700;}
+.sav-card-head.fixed{background:var(--gold-bg);color:var(--gold);border-bottom:1.5px solid var(--gold);}
+.sav-card-head.variable{background:var(--accent-bg);color:var(--accent);border-bottom:1.5px solid var(--accent);}
+.sav-pros{padding:.8rem 1rem;border-bottom:1px solid var(--line);}
+.sav-cons{padding:.8rem 1rem;}
+.sav-plbl,.sav-clbl{font-size:.6rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;margin-bottom:.35rem;}
+.sav-plbl{color:var(--green);}.sav-clbl{color:var(--accent);}
+.sav-pros ul,.sav-cons ul{list-style:none;padding:0;margin:0;}
+.sav-pros li,.sav-cons li{font-size:.8rem;color:var(--ink);line-height:1.85;padding-left:.9rem;position:relative;}
+.sav-pros li::before{content:"✓ ";position:absolute;left:0;color:var(--green);font-weight:700;}
+.sav-cons li::before{content:"✗ ";position:absolute;left:0;color:var(--accent);font-weight:700;}
+.sim-wrap{background:var(--paper-warm);border:1px solid var(--line);border-radius:8px;padding:1.4rem;margin-bottom:1.5rem;}
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem;}
+.sim-field{display:flex;flex-direction:column;gap:.2rem;}
+.sim-label{font-size:.73rem;font-weight:600;color:var(--ink-light);}
+.sim-hint{display:block;font-size:.63rem;color:var(--ink-faint);font-weight:400;margin-top:.15rem;}
+.sim-input{padding:.5rem .75rem;border:1.5px solid var(--line);border-radius:4px;font-size:.88rem;font-family:var(--sans);background:white;color:var(--ink);width:100%;box-sizing:border-box;}
+.sim-input:focus{outline:none;border-color:var(--ink-light);}
+.sim-divider{height:1px;background:var(--line);margin:.6rem 0 .9rem;}
+.sim-section-label{font-size:.63rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.6rem;}
+.sim-table-wrap{margin-bottom:1.2rem;overflow-x:auto;}
+.sim-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.sim-table th{background:var(--ink);color:var(--paper);padding:.55rem .7rem;text-align:left;font-size:.68rem;font-weight:600;letter-spacing:.05em;}
+.sim-table td{padding:.6rem .7rem;border-bottom:1px solid var(--line);vertical-align:middle;line-height:1.5;}
+.sim-table tr:last-child td{border-bottom:none;}
+.sim-table tbody tr:nth-child(even) td{background:var(--paper-warm);}
+.sim-table tbody tr.sim-best td{background:var(--green-bg) !important;}
+.sim-table tbody tr.sim-best td:first-child{font-weight:700;}
+.sim-chart-box{background:white;border:1px solid var(--line);border-radius:6px;padding:1rem;margin-bottom:1rem;}
+.sim-note{font-size:.72rem;color:var(--ink-faint);line-height:1.85;padding:1rem 1.2rem;background:var(--paper-warm);border:1px solid var(--line);border-radius:4px;}
+@media(max-width:960px){
+  .sim-layout{grid-template-columns:1fr;}
+  .sim-results-sticky{position:static;}
+}
+@media(max-width:640px){
+  .savings-panel .wrap{padding:1.5rem 1rem;}
+  .sav-compare{grid-template-columns:1fr;}
+  .sim-grid{grid-template-columns:1fr;}
+  .sim-table{font-size:.72rem;}
+  .sim-table th,.sim-table td{padding:.4rem .5rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="opening" id="opening">
+  <div class="opening-eyebrow">금융소비자 중심 가이드</div>
+  <h1>보험은 상품이 아니라<br><em>내 리스크 구조</em>에서 시작한다</h1>
+  <p class="opening-sub">설계사가 권유하는 순서(상품 → 소비자)가 아닌,<br>소비자가 스스로 설계하는 순서(나 → 필요 → 상품)로 접근합니다.</p>
+  <div style="background:#faf9f6;border-radius:6px;padding:.9rem 1.4rem;margin:0 auto 1.2rem;width:100%;max-width:600px;text-align:left;animation:fadeUp .5s .32s ease both;box-sizing:border-box;">
+    <div style="font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a0740a;margin-bottom:.4rem;">알고 계셨나요</div>
+    <p style="font-size:.8rem;color:#1a1a2e;line-height:1.85;margin:0;word-break:keep-all;">보험 가입률이 가장 높은 나라는 어디일까요? 공적 안전망이 취약한 개발도상국입니다. 위생과 안전 기준이 낮아 감염병·산업재해·교통사고가 일상적이고, 아프면 치료비 전액을 개인이 부담해야 했습니다. 우리 부모님, 혹은 그 윗세대가 살았던 시절이 그랬습니다.<br><br>지금은 다릅니다. 건강보험 보장률은 꾸준히 높아졌고, 국가암검진·생애전환기검진 등 정기 건강검진이 보편화되면서 조기 발견·조기 치료가 가능해졌습니다. 급성 감염병 사망률은 크게 줄었고, 고혈압·당뇨 같은 만성질환은 건강보험 산정특례와 본인부담상한제로 개인 부담이 현저히 낮아졌습니다. 국민연금·산재보험·고용보험도 소득 공백을 상당 부분 커버합니다.<br><br>그 시절 민간 보험이 채웠던 공백의 상당 부분은 이미 제도가 채우고 있습니다. 그 시절의 방식을 그대로 따를 이유가 없어요.</p>
+  </div>
+  <p class="opening-warning">보험설계사의 논리가 아닌, 당신의 리스크 구조가 기준입니다.</p>
+  <div class="opening-divider"></div>
+  <div style="display:flex;flex-direction:column;gap:.7rem;width:100%;max-width:480px;animation:fadeUp .5s .45s ease both;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:.25rem;">
+      <button class="opening-btn" style="margin:0;width:100%;justify-content:center;" onclick="startGuide()">보장성 보험 가이드 시작 <span class="arrow">→</span></button>
+      <p style="font-size:.72rem;color:var(--ink-faint);margin:0;">최대 15개 문항 · 약 5분 소요</p>
+    </div>
+    <button class="opening-btn" onclick="startSilson()" style="margin:0;width:100%;justify-content:center;background:transparent;border:1.5px solid var(--accent);color:var(--accent);">실손보험 전환 가이드 <span class="arrow">→</span></button>
+    <button class="opening-btn" onclick="startSavings()" style="margin:0;width:100%;justify-content:center;background:transparent;border:1.5px solid var(--gold);color:var(--gold);">저축성 보험이 적합한가? <span class="arrow">→</span></button>
+  </div>
+</div>
+
+<div class="pledge" id="pledge">
+  <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1.2rem;">
+    <span style="font-size:.68rem;font-weight:700;color:var(--ink-faint);">본질 이해 후</span>
+    <span style="font-size:.68rem;color:var(--line);">→</span>
+    <span style="font-size:.68rem;font-weight:700;color:var(--accent);">확인</span>
+    <span style="font-size:.68rem;color:var(--line);">→</span>
+    <span style="font-size:.68rem;font-weight:700;color:var(--ink-faint);">진단</span>
+  </div>
+  <div class="pledge-eyebrow">⚠ 시작 전 반드시 확인</div>
+  <h2 class="pledge-title">이 중 하나라도<br>동의하지 않는다면<br>진단은 필요 없습니다</h2>
+  <p class="pledge-desc">이 가이드는 아래 8가지를 전제로 설계되었습니다. 동의하지 않는 항목이 있다면 지금 판단 기준을 먼저 점검하세요. 모두 동의한다면 진단을 시작하세요.</p>
+
+  <div class="pledge-list">
+    <div class="pledge-item" onclick="togglePledge(this)">
+      <div class="pledge-cb"><span class="pledge-tick">✓</span></div>
+      <div class="pledge-text">보험설계사가 권유하는 순서로 가입하지 않겠다</div>
+    </div>
+    <div class="pledge-item" onclick="togglePledge(this)">
+      <div class="pledge-cb"><span class="pledge-tick">✓</span></div>
+      <div class="pledge-text">보험료가 비싸다고 좋은 보험이라고 착각하지 않겠다</div>
+    </div>
+    <div class="pledge-item" onclick="togglePledge(this)">
+      <div class="pledge-cb"><span class="pledge-tick">✓</span></div>
+      <div class="pledge-text">가족력·기왕력이 있다고 과도하게 가입하지 않겠다</div>
+    </div>
+    <div class="pledge-item" onclick="togglePledge(this)">
+      <div class="pledge-cb"><span class="pledge-tick">✓</span></div>
+      <div class="pledge-text">보험설계사 눈치 보느라 불필요한 보험을 유지하지 않겠다</div>
+    </div>
+    <div class="pledge-item" onclick="togglePledge(this)">
+      <div class="pledge-cb"><span class="pledge-tick">✓</span></div>
+      <div class="pledge-text">갱신형이 싸다는 이유만으로 장기 유지하지 않겠다</div>
+    </div>
+    <div class="pledge-item" onclick="togglePledge(this)">
+      <div class="pledge-cb"><span class="pledge-tick">✓</span></div>
+      <div class="pledge-text">젊을 때 미래를 예측해서 과도하게 설계하지 않겠다</div>
+    </div>
+    <div class="pledge-item" onclick="togglePledge(this)">
+      <div class="pledge-cb"><span class="pledge-tick">✓</span></div>
+      <div class="pledge-text">간병·치매 공포 마케팅에 흔들려 서두르지 않겠다</div>
+    </div>
+    <div class="pledge-item" onclick="togglePledge(this)">
+      <div class="pledge-cb"><span class="pledge-tick">✓</span></div>
+      <div class="pledge-text">완납할 수 없는 납입기간으로 설계하지 않겠다</div>
+    </div>
+  </div>
+
+  <div class="pledge-progress">
+    <div class="pledge-bar"><div class="pledge-fill" id="pledgeFill"></div></div>
+    <div class="pledge-count" id="pledgeCount">0 / 8</div>
+  </div>
+
+  <div style="display:flex;gap:.8rem;margin-top:.5rem;">
+    <button class="btn" onclick="backToEssence()" style="flex-shrink:0;">← 이전</button>
+    <button class="pledge-btn" id="pledgeBtn" onclick="startDiag()" disabled style="flex:1;">
+      동의하지 않는 항목이 있다면 진단은 의미가 없습니다
+    </button>
+  </div>
+</div>
+
+<div class="shell" id="shell">
+
+  <div class="top-stepbar">
+    <div class="ts-wrap"><div class="ts-dot active" id="tsd-0" onclick="goMain(0)">1</div><div class="ts-label">본질</div></div>
+    <div class="ts-line" id="tsl-0"></div>
+    <div class="ts-wrap"><div class="ts-dot" id="tsd-1" onclick="goMain(1)">2</div><div class="ts-label">진단</div></div>
+    <div class="ts-line" id="tsl-1"></div>
+    <div class="ts-wrap"><div class="ts-dot" id="tsd-2">3</div><div class="ts-label">결과</div></div>
+  </div>
+
+  <!-- PANEL 0: 본질 -->
+  <div class="panel active" id="panel-0">
+    <div style="background:var(--ink);color:var(--paper);padding:1rem 1.2rem;border-radius:6px;margin-bottom:1.5rem;display:flex;gap:.8rem;align-items:flex-start;border:2px solid var(--accent);outline:4px solid var(--accent);outline-offset:4px;">
+      <span style="font-size:1.2rem;flex-shrink:0;color:var(--accent);">⚠</span>
+      <p style="font-size:.88rem;line-height:1.85;">보험료는 분할 납부되어 체감이 적을 뿐, 평생 납입 총액은 <strong style="color:#f5d76e;">수천만 원에서 수억 원</strong>에 달하는 상품입니다. 반드시 정독하고 신중하게 판단하세요.</p>
+    </div>
+    <div class="eyebrow">Step 01 · 본질</div>
+    <h1 class="panel-title">보장성 보험이란 무엇인가</h1>
+    <p class="panel-desc">보험을 올바르게 활용하려면 그 목적과 법적 성격을 먼저 정확히 이해해야 합니다.</p>
+    <div class="concept-box">
+      <p>보험의 유일한 목적은 <strong>내가 혼자 감당할 수 없는 경제적 손실을</strong> 많은 사람과 함께 분산하는 것이다. 그 이상도 이하도 아니다.</p>
+    </div>
+
+    <div class="warn-box">
+      <div class="lbl">⚠ 흔한 오해 1</div>
+      <p><strong>보험은 저축이나 투자가 아닙니다.</strong> 환급금·만기환급·적립형이라는 말로 저축 기능을 결합한 상품은 보험의 본질에서 벗어납니다. 두 기능을 섞으면 비용 구조가 복잡해지고 소비자에게 불리한 경우가 대부분입니다. 보험은 보험으로, 저축은 저축으로 분리하는 것이 원칙입니다.</p>
+    </div>
+
+    <div class="gold-box">
+      <div class="lbl">⚖ 법적 특성 · 사행계약</div>
+      <p>보험계약은 법적으로 <strong>사행계약(射倖契約)</strong>의 특성을 갖습니다. 우연한 사고 발생 여부에 따라 보험금 지급이 결정되기 때문입니다. 이는 보험의 <strong>특징</strong>이지, 보험의 <strong>목적</strong>이 아닙니다.</p>
+      <p style="margin-top:0.6rem;">즉, 보험은 <strong>"본전을 뽑겠다"거나 "손해를 보지 않겠다"는 수단이 아닙니다.</strong> 보험료를 내고 아무 사고 없이 만기를 맞는 것은 손해가 아니라, 그 기간 동안 위험이 실현되지 않은 것입니다. 보험을 이득의 수단으로 접근하면 불필요한 보험에 과도하게 가입하거나, 보험금 수령을 위한 도덕적 해이로 이어질 수 있습니다.</p>
+    </div>
+
+    <div class="info-box">
+      <div class="lbl">✓ 핵심 원칙</div>
+      <p>보장성 보험 = <strong>순수 위험 대비 도구</strong>. 발생 시 경제적으로 감당하기 어려운 사건에 대해서만 가입을 고려합니다. 감당 가능한 위험에는 보험이 필요 없습니다.</p>
+    </div>
+    <div style="margin:1.8rem 0 0.5rem;">
+      <div class="section-label" style="font-size:0.65rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:0.5rem;">위험 관리 전략 매트릭스</div>
+      <svg width="100%" viewBox="0 0 680 420" role="img" xmlns="http://www.w3.org/2000/svg">
+        <title>위험 관리 매트릭스</title>
+        <desc>손실 규모와 발생 빈도에 따른 4가지 위험 관리 전략</desc>
+        <defs>
+          <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+
+        <!-- 4사분면: Y=손실규모(위=큼), X=발생빈도(우=높음) -->
+        <!-- 좌상: 손실큼 + 빈도낮음 → 보험 (teal, 강조) -->
+        <rect x="100" y="40" width="240" height="160" fill="#eaf5ee" stroke="#1a6b47" stroke-width="2" opacity="0.95"/>
+        <!-- 우상: 손실큼 + 빈도높음 → 회피 (gray-muted) -->
+        <rect x="340" y="40" width="240" height="160" fill="#f3f0e8" stroke="#9090aa" stroke-width="0.5" opacity="0.85"/>
+        <!-- 좌하: 손실작음 + 빈도낮음 → 감수 (gray-muted) -->
+        <rect x="100" y="200" width="240" height="160" fill="#f3f0e8" stroke="#9090aa" stroke-width="0.5" opacity="0.85"/>
+        <!-- 우하: 손실작음 + 빈도높음 → 예방/자가부담 (gray-muted) -->
+        <rect x="340" y="200" width="240" height="160" fill="#f3f0e8" stroke="#9090aa" stroke-width="0.5" opacity="0.85"/>
+
+        <!-- 중앙 구분선 -->
+        <line x1="100" y1="200" x2="580" y2="200" stroke="#9090aa" stroke-width="1" opacity="0.4"/>
+        <line x1="340" y1="40" x2="340" y2="360" stroke="#9090aa" stroke-width="1" opacity="0.4"/>
+
+        <!-- 외곽 테두리 -->
+        <rect x="100" y="40" width="480" height="320" fill="none" stroke="#9090aa" stroke-width="0.5" opacity="0.5"/>
+
+        <!-- X축: 발생 빈도 -->
+        <line x1="80" y1="360" x2="600" y2="360" stroke="#4a4a6a" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text font-family="Noto Sans KR,sans-serif" font-size="13" font-weight="600" fill="#1a1a2e" x="340" y="392" text-anchor="middle">발생 빈도</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#9090aa" x="105" y="392" text-anchor="start">낮음</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#9090aa" x="578" y="392" text-anchor="end">높음</text>
+
+        <!-- Y축: 손실 규모 -->
+        <line x1="80" y1="378" x2="80" y2="20" stroke="#4a4a6a" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text font-family="Noto Sans KR,sans-serif" font-size="13" font-weight="600" fill="#1a1a2e" x="18" y="200" text-anchor="middle" transform="rotate(-90 18 200)">손실 규모</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#9090aa" x="64" y="358" text-anchor="end">작음</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#9090aa" x="64" y="52" text-anchor="end">큼</text>
+
+        <!-- 좌상: 보험 가입 구간 (강조) -->
+        <text font-family="Noto Sans KR,sans-serif" font-size="14" font-weight="700" fill="#1a6b47" x="220" y="78" text-anchor="middle">▶ 보험 가입 구간</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#4a4a6a" x="220" y="96" text-anchor="middle">드물지만 발생 시 감당 불가</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#9090aa" x="220" y="128" text-anchor="middle" font-style="italic">예) 중증 질환, 사망, 대형 사고</text>
+        <rect x="152" y="142" width="68" height="17" rx="8" fill="#1a6b47" opacity="0.2"/>
+        <text font-family="Noto Sans KR,sans-serif" font-size="10" fill="#085041" x="186" y="154" text-anchor="middle">보장성 보험</text>
+        <rect x="228" y="142" width="56" height="17" rx="8" fill="#1a6b47" opacity="0.2"/>
+        <text font-family="Noto Sans KR,sans-serif" font-size="10" fill="#085041" x="256" y="154" text-anchor="middle">위험 이전</text>
+
+        <!-- 우상: 회피 / 위험 제거 -->
+        <text font-family="Noto Sans KR,sans-serif" font-size="13" font-weight="700" fill="#5f5e5a" x="460" y="78" text-anchor="middle">회피 / 위험 제거</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#4a4a6a" x="460" y="96" text-anchor="middle">자주 발생하고 손실도 큰 최악</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#9090aa" x="460" y="128" text-anchor="middle" font-style="italic">예) 무모한 행동, 위험한 취미</text>
+        <rect x="400" y="142" width="56" height="17" rx="8" fill="#5f5e5a" opacity="0.15"/>
+        <text font-family="Noto Sans KR,sans-serif" font-size="10" fill="#444441" x="428" y="154" text-anchor="middle">위험 제거</text>
+        <rect x="464" y="142" width="60" height="17" rx="8" fill="#5f5e5a" opacity="0.15"/>
+        <text font-family="Noto Sans KR,sans-serif" font-size="10" fill="#444441" x="494" y="154" text-anchor="middle">행동 변화</text>
+
+        <!-- 좌하: 감수 -->
+        <text font-family="Noto Sans KR,sans-serif" font-size="13" font-weight="700" fill="#5f5e5a" x="220" y="240" text-anchor="middle">감수 (보험 불필요)</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#4a4a6a" x="220" y="258" text-anchor="middle">드물게 발생하고 감당 가능</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#9090aa" x="220" y="290" text-anchor="middle" font-style="italic">예) 우산 분실, 소액 파손</text>
+        <rect x="156" y="304" width="56" height="17" rx="8" fill="#5f5e5a" opacity="0.15"/>
+        <text font-family="Noto Sans KR,sans-serif" font-size="10" fill="#444441" x="184" y="316" text-anchor="middle">위험 감수</text>
+        <rect x="220" y="304" width="60" height="17" rx="8" fill="#5f5e5a" opacity="0.15"/>
+        <text font-family="Noto Sans KR,sans-serif" font-size="10" fill="#444441" x="250" y="316" text-anchor="middle">비상금 적립</text>
+
+        <!-- 우하: 예방/자가부담 -->
+        <text font-family="Noto Sans KR,sans-serif" font-size="13" font-weight="700" fill="#5f5e5a" x="460" y="240" text-anchor="middle">예방 / 자가부담</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#4a4a6a" x="460" y="258" text-anchor="middle">자주 발생하나 감당 가능</text>
+        <text font-family="Noto Sans KR,sans-serif" font-size="11" fill="#9090aa" x="460" y="290" text-anchor="middle" font-style="italic">예) 감기 치료비, 작은 찰과상</text>
+        <rect x="400" y="304" width="56" height="17" rx="8" fill="#5f5e5a" opacity="0.15"/>
+        <text font-family="Noto Sans KR,sans-serif" font-size="10" fill="#444441" x="428" y="316" text-anchor="middle">예방 투자</text>
+        <rect x="464" y="304" width="56" height="17" rx="8" fill="#5f5e5a" opacity="0.15"/>
+        <text font-family="Noto Sans KR,sans-serif" font-size="10" fill="#444441" x="492" y="316" text-anchor="middle">자기부담</text>
+      </svg>
+      <p style="font-size:0.76rem;color:var(--ink-faint);text-align:center;margin-top:0.5rem;">보험은 오직 우하단 구간—낮은 빈도, 큰 손실—을 위한 도구입니다</p>
+
+      <!-- 모바일 전용 강조 카드 -->
+      <div class="mobile-matrix-highlight">
+        <div class="mmh-grid">
+          <div class="mmh-cell mmh-focus">
+            <div class="mmh-label">▶ 보험 가입 구간</div>
+            <div class="mmh-sub">낮은 빈도 × 큰 손실</div>
+            <div class="mmh-desc">드물지만 발생 시 감당 불가<br><span class="mmh-example">예) 중증 질환, 사망, 대형 사고</span></div>
+            <div class="mmh-tags"><span>보장성 보험</span><span>위험 이전</span></div>
+          </div>
+          <div class="mmh-cell mmh-dim">
+            <div class="mmh-label-dim">회피 / 위험 제거</div>
+            <div class="mmh-sub-dim">높은 빈도 × 큰 손실</div>
+          </div>
+          <div class="mmh-cell mmh-dim">
+            <div class="mmh-label-dim">감수 (보험 불필요)</div>
+            <div class="mmh-sub-dim">낮은 빈도 × 작은 손실</div>
+          </div>
+          <div class="mmh-cell mmh-dim">
+            <div class="mmh-label-dim">예방 / 자가부담</div>
+            <div class="mmh-sub-dim">높은 빈도 × 작은 손실</div>
+          </div>
+        </div>
+        <div class="mmh-axis-x">발생 빈도 →</div>
+        <div class="mmh-axis-y">손실 규모 ↑</div>
+      </div>
+    </div>
+    <div class="nav-btns">
+      <button class="btn" onclick="goBackToOpening()">← 처음으로</button>
+      <span class="step-label">본질 이해</span>
+      <button class="btn primary" onclick="goToPledge()">다음 →</button>
+    </div>
+  </div>
+
+  <!-- PANEL 1: 진단 -->
+  <div class="panel" id="panel-1">
+    <div class="eyebrow">Step 02 · 리스크 진단</div>
+    <h1 class="panel-title">나의 리스크 구조 파악하기</h1>
+    <p class="panel-desc">7개 그룹의 질문에 순서대로 답해주세요. 완료 후 최대 7가지 맞춤 가이드가 생성됩니다.</p>
+
+    <div class="group-dots">
+      <div class="g-dot active" id="gd-0"></div>
+      <div class="g-dot" id="gd-bias"></div>
+      <div class="g-dot" id="gd-1"></div>
+      <div class="g-dot" id="gd-2b"></div>
+      <div class="g-dot" id="gd-2"></div>
+      <div class="g-dot" id="gd-3"></div>
+      <div class="g-dot" id="gd-4"></div>
+    </div>
+
+    <!-- 그룹 1: 위험 인식 -->
+    <div class="diag-group active" id="grp-0">
+      <div class="group-header">
+        <div class="group-eyebrow">그룹 1 / 7 · 위험 인식</div>
+        <div class="group-title">위험을 어떻게 인식하는가</div>
+      </div>
+      <div class="diag-stack">
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">01</span><div><div class="diag-axis">위험 태도</div><div class="diag-title">어느 쪽이 더 불안한가</div></div></div>
+          <div class="diag-q">"확률은 낮지만 발생하면 막대한 손실" vs "확률은 높지만 경미한 손실" — 어느 쪽이 더 불안한가?</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d1" data-value="high" onclick="selectOpt(this)">낮은 확률의 막대한 손실이 더 불안하다 <span class="opt-tag">위험 회피형</span></div>
+            <div class="diag-opt" data-target="d1" data-value="low" onclick="selectOpt(this)">높은 확률의 경미한 손실이 더 불안하다 <span class="opt-tag">위험 수용형</span></div>
+            <div class="diag-opt" data-target="d1" data-value="both" onclick="selectOpt(this)">둘 다 불안하다 <span class="opt-tag">불안 민감형</span></div>
+            <div class="diag-opt" data-target="d1" data-value="none" onclick="selectOpt(this)">둘 다 불안하지 않다 <span class="opt-tag">위험 둔감형</span></div>
+          </div>
+          <input type="hidden" id="d1" value="">
+        </div>
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">02</span><div><div class="diag-axis">재무 완충력</div><div class="diag-title">지금 당장 소득이 끊긴다면, 비상금·금융자산으로 몇 개월을 버틸 수 있는가</div></div></div>
+          <div class="diag-q">같은 위험이라도 재무 완충력에 따라 누구에게는 경미한 손실, 누구에게는 막대한 손실이 됩니다. 비상금·금융자산 기준으로 답해 주세요.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d2" data-value="rich" onclick="selectOpt(this)">1년 이상 버틸 수 있다 <span class="opt-tag">완충력 충분</span></div>
+            <div class="diag-opt" data-target="d2" data-value="mid" onclick="selectOpt(this)">6개월~1년 정도 버틸 수 있다 <span class="opt-tag">보통</span></div>
+            <div class="diag-opt" data-target="d2" data-value="low" onclick="selectOpt(this)">3~6개월 정도 <span class="opt-tag">취약</span></div>
+            <div class="diag-opt" data-target="d2" data-value="none" onclick="selectOpt(this)">3개월 미만 / 거의 없다 <span class="opt-tag">매우 취약</span></div>
+          </div>
+          <input type="hidden" id="d2" value="">
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn" onclick="goMain(0)">← 이전</button>
+        <span class="step-label">그룹 1 / 7</span>
+        <button class="btn primary" onclick="nextGroup()">다음 →</button>
+      </div>
+    </div>
+
+    <!-- 그룹 2: 행동 편향 (신규) -->
+    <div class="diag-group" id="grp-bias">
+      <div class="group-header">
+        <div class="group-eyebrow">그룹 2 / 7 · 행동 편향</div>
+        <div class="group-title">보험 판단을 왜곡하는 심리적 편향이 있는가</div>
+      </div>
+      <div class="diag-stack">
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">03</span><div><div class="diag-axis">가용성 편향</div><div class="diag-title">주변의 경험이 나의 판단에 얼마나 영향을 미치는가</div></div></div>
+          <div class="diag-q">가까운 사람이 큰 병에 걸리거나 사고를 당하면 나도 그 위험이 높다고 느끼게 됩니다. 이 편향 때문에 불필요한 보험에 과도하게 가입하거나, 반대로 주변에 피해자가 없으면 위험을 과소평가할 수 있습니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d_bias" data-value="low" onclick="selectOpt(this)">주변 경험에 거의 영향받지 않는다 <span class="opt-tag">편향 낮음</span></div>
+            <div class="diag-opt" data-target="d_bias" data-value="mid" onclick="selectOpt(this)">영향을 받지만 곧 객관적으로 판단한다 <span class="opt-tag">편향 보통</span></div>
+            <div class="diag-opt" data-target="d_bias" data-value="high" onclick="selectOpt(this)">주변에서 비슷한 일이 생기면 보험을 늘리고 싶어진다 <span class="opt-tag">편향 높음</span></div>
+            <div class="diag-opt" data-target="d_bias" data-value="under" onclick="selectOpt(this)">주변 경험이 없으면 나는 괜찮다고 생각하는 편이다 <span class="opt-tag">과소평가 주의</span></div>
+          </div>
+          <input type="hidden" id="d_bias" value="">
+        </div>
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">04</span><div><div class="diag-axis">최신 편향</div><div class="diag-title">최근 본인의 경험이 보험 판단에 영향을 미치는가</div></div></div>
+          <div class="diag-q">얼마 전 본인이 아프거나 다쳤거나, 가까운 사람의 사건을 직접 경험한 후 보험을 더 들어야겠다는 생각이 강해진 적이 있나요? 최근 경험은 실제 발생 확률을 바꾸지 않지만 판단을 왜곡할 수 있습니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d_recency" data-value="low" onclick="selectOpt(this)">최근 경험에 거의 흔들리지 않는다 <span class="opt-tag">편향 낮음</span></div>
+            <div class="diag-opt" data-target="d_recency" data-value="high" onclick="selectOpt(this)">최근 경험 후 보험을 늘리고 싶어졌다 <span class="opt-tag">편향 높음</span></div>
+          </div>
+          <input type="hidden" id="d_recency" value="">
+        </div>
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">05</span><div><div class="diag-axis">현상유지 편향</div><div class="diag-title">지금 가입된 보험을 검토하지 않고 그냥 유지하고 있는가</div></div></div>
+          <div class="diag-q">지금 내는 보험료가 실제로 필요한지 확인해본 적이 있나요? 불안하거나 귀찮아서, 또는 "해지하면 손해"라는 말 때문에 그냥 유지하고 있지는 않나요?</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d_status_quo" data-value="low" onclick="selectOpt(this)">정기적으로 보험을 검토하고 있다 <span class="opt-tag">편향 낮음</span></div>
+            <div class="diag-opt" data-target="d_status_quo" data-value="high" onclick="selectOpt(this)">필요한지 모르겠지만 그냥 유지하고 있다 <span class="opt-tag">편향 높음</span></div>
+          </div>
+          <input type="hidden" id="d_status_quo" value="">
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn" onclick="prevGroup()">← 이전</button>
+        <span class="step-label">그룹 2 / 7</span>
+        <button class="btn primary" onclick="nextGroup()">다음 →</button>
+      </div>
+    </div>
+
+    <!-- 그룹 2: 소득 구조 -->
+    <div class="diag-group" id="grp-1">
+      <div class="group-header">
+        <div class="group-eyebrow">그룹 3 / 7 · 소득 구조</div>
+        <div class="group-title">소득은 얼마나 안정적이고 지속 가능한가</div>
+      </div>
+      <div class="diag-stack">
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">06</span><div><div class="diag-axis">소득 안정성</div><div class="diag-title">내 소득 유형은</div></div></div>
+          <div class="diag-q">소득의 유형과 지속 가능성이 납입기간 설계의 핵심 기준입니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d3i" data-value="stable" onclick="selectOpt(this)">공무원·공기업·전문직(의사·변호사 등) <span class="opt-tag">매우 안정</span></div>
+            <div class="diag-opt" data-target="d3i" data-value="semi" onclick="selectOpt(this)">사기업 직장인 (대기업·중소기업·계약직 포함) <span class="opt-tag">보통</span></div>
+            <div class="diag-opt" data-target="d3i" data-value="unstable" onclick="selectOpt(this)">프리랜서·자영업자·플랫폼 노동자 <span class="opt-tag">불안정</span></div>
+          </div>
+          <input type="hidden" id="d3i" value="">
+        </div>
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">07</span><div><div class="diag-axis">잔여 근속연수</div><div class="diag-title">앞으로 몇 년간 현재 소득이 유지될 것으로 예상하는가</div></div></div>
+          <div class="diag-q">납입기간은 소득이 유지되는 기간 안에 완납되어야 합니다. 은퇴를 앞두고 있다면 신규 가입 자체를 먼저 고민해야 할 수 있습니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d4i" data-value="long" onclick="selectOpt(this)">20년 이상</div>
+            <div class="diag-opt" data-target="d4i" data-value="mid" onclick="selectOpt(this)">10~20년</div>
+            <div class="diag-opt" data-target="d4i" data-value="short" onclick="selectOpt(this)">10년 미만 <span class="opt-tag">재검토 필요</span></div>
+            <div class="diag-opt" data-target="d4i" data-value="unknown" onclick="selectOpt(this)">예측 불가 <span class="opt-tag">완납 우선</span></div>
+          </div>
+          <input type="hidden" id="d4i" value="">
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn" onclick="prevGroup()">← 이전</button>
+        <span class="step-label">그룹 3 / 7</span>
+        <button class="btn primary" onclick="nextGroup()">다음 →</button>
+      </div>
+    </div>
+
+    <!-- 그룹 3: 건강 이력 (신규) -->
+    <div class="diag-group" id="grp-2b">
+      <div class="group-header">
+        <div class="group-eyebrow">그룹 4 / 7 · 건강 이력</div>
+        <div class="group-title">가족력과 기왕력이 있는가</div>
+      </div>
+      <div class="diag-stack">
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">08</span><div><div class="diag-axis">가족력</div><div class="diag-title">직계가족 중 중증 질환 경험자가 있는가</div></div></div>
+          <div class="diag-q">암·심혈관질환·뇌혈관질환 등은 가족력이 발생 확률에 영향을 줍니다. 단, 가족력은 발생을 확정하는 것이 아닙니다. 불안감에 의한 과도한 가입을 주의하세요.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d_family_hx" data-value="none" onclick="selectOpt(this)">없음</div>
+            <div class="diag-opt" data-target="d_family_hx" data-value="cancer" onclick="selectOpt(this)">암 (직계가족)</div>
+            <div class="diag-opt" data-target="d_family_hx" data-value="cardio" onclick="selectOpt(this)">심혈관·뇌혈관질환 (직계가족)</div>
+            <div class="diag-opt" data-target="d_family_hx" data-value="both" onclick="selectOpt(this)">암 + 심혈관·뇌혈관질환 복합</div>
+          </div>
+          <input type="hidden" id="d_family_hx" value="">
+        </div>
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">09</span><div><div class="diag-axis">기왕력</div><div class="diag-title">현재 또는 과거에 진단·치료받은 질환이 있는가</div></div></div>
+          <div class="diag-q">기왕력이 있으면 해당 질환 관련 보험 가입이 거절되거나 부담보 조건이 붙을 수 있습니다. 가입 가능 여부를 먼저 확인하는 것이 순서입니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d_hx" data-value="none" onclick="selectOpt(this)">없음</div>
+            <div class="diag-opt" data-target="d_hx" data-value="old" onclick="selectOpt(this)">있음, 완치 판정 후 5년 이상 경과 <span class="opt-tag">일반심사 확인</span></div>
+            <div class="diag-opt" data-target="d_hx" data-value="recent" onclick="selectOpt(this)">있음, 현재 치료 중 또는 완치 후 5년 미만 <span class="opt-tag">간편심사 검토</span></div>
+          </div>
+          <input type="hidden" id="d_hx" value="">
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn" onclick="prevGroup()">← 이전</button>
+        <span class="step-label">그룹 4 / 7</span>
+        <button class="btn primary" onclick="nextGroup()">다음 →</button>
+      </div>
+    </div>
+
+    <!-- 그룹 4: 상해 위험 -->
+    <div class="diag-group" id="grp-2">
+      <div class="group-header">
+        <div class="group-eyebrow">그룹 5 / 7 · 상해 위험</div>
+        <div class="group-title">직업과 생활 방식에서 상해 위험이 있는가</div>
+      </div>
+      <div class="diag-stack">
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">10</span><div><div class="diag-axis">직업 특성</div><div class="diag-title">직업상 상해 위험에 노출되는가</div></div></div>
+          <div class="diag-q">질병 위험은 모든 직업에 공통입니다. 현장직·운송직·육체노동을 제외하면 직업에 따른 상해 위험 차이는 사실상 없습니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d3" data-value="normal" onclick="selectOpt(this)">사무직·서비스직 등 주로 실내·비육체 업무 <span class="opt-tag">상해 위험 낮음</span></div>
+            <div class="diag-opt" data-target="d3" data-value="field" onclick="selectOpt(this)">현장직·운송직·운동선수 등 육체 활동 중심 직업 <span class="opt-tag">상해 보장 검토</span></div>
+          </div>
+          <input type="hidden" id="d3" value="">
+        </div>
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">11</span><div><div class="diag-axis">라이프스타일</div><div class="diag-title">여가·취미 활동의 신체 활동 수준은</div></div></div>
+          <div class="diag-q">직업과 무관하게 취미·여가 활동이 육체적일수록 상해 노출이 높아집니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d3b" data-value="inactive" onclick="selectOpt(this)">독서·음악·영상·실내 취미 중심 <span class="opt-tag">상해 위험 낮음</span></div>
+            <div class="diag-opt" data-target="d3b" data-value="active" onclick="selectOpt(this)">등산·자전거·스포츠·모터스포츠 등 육체적 취미 <span class="opt-tag">상해 보장 검토</span></div>
+          </div>
+          <input type="hidden" id="d3b" value="">
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn" onclick="prevGroup()">← 이전</button>
+        <span class="step-label">그룹 5 / 7</span>
+        <button class="btn primary" onclick="nextGroup()">다음 →</button>
+      </div>
+    </div>
+
+    <!-- 그룹 4: 피부양자 -->
+    <div class="diag-group" id="grp-3">
+      <div class="group-header">
+        <div class="group-eyebrow">그룹 6 / 7 · 피부양자</div>
+        <div class="group-title">나에게 경제적으로 의존하는 사람이 있는가</div>
+      </div>
+      <div class="diag-stack">
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">12</span><div><div class="diag-axis">가족 구성</div><div class="diag-title">현재 가족 구성은</div></div></div>
+          <div class="diag-q">내가 소득을 잃었을 때 생계가 위협받는 가족이 있는가? 이것이 사망보험 필요 여부와 보장금액을 결정합니다.</div>
+          <div class="diag-q" style="margin-bottom:.5rem;font-size:.78rem;color:var(--ink-faint);font-style:normal;">미성년 자녀·소득 없는 배우자·부양 부모는 중복 선택 가능합니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d4" data-value="single" onclick="selectFamilyOpt(this)">1인 가구 / 피부양자 없음 <span class="opt-tag">생명보험 불필요</span></div>
+            <div class="diag-opt" data-target="d4" data-value="couple" onclick="selectFamilyOpt(this)">맞벌이 배우자만 있음 <span class="opt-tag">정기보험 검토</span></div>
+            <div class="diag-opt multi-ok" data-target="d4" data-value="family-young" onclick="selectFamilyOpt(this)">미성년 자녀 있음 <span class="opt-tag">정기보험 활용</span></div>
+            <div class="diag-opt multi-ok" data-target="d4" data-value="family-dep" onclick="selectFamilyOpt(this)">소득 없는 배우자 또는 부양 부모 있음 <span class="opt-tag">정기보험 활용</span></div>
+          </div>
+          <input type="hidden" id="d4" value="">
+        </div>
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">13</span><div><div class="diag-axis">부채 현황</div><div class="diag-title">현재 상환 중인 대출이 있는가</div></div></div>
+          <div class="diag-q">사망 시 부채는 상속인에게 승계될 수 있습니다. 부채 규모보다 중요한 것은 상속 시 금융자산으로 상환 가능한지 여부입니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d_debt" data-value="none" onclick="selectOpt(this)">대출 없음</div>
+            <div class="diag-opt" data-target="d_debt" data-value="ok" onclick="selectOpt(this)">대출 있음, 상속 시 금융자산으로 상환 가능 <span class="opt-tag">별도 반영 불필요</span></div>
+            <div class="diag-opt" data-target="d_debt" data-value="risk" onclick="selectOpt(this)">대출 있음, 상속 시 금융자산으로 상환 불가 <span class="opt-tag">보장금액에 반영</span></div>
+          </div>
+          <input type="hidden" id="d_debt" value="">
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn" onclick="prevGroup()">← 이전</button>
+        <span class="step-label">그룹 6 / 7</span>
+        <button class="btn primary" onclick="nextGroup()">다음 →</button>
+      </div>
+    </div>
+
+    <!-- 그룹 6: 자산 구조 -->
+    <div class="diag-group" id="grp-4">
+      <div class="group-header">
+        <div class="group-eyebrow">그룹 7 / 7 · 자산 구조</div>
+        <div class="group-title">상속세 납부 재원 마련이 필요한가</div>
+      </div>
+      <div class="diag-stack">
+        <div class="diag-row">
+          <div class="diag-row-head"><span class="diag-num">14</span><div><div class="diag-axis">자산 규모</div><div class="diag-title">현재 보유 자산의 총규모는</div></div></div>
+          <div class="diag-q">자산 규모에 따라 상속세 납부 재원 마련이 필요한지 판단합니다. 이것이 종신보험 필요 여부를 결정하는 핵심 기준입니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d5" data-value="under1" onclick="selectOpt(this)">1억 미만 <span class="opt-tag">상속세 해당 없음</span></div>
+            <div class="diag-opt" data-target="d5" data-value="1to5" onclick="selectOpt(this)">1억~5억 <span class="opt-tag">상속세 해당 없음</span></div>
+            <div class="diag-opt" data-target="d5" data-value="5to10" onclick="selectOpt(this)">5억~10억 <span class="opt-tag">경계 구간</span></div>
+            <div class="diag-opt" data-target="d5" data-value="over10" onclick="selectOpt(this)">10억 이상 <span class="opt-tag">상속세 검토 필요</span></div>
+          </div>
+          <input type="hidden" id="d5" value="">
+        </div>
+        <div class="diag-row" id="row-d6" style="display:none;border-color:var(--gold);background:var(--gold-bg);">
+          <div class="diag-row-head"><span class="diag-num">15</span><div><div class="diag-axis">금융자산 비중</div><div class="diag-title">보유 자산 중 금융자산(현금·예금·주식 등)의 비중은</div></div></div>
+          <div class="diag-q">상속세는 현금으로 납부해야 합니다. 자산 대부분이 부동산·사업체라면 종신보험이 유효한 수단이 됩니다.</div>
+          <div class="diag-options">
+            <div class="diag-opt" data-target="d6" data-value="high" onclick="selectOpt(this)">50% 이상 <span class="opt-tag">유동성 충분</span></div>
+            <div class="diag-opt" data-target="d6" data-value="mid" onclick="selectOpt(this)">20~50% <span class="opt-tag">종신보험 검토</span></div>
+            <div class="diag-opt" data-target="d6" data-value="low" onclick="selectOpt(this)">20% 미만 (부동산·사업체 비중 높음) <span class="opt-tag">종신보험 활용</span></div>
+          </div>
+          <input type="hidden" id="d6" value="">
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn" onclick="prevGroup()">← 이전</button>
+        <span class="step-label">그룹 7 / 7</span>
+        <button class="btn primary" onclick="finishDiag()">결과 보기 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: 결과 -->
+  <div class="panel" id="panel-2">
+    <div class="eyebrow">Step 03 · 결과</div>
+    <h1 class="panel-title">나만의 보험 가이드</h1>
+
+    <div class="result-tabs">
+      <button class="rtab active" onclick="switchRTab(0)">내 가이드</button>
+      <button class="rtab" onclick="switchRTab(1)">가입 원칙</button>
+      <button class="rtab" onclick="switchRTab(2)">보험 종류</button>
+      <button class="rtab" onclick="switchRTab(3)">체크리스트</button>
+      <button class="rtab" onclick="switchRTab(4)">FAQ</button>
+      <button class="rtab" onclick="switchRTab(5)">판매자의 논리</button>
+      <button class="rtab" onclick="switchRTab(6)">만든 이유</button>
+    </div>
+
+    <div class="rtab-panel active" id="rtab-0">
+      <div id="guideOutput"></div>
+      <div class="disclaimer">※ 본 가이드는 금융소비자의 자율적 판단을 돕기 위한 교육 목적의 일반 정보입니다. 특정 보험 상품의 가입 또는 해지를 권유하는 것이 아닙니다.<br><br>※ 결과를 복사해서 Claude, ChatGPT, Gemini 등 AI에게 붙여넣고, 설계사에게 받은 가입제안서를 함께 첨부해 검토를 요청해보세요. AI가 내 리스크 구조를 이해한 상태에서 제안서를 검토해줄 수 있습니다.<br>단, AI도 틀릴 수 있으므로 최종 판단은 본인이 해야 합니다. 보험 상품 구조가 복잡하거나, 기가입 보험과의 관계를 따져봐야 하거나, 직접 판단이 어렵다면 <a href="https://identifi.co.kr" style="color:var(--ink-light);text-decoration:underline;">IdentiFi CFP</a>와 상의해보세요.</div>
+    </div>
+
+    <div class="rtab-panel" id="rtab-1">
+
+    <div class="principle-list">
+      <div class="p-item" onclick="toggleP(this)">
+        <div class="p-header">
+          <span class="p-title">보장기간 — 얼마나 오래?</span>
+          <span class="p-toggle">+</span>
+        </div>
+        <div class="p-body">
+          <strong>경제활동 기간과 연동하는 것이 합리적입니다.</strong> 보험의 목적은 경제적 손실 보전이므로, 소득이 없는 시기에는 필요한 보장의 성격 자체가 달라집니다. 사망보험은 부양가족이 있는 기간에 집중하는 것이 핵심입니다.<br><br>
+          <strong>단, 실손의료보험은 예외입니다.</strong> 의료비 발생 위험은 전 생애에 걸쳐 존재하므로 실손의료보험은 다른 보험과 달리 경제활동 기간에 관계없이 계속 유지하는 것이 원칙입니다.
+          <div class="warn-box" style="margin-top:0.8rem;">
+            <div class="lbl">⚠ 흔한 오해</div>
+            <p>보장기간이 길수록 좋다는 것은 틀린 말입니다. 단, 재무적 여력이 충분하다면 과거처럼 60세·70세 만기 보험도 충분할 수 있습니다. 보장기간이 길면 보험료 총액이 커지고, 정작 중요한 시기에 금융지출이 과다할 수 있습니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-item" onclick="toggleP(this)">
+        <div class="p-header">
+          <span class="p-title">납입기간 — 소득 안정성에 따라 결정</span>
+          <span class="p-toggle">+</span>
+        </div>
+        <div class="p-body">
+          <strong>소득 안정형 (공무원·공기업·정규직)</strong>은 20년납·30년납의 장기납이 합리적입니다. 소득이 장기간 예측 가능하므로 월 보험료를 낮춰 현금흐름을 확보하고, 그 여유분으로 투자·저축 등 다른 재무목표를 병행하는 것이 효율적입니다. 굳이 단기납으로 보험료 부담을 높여 현금흐름을 묶을 이유가 없습니다.<br><br>
+          <strong>소득 불안정형 (프리랜서·자영업자)</strong>은 단기납(5~10년납)으로 빠르게 완납하는 것이 우선입니다. 소득이 언제 끊길지 모르므로 납입 중 실효 위험이 큽니다. 보장금액이 다소 작더라도 <em>"완납된 작은 보험"</em>이 <em>"실효 위험이 있는 큰 보험"</em>보다 낫습니다. 완납 후에는 보험료 부담 없이 보장이 유지됩니다.<br><br><strong>완납이 핵심 목표라면 5년납 이하를 적극 검토하세요.</strong> 보장금액이 줄더라도 빠르게 완납해 실효 위험을 없애는 것이 장기적으로 더 안전합니다.<br><br>
+          <strong>은퇴를 앞두거나 은퇴 중이라면</strong> 신규 보험 가입 자체를 먼저 고민해야 합니다. 납입 기간이 소득 기간을 초과하면 납입 부담이 고스란히 노후 현금흐름을 압박합니다.
+          <div class="info-box" style="margin-top:0.8rem;">
+            <div class="lbl">✓ 핵심 원칙</div>
+            <p>납입기간의 기준은 소득의 지속 가능성입니다. 소득이 길게 유지될수록 납입을 길게 분산하고, 소득이 불안정할수록 빠르게 완납해 실효 위험을 제거합니다.</p>
+          </div>
+          <div class="warn-box" style="margin-top:0.8rem;">
+            <div class="lbl">⚠ 흔한 오해</div>
+            <p>납입기간이 길면 보험료를 더 많이 낸다? — 보험료는 예정이율을 적용한 현가 계산 구조입니다. 납입기간이 달라도 이론상 등가이므로, 단순 합산으로 비교하는 것은 화폐의 시간가치를 무시한 왜곡된 계산입니다. 단기납 권유 시 이 논리를 자주 활용하므로 주의하세요.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-item" onclick="toggleP(this)">
+        <div class="p-header">
+          <span class="p-title">갱신형 vs 비갱신형</span>
+          <span class="p-toggle">+</span>
+        </div>
+        <div class="p-body">
+          <strong>비갱신형</strong>은 가입 당시 보험료가 고정되어 장기 총납입액이 예측 가능합니다. 장기간 안정적으로 보장을 유지하려는 경우에 적합합니다.<br><br>
+          <strong>갱신형</strong>은 초기 보험료가 낮지만 갱신 시마다 보험료가 인상됩니다. 나이가 들수록 인상 폭이 커져 노후에 부담이 급증합니다. 단, 10~20년의 집중 보장이 필요한 시기에 한정적으로 활용하면 효율적일 수 있습니다. 실손의료보험은 구조상 갱신형만 존재합니다.<br><br>
+          <strong>용도에 따라 적절하게 혼용하는 것이 핵심입니다.</strong> 비갱신형이 무조건 우월한 것이 아니라, 보장 목적과 기간에 맞게 선택해야 합니다.
+          <div class="warn-box" style="margin-top:0.8rem;">
+            <div class="lbl">⚠ 흔한 오해</div>
+            <p>비갱신형이 항상 유리하다는 것은 단순화된 말입니다. 단기 집중 보장이 목적이라면 갱신형이 오히려 효율적일 수 있습니다. 장기 유지가 목적이라면 비갱신형이 유리합니다. 목적과 기간을 먼저 정하고 선택하세요.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-item" onclick="toggleP(this)">
+        <div class="p-header">
+          <span class="p-title">보장금액 — "얼마가 적정한가"</span>
+          <span class="p-toggle">+</span>
+        </div>
+        <div class="p-body">
+          <strong>사망보험금 — 니즈분석법이 기준입니다.</strong><br>
+          피부양자의 연간 생활비 × 독립까지 남은 기간 = 필요 보장금액 100%. 여기에 잔여 부채(상속 시 금융자산으로 상환 불가한 경우)를 더한 금액이 산출 기준입니다.<br><br>
+          실제 가입 수준은 아래 두 가지 주관적 질문으로 결정하세요.<br>
+          · <strong>"이 위험이 실현됐을 때 내가 감수할 수 있는 손실의 최대치는 어디까지인가?"</strong> — 한 푼도 감수하기 싫다면 100%, 어느 정도 감수 가능하면 50~70%, 상당 부분 자력으로 버틸 수 있다면 30% 이내<br>
+          · <strong>"이 보험료를 저축·투자에 쓴다면 어떨까?"</strong> — 보험료가 다른 재무목표를 방해한다면 보장 수준을 낮추는 것이 합리적<br><br>
+          보장금액의 정답은 없습니다. 객관적 필요액을 파악한 뒤, 본인이 얼마나 불확실성을 견딜 수 있는지에 따라 스스로 결정하는 것이 합리적인 보험 설계입니다.<br><br>
+          <strong>질병·상해 보험금 — 소득 공백 기간의 생활비가 기준입니다.</strong><br>
+          직접 의료비는 아래 공적 안전망으로 대부분 해결됩니다. 보험금의 핵심은 치료 기간 동안 끊기는 소득을 보전하는 것입니다. 소득 공백 예상 기간 × 월 생활비 = 100% 기준. 재무 완충력과 본인의 위험 감수 한계에 따라 30~100% 사이에서 스스로 조정하세요.
+          <div class="info-box" style="margin-top:0.8rem;">
+            <div class="lbl">✓ 의료비 공적 안전망</div>
+            <p><strong>건강보험</strong>: 급여 항목 의료비의 대부분을 건강보험이 부담합니다.<br>
+            <strong>본인부담액상한제</strong>: 연간 본인부담 의료비가 소득 수준별 상한액을 초과하면 초과분을 건강보험공단이 환급합니다. 고액 치료비 상황에서 실질적인 보호막이 됩니다.<br>
+            <strong>실손의료보험</strong>: 건강보험 급여 후 남은 본인부담금과 비급여 항목을 보전합니다.<br>
+            이 세 가지가 작동하면 직접 의료비 부담은 상당히 완화됩니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-item" onclick="toggleP(this)">
+        <div class="p-header">
+          <span class="p-title">특약 — 무엇을 붙이고 무엇을 뺄 것인가</span>
+          <span class="p-toggle">+</span>
+        </div>
+        <div class="p-body">
+          특약은 추가 비용이 발생하는 별도 계약입니다. 판매자가 권유하는 특약은 대부분 보험사 수익에 유리한 것들입니다.<br><br>
+          <strong>기준 질문 세 가지 — 모두 Yes여야 특약을 붙이는 게 합리적입니다.</strong><br><br>
+          ① <strong>발생 가능성</strong>: 이 특약이 보장하는 위험이 나에게 실제로 발생할 가능성이 있는가?<br>
+          ② <strong>대안 부재</strong>: 보험 외에 이 위험에 대응할 수단(비상금, 사회보험, 고용보험 등)이 없는가?<br>
+          ③ <strong>감당 불가</strong>: 대안이 없을 때 해당 위험이 경제적으로 감당 불가능한 수준인가?
+          <div class="info-box" style="margin-top:0.8rem;">
+            <div class="lbl">✓ 실용 원칙</div>
+            <p>특약은 최소화하고, 주계약의 보장을 내실 있게 구성하는 방향이 장기적으로 유리합니다.</p>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="rtab-panel" id="rtab-2">
+
+    <!-- 우선 검토 -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);padding:.4rem .8rem;background:var(--green-bg);border-radius:4px;display:inline-block;">우선 검토 — 대부분의 사람에게 해당</div>
+    </div>
+    <div class="type-list" style="margin-bottom:1.5rem;">
+
+      <div class="type-row">
+        <div class="type-head" onclick="toggleType(this.parentElement)">
+          <div class="type-name">실손의료보험</div>
+          <div class="type-q">실제 발생한 의료비를 보전하는 가장 기본적인 보험</div>
+        </div>
+        <div class="type-body">
+          <div class="type-yes">
+            <div class="type-lbl">필요한 경우</div>
+            <div class="type-content">의료비 지출이 예측 불가능한 모든 성인. 한국에서 보편적으로 가장 먼저 갖춰야 할 보험입니다. 단, 실손보험은 실제 지출액만 보전하는 실손보상형 구조이므로 2개를 가져도 각각 청구되지 않습니다. 추가 가입은 의미가 없습니다.</div>
+          </div>
+          <div class="type-no">
+            <div class="type-lbl">주의할 점</div>
+            <div class="type-content">갱신형 구조로 노후 보험료가 급등합니다. 가입 세대(1~5세대)에 따라 보장 내용과 자기부담금이 크게 다릅니다. 실손 하나로 모든 의료비가 해결된다는 오해를 주의하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-head" onclick="toggleType(this.parentElement)">
+          <div class="type-name">배상책임보험</div>
+          <div class="type-q">내 과실로 타인에게 손해를 입혔을 때 배상금을 보전하는 보험</div>
+        </div>
+        <div class="type-body">
+          <div class="type-yes">
+            <div class="type-lbl">필요한 경우</div>
+            <div class="type-content">타인에게 재산·신체 손해를 입힐 가능성이 있는 모든 사람에게 해당합니다. 자동차 운전자, 반려동물 보호자, 자녀가 있는 가정, 소규모 사업자에게 특히 중요합니다. 단일 사고로 고액 배상이 발생할 수 있습니다.</div>
+          </div>
+          <div class="type-no">
+            <div class="type-lbl">주의할 점</div>
+            <div class="type-content">일상생활배상책임 특약은 화재보험·실손보험에 이미 포함된 경우가 많습니다. 중복 여부를 먼저 확인하세요. 고의적 행위나 직무 관련 손해는 보장되지 않습니다.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 조건부 검토 -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);padding:.4rem .8rem;background:var(--gold-bg);border-radius:4px;display:inline-block;">조건부 검토 — 해당 상황에 따라 필요 여부 판단</div>
+    </div>
+    <div class="type-list" style="margin-bottom:1.5rem;">
+
+      <div class="type-row">
+        <div class="type-head" onclick="toggleType(this.parentElement)">
+          <div class="type-name">질병보험</div>
+          <div class="type-q">암·뇌·심장 등 중증 질환 진단 시 소득 공백을 보전하는 보험</div>
+        </div>
+        <div class="type-body">
+          <div class="type-yes">
+            <div class="type-lbl">필요한 경우</div>
+            <div class="type-content">실손보험만으로는 장기 치료 중 소득 공백이 보전되지 않습니다. 암·뇌졸중·심근경색 등 치료 기간이 길고 소득이 완전히 끊길 수 있는 질환에 대비합니다. 가족력이 있거나 단일 소득자 가정에서 우선순위가 높습니다.</div>
+          </div>
+          <div class="type-no">
+            <div class="type-lbl">주의할 점</div>
+            <div class="type-content">보험사마다 질병의 정의와 지급 기준이 다릅니다. 유사암(갑상선암·경계성 종양 등)은 일반암보다 지급액이 크게 낮습니다. 이미 비슷한 보장이 있는 경우가 많으므로 기존 가입 내역을 먼저 확인하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-head" onclick="toggleType(this.parentElement)">
+          <div class="type-name">정기보험</div>
+          <div class="type-q">경제활동기 조기 사망 시 피부양자의 생계를 보전하는 순수 사망보험</div>
+        </div>
+        <div class="type-body">
+          <div class="type-yes">
+            <div class="type-lbl">필요한 경우</div>
+            <div class="type-content">미성년 자녀, 소득 없는 배우자, 부양 부모 등 경제적 피부양자가 있는 경우. 피부양자가 경제적으로 독립하는 시점까지 보장기간을 설정하는 것이 핵심입니다. 같은 보장금액 대비 보험료가 종신보험보다 월등히 낮습니다.</div>
+          </div>
+          <div class="type-no">
+            <div class="type-lbl">주의할 점</div>
+            <div class="type-content">만기 후 보장이 소멸합니다. 피부양자가 독립하면 갱신 없이 종료하는 것이 합리적입니다. 피부양자가 전혀 없다면 정기보험은 불필요합니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-head" onclick="toggleType(this.parentElement)">
+          <div class="type-name">종신보험</div>
+          <div class="type-q">사망 시점에 관계없이 보험금이 지급되는 보험 — 상속·증여 문제와 연결됨</div>
+        </div>
+        <div class="type-body">
+          <div class="type-yes">
+            <div class="type-lbl">필요한 경우</div>
+            <div class="type-content">상속세 납부 재원 마련이 필요한 경우(상속 자산은 있으나 현금이 부족한 경우). 사업체 승계 시 유동성 확보 목적. 이 경우 종신보험은 보장 상품이 아닌 재무설계 도구로 접근하는 것이 맞습니다.</div>
+          </div>
+          <div class="type-no">
+            <div class="type-lbl">주의할 점</div>
+            <div class="type-content">보험료 대비 순수 사망 보장 효율이 정기보험보다 크게 낮습니다. 상속·증여 목적이 아닌 단순 사망 보장 목적이라면 정기보험이 압도적으로 유리합니다. 판매 수수료가 높아 소비자보다 판매자에게 유리한 구조입니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-head" onclick="toggleType(this.parentElement)">
+          <div class="type-name">상해보험</div>
+          <div class="type-q">사고(외인성 손상)로 인한 신체 부상·후유장해·사망을 보장</div>
+        </div>
+        <div class="type-body">
+          <div class="type-yes">
+            <div class="type-lbl">필요한 경우</div>
+            <div class="type-content">현장직·운송직·운동선수 등 상해 발생 확률이 구조적으로 높은 직업. 육체적 취미 활동(등산·자전거·모터스포츠 등)이 있는 경우.</div>
+          </div>
+          <div class="type-no">
+            <div class="type-lbl">주의할 점</div>
+            <div class="type-content">상해보험은 질병을 보장하지 않습니다. 사고로 인한 부상에만 해당하며, 같은 증상이라도 질병으로 인한 경우는 해당 없습니다. 실손보험과 보장 범위가 일부 겹치므로 기존 가입 내역을 먼저 확인하세요.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 신중히 검토 -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);padding:.4rem .8rem;background:var(--accent-bg);border-radius:4px;display:inline-block;">신중히 검토 — 보험료 대비 실익을 따져야 할 선택적 보장</div>
+    </div>
+    <div class="warn-box">
+      <div class="lbl">⚠ 보험료는 금융지출입니다</div>
+      <p>간병보험·치매보험·치아보험·수술비·입원비·골절·화상·깁스 등 소액 특약류는 발생 확률이 낮거나 발생해도 자력으로 감당 가능한 경우가 많습니다. <strong>보험료는 보장 자산이 아니라 매월 나가는 금융지출입니다.</strong> 이 구간의 보험을 검토할 때는 "이 보험료로 직접 저축하면 어떨까?"를 반드시 자문해 보세요. 불필요한 보험료 지출은 다른 재무목표 달성을 방해합니다.<br><br>특히 간병·치매 관련 보험은 판매자의 공포 마케팅이 집중되는 영역입니다. 실제로 <strong>노인장기요양보험</strong>과 <strong>치매안심센터</strong> 등 국가 지원 제도가 있어 일정 수준의 간병·치매 비용은 공적으로 보전됩니다. 보험 가입 전 공적 지원 범위를 먼저 확인하고, 그 이후 부족한 부분을 보험으로 채우는 순서가 맞습니다. "이러다 큰일 난다"는 식의 공포 마케팅에 흔들려 가입 결정을 서두르지 마세요.</p>
+    </div>
+
+  </div>
+
+  <div class="rtab-panel" id="rtab-3">
+
+    <div class="check-list" id="checkList">
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="cb"><span class="cb-tick">✓</span></div>
+        <div class="check-text">
+          <strong>이 보험이 보장하는 위험이 나에게 실제로 발생 가능한가?</strong>
+          <span>확률이 극히 낮은 위험에 대한 보험은 불필요합니다.</span>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="cb"><span class="cb-tick">✓</span></div>
+        <div class="check-text">
+          <strong>해당 위험이 발생했을 때 보험 없이 경제적으로 감당 불가능한가?</strong>
+          <span>자력으로 감당 가능한 위험에 굳이 보험료를 쓸 필요는 없습니다.</span>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="cb"><span class="cb-tick">✓</span></div>
+        <div class="check-text">
+          <strong>갱신형인지 비갱신형인지, 그 차이를 이해하고 선택했는가?</strong>
+          <span>갱신형이면 10년·20년 후 예상 보험료를 확인하세요.</span>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="cb"><span class="cb-tick">✓</span></div>
+        <div class="check-text">
+          <strong>납입기간 동안 보험료를 안정적으로 낼 수 있는가?</strong>
+          <span>납입 중 실효되면 그동안 낸 보험료는 대부분 돌아오지 않습니다.</span>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="cb"><span class="cb-tick">✓</span></div>
+        <div class="check-text">
+          <strong>동일한 보험이 이미 가입되어 있지 않은가?</strong>
+          <span>실손의료보험·배상책임보험 등은 이미 보장이 있을 경우 추가 가입해도 보상이 늘지 않습니다. 가입 전 기존 보장 내역을 반드시 확인하세요.</span>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="cb"><span class="cb-tick">✓</span></div>
+        <div class="check-text">
+          <strong>붙인 특약 하나하나의 필요성을 직접 검토했는가?</strong>
+          <span>판매자가 권유한 특약이라도 나에게 맞지 않을 수 있습니다.</span>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="cb"><span class="cb-tick">✓</span></div>
+        <div class="check-text">
+          <strong>보장금액이 실제 예상 손실 규모를 기준으로 설정되었는가?</strong>
+          <span>"많을수록 좋다"는 기준은 불필요한 보험료 낭비로 이어집니다.</span>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="cb"><span class="cb-tick">✓</span></div>
+        <div class="check-text">
+          <strong>보장기간이 경제활동 기간 또는 피부양자 의존 기간과 연동되었는가?</strong>
+          <span>필요 이상으로 긴 보장기간은 총 보험료를 높입니다.</span>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="cb"><span class="cb-tick">✓</span></div>
+        <div class="check-text">
+          <strong>약관의 지급 기준(지급 조건, 면책 사항)을 직접 읽었는가?</strong>
+          <span>지급 거절의 대부분은 소비자가 약관을 읽지 않아 발생합니다.</span>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="cb"><span class="cb-tick">✓</span></div>
+        <div class="check-text">
+          <strong>월 납입 보험료 합계가 가계 소득의 적정 비율을 넘지 않는가?</strong>
+          <span>재무 완충력이 취약하다면 가계 소득의 3~5% 이내, 보통이라면 5~8% 이내, 충분하다면 8~10% 이내를 기준으로 삼으세요. 보험료 과부담은 다른 재무목표 달성을 방해합니다.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+        <div class="prog-text" id="progText">0 / 10 완료</div>
+      </div>
+    </div>
+
+    <div class="rtab-panel" id="rtab-4">
+      <div class="faq-list">
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">젊을 때 가입하면 무조건 유리한가요? <span class="faq-icon">+</span></div><div class="faq-a">나이가 어릴수록 보험료가 낮은 것은 사실입니다. 하지만 20대에 가입하면 위험이 본격적으로 높아지는 40~60대 전까지 수십 년간 보험료를 납부합니다. 총 납입액과 실제 필요 시점을 함께 고려해야 합니다.<br><br>보험은 현재의 리스크 구조에 맞게 설계하는 것이지, 미래를 예측해서 미리 설계하는 도구가 아닙니다. "지금 가입하면 나중에 필요할 때 싸게 보장받을 수 있다"는 논리는 판매자의 관점입니다. 현재 필요한 보장을 설계하고, 결혼·출산·이직·은퇴 등 삶의 변화가 생길 때마다 보장 내용을 재검토하고 조정하는 것이 합리적입니다.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">보험을 여러 개 가입하면 더 많이 받을 수 있나요? <span class="faq-icon">+</span></div><div class="faq-a">보험은 크게 두 가지 구조로 나뉩니다.<br><br><strong>실손보상형</strong>(실손의료보험): 실제 발생한 비용을 보전하는 구조입니다. 보험가액을 산정할 수 있으므로 중복 가입 시 실제 손해액을 초과해 지급받을 수 없습니다.<br><br><strong>정액지급형</strong>(암보험·사망보험·질병보험 등): 사람의 생명·신체에 대한 인보험입니다. 사람에게는 보험가액을 산정할 수 없으므로 중복보험·초과보험·일부보험의 개념이 원칙적으로 적용되지 않습니다. 여러 개에서 각각 약정 금액을 수령할 수 있습니다.<br><br>보험설계사가 인보험에 "중복보험"이라는 표현을 쓴다면 재산보험 개념을 혼용하는 것으로, 정확한 표현이 아닙니다.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">보험료가 비쌀수록 보장이 좋은 건가요? <span class="faq-icon">+</span></div><div class="faq-a">아닙니다. 보험료는 보장 수준 외에도 저축 기능 포함 여부, 보험사 마진, 사업비 구조에 따라 크게 달라집니다. 같은 보장이라도 순수 보장형이 더 저렴할 수 있습니다.<br><br>보험료의 적정성을 객관적으로 비교하려면 <strong>보험가격지수</strong>를 활용하세요. 동일한 보장 조건에서 보험사별 보험료 수준을 100 기준으로 비교한 지표로, 100보다 낮으면 상대적으로 저렴한 구조입니다. 생명보험협회·손해보험협회 비교공시 사이트에서 확인할 수 있습니다.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">이미 가입한 보험이 과도한 것 같으면 어떻게 해야 하나요? <span class="faq-icon">+</span></div><div class="faq-a">먼저 현재 가입된 모든 보험을 목록화하고 보장 내용·납입 조건을 파악합니다. 금융감독원 보험다모아(insure.fss.or.kr)에서 가입 보험 전체를 조회할 수 있습니다.<br><br>과도하다고 판단되면 아래 수단을 검토하세요.<br>· <strong>특약 삭제</strong>: 불필요한 특약만 골라 제거<br>· <strong>감액</strong>: 보장금액을 줄여 보험료를 낮추는 방법<br>· <strong>감액완납</strong>: 보험료 납입을 중단하고 현재까지 납입한 금액으로 줄어든 보장을 유지<br>· <strong>해지</strong>: 납입 기간이 짧을수록 해지환급금이 적으므로 다른 수단을 먼저 검토<br><br><strong>보험은 상품이고, 그 상품의 주인은 계약자 본인입니다.</strong> 가입을 권유한 설계사의 눈치를 볼 이유가 전혀 없습니다. 설계사와의 관계 때문에 불필요한 보험을 유지하는 것은 매달 본인 돈을 낭비하는 것입니다. 필요 없다고 판단되면 주저 없이 조정하세요.<br><br>객관적인 검토가 필요하다면 판매 수수료 없이 수수료 기반으로 운영되는 독립 재무설계 서비스(예: IdentiFi)를 활용하세요.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">직장인은 실손보험만 있으면 충분한가요? <span class="faq-icon">+</span></div><div class="faq-a">사람마다 다릅니다.<br><br>실손보험은 의료비 지출을 보전하지만 소득 공백은 보전하지 않습니다. 중증 질환으로 장기 입원 시 치료비는 실손으로 해결되더라도 그 기간 동안 소득이 끊기는 문제는 별개입니다.<br><br>단, 비상금·금융자산이 충분해서 수개월의 소득 공백을 자력으로 감당할 수 있다면 실손보험만으로도 충분할 수 있습니다. 반면 재무 완충력이 낮고 단일 소득자라면 소득 보전 기능이 있는 질병보험을 추가로 검토할 필요가 있습니다. 결국 실손 외 추가 보험의 필요 여부는 본인의 재무 완충력이 기준입니다.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">갱신형과 비갱신형 중 무엇이 더 유리한가요? <span class="faq-icon">+</span></div><div class="faq-a">목적과 기간에 따라 다릅니다. 장기 유지가 목적이라면 보험료가 고정되는 비갱신형이 유리합니다. 단기 집중 보장이 목적이라면 초기 보험료가 낮은 갱신형이 효율적일 수 있습니다. 실손의료보험은 구조상 갱신형만 존재합니다. 비갱신형이 무조건 유리하다는 것은 단순화된 말입니다.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">여러 보험사를 비교해준다는 설계사는 객관적인가요? <span class="faq-icon">+</span></div><div class="faq-a">"20개 보험사 비교", "30개 보험사 비교"라는 말은 객관성의 근거가 아닙니다.<br><br>보험대리점 소속 설계사는 비교하는 보험사들 중에서 판매하고, 판매 시 수수료를 받습니다. 비교의 결과가 누가 판매하느냐에 따라 달라질 수 있는 구조입니다. 많은 보험사를 비교한다는 것은 선택지가 넓다는 의미일 뿐, 소비자 입장에서 객관적이라는 의미가 아닙니다.<br><br>진짜 객관적인 조언은 판매 행위 자체를 하지 않는 전문가에게서 나옵니다. CFP(국제공인재무설계사) 등 수수료 없이 자문료만 받는 독립 재무설계사는 특정 상품을 팔 이유가 없으므로 소비자 입장에서 조언할 수 있습니다.<br><br>또한 같은 이름의 보험이라도 보험사마다 약관의 세부 내용이 다릅니다. 지급 기준, 면책 조항, 보장 범위가 조금씩 달라 단순 보험료 비교는 의미가 없을 수 있습니다. 보험료가 아니라 <strong>약관의 지급 조건을 직접 비교</strong>해야 합니다.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">태아보험·어린이보험은 기준이 다른가요? <span class="faq-icon">+</span></div><div class="faq-a">보험의 본질은 동일합니다. 태아보험·어린이보험도 결국 "아이의 질병·사고로 인해 가계가 감당하기 어려운 경제적 손실이 발생할 가능성이 있는가"라는 기준으로 판단해야 합니다.<br><br><strong>태아 특약</strong>은 출생 전후 선천성 질환·저체중아 등을 보장하는 구조로, 일반 보험 가입이 어려운 시기에 보장을 확보하는 실질적 이점이 있습니다. 단, 태아 특약을 명목으로 불필요한 특약이 과도하게 붙는 경우가 많습니다.<br><br><strong>어린이보험</strong>은 성인 보험과 구조가 크게 다르지 않습니다. "아이를 위해 미리 준비해야 한다"는 불안 마케팅이 집중되는 영역입니다. 가계가 실제로 감당하기 어려운 손실이 발생할 가능성이 있는지 냉정하게 따져보세요.<br><br>공통 주의사항: 부모의 불안감이 가장 강하게 작용하는 시기에 판매되는 상품입니다. 가용성 편향과 공포 마케팅에 특히 취약한 구간입니다. 가입 결정을 서두르지 마세요.</div></div>
+      </div>
+    </div>
+
+    <div class="rtab-panel" id="rtab-5">
+      <div class="warn-box" style="margin-bottom:1.5rem;">
+        <div class="lbl">⚠ 이 탭의 목적</div>
+        <p>판매자가 자주 사용하는 비논리와 그에 대한 부연설명입니다. 이런 말을 들었을 때 흔들리지 않기 위한 참고용입니다.</p>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">"30개 보험사를 비교해드리니까 객관적이에요" <span class="faq-icon">+</span></div><div class="faq-a">선택지가 많다는 것과 추천이 객관적이라는 것은 다릅니다. 보험대리점 소속 설계사는 비교하는 보험사들 중에서 판매하고 수수료를 받습니다. 누가 추천하느냐에 따라 결과가 달라지는 구조입니다. 진짜 객관적인 조언은 판매 행위 자체를 하지 않는 전문가에게서 나옵니다.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">"불안하면 가입하는 게 맞죠. 나중에 후회하면 어떡해요" <span class="faq-icon">+</span></div><div class="faq-a">불안은 판단의 기준이 아닙니다. 불안감 자체를 판매 도구로 활용하는 것이 공포 마케팅의 본질입니다. 발생 확률과 가계의 감당 가능성을 기준으로 냉정하게 판단하세요. 보험 가입 충동이 생기면 최소 한 달 유보하세요.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">"종신보험도 필요한 사람이 있잖아요" <span class="faq-icon">+</span></div><div class="faq-a">맞습니다. 상속세 납부 재원이 필요한 경우에 한해 종신보험은 유효한 수단입니다. 그런데 판매자가 그 예외적인 경우를 일반화해서 모든 사람에게 권유하는 것이 문제입니다. 당신이 상속세 재원이 필요한 상황인지를 먼저 확인하세요.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">"어린이보험 안 들었다가 아프면 어떻게 할 거예요" <span class="faq-icon">+</span></div><div class="faq-a">최악의 시나리오를 제시해 불안을 조성하는 전형적인 공포 마케팅입니다. 기준은 하나입니다. 아이의 질병·사고로 인해 가계가 감당하기 어려운 경제적 손실이 발생할 가능성이 실제로 있는가. 그 가능성과 본인의 재무 완충력을 기준으로 판단하세요.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">"이런 가이드 믿다가 보험 없어서 피해 보면 누가 책임져요" <span class="faq-icon">+</span></div><div class="faq-a">이 가이드는 특정 상품의 가입을 권유하거나 말리는 것이 아닙니다. 소비자 스스로 판단할 수 있는 기준을 제공하는 것입니다. 반대로 질문해보세요. 판매자가 권유해서 가입했다가 불필요한 보험에 수천만 원을 낭비하면 누가 책임지나요.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">"젊을 때 가입해야 보험료가 싸요. 지금이 기회예요" <span class="faq-icon">+</span></div><div class="faq-a">보험료가 낮다는 것이 지금 가입해야 한다는 근거가 되지 않습니다. 지금 그 보장이 필요한지가 먼저입니다. 필요하지 않은 보험을 싸게 오래 내는 것은 저렴한 낭비일 뿐입니다. 보험은 현재의 리스크 구조에 맞게 설계하고, 삶의 변화가 생길 때마다 재검토하는 것이 합리적입니다.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">"CFP도 돈 받고 일하는 건 마찬가지 아닌가요" <span class="faq-icon">+</span></div><div class="faq-a">돈을 받는다는 사실은 같지만 구조가 다릅니다. 판매 수수료는 특정 상품을 팔아야 발생하므로 판매자에게 유리한 상품을 권유할 유인이 생깁니다. 자문료는 상품 판매와 무관하게 발생하므로 소비자 입장에서 조언할 수 있습니다. 누구의 이익을 위해 일하는지가 다릅니다.</div></div>
+      </div>
+    </div>
+
+    <div class="rtab-panel" id="rtab-6">
+      <div class="principle-box" style="margin-bottom:1.5rem;">
+        <p>10년 전, 저는 보험설계사로 일한 적이 있습니다. 많이 팔았습니다. MDRT도 했습니다. 지금 생각하면 평양 시내를 꾸미는 것 같은, 본질이 없는 커리어였습니다.<br><br>CFP(국제공인재무설계사) 자격을 취득하고, 생명보험협회 AKLU 언더라이터 과정을 밟으며 보험을 살짝 공부하고 나서야 알았습니다. 제가 판 것의 대부분은 고객에게 과하거나 필요 없는 것들이었습니다. 그 피해는 고스란히 보험 가입자에게 돌아갔습니다. 지금은 보험을 판매하지 않습니다.<br><br>보험은 정보의 불균형이 심한 시장입니다. 보험회사들은 속속들이 알고, 사는 사람은 모릅니다. 심지어 일선에 보험설계사 대다수도 모릅니다. 핸드폰은 자급제가 생겼고, 중고차는 투명한 거래 플랫폼이 생겼습니다. 보험은요? 토스, 카카오, 뱅크샐러드 같은 플랫폼이 생겼지만, 그 안에서도 여전히 상품판매가 주 목적인 보험설계사들만 득세하고 있습니다. 사람을 단지 본인들의 영업 database로 볼 뿐입니다.<br><br>보험 판매 자격증은 시험장까지 가는 버스 안에서 30분만 공부해도 딸 수 있습니다. CFP와 언더라이터는 다릅니다. CFP는 보험 가입이 목적이 아닙니다. 소비자의 전체 재무 구조 안에서 보험이 필요한지, 필요하다면 얼마나 필요한지를 균형 있게 고민하도록 훈련받은 사람입니다. 언더라이터는 보험 상품의 설계 원리와 리스크 구조를 보험사 인수 심사 수준에서 이해하는 사람입니다. 그 차이가 이 가이드를 만들게 했습니다.<br><br>제도가 바뀌지 않으면 정보라도 바뀌어야 한다고 생각했습니다. 이 가이드는 그 허우적거림이 만든 바람입니다.</p>
+      </div>
+      <div style="text-align:right;font-size:.82rem;color:var(--ink-light);font-style:italic;">정원준 CFP · AKLU · <a href="https://identifi.co.kr" style="color:var(--ink-light);">IdentiFi</a></div>
+    </div>
+
+    <div class="nav-btns" style="margin-top:2rem;">
+      <button class="btn" onclick="goMain(1)">← 진단 다시하기</button>
+      <button class="btn" onclick="goBackToOpening();startOver()">처음으로</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function startSilson(){
+  var op=document.getElementById('opening');
+  var sl=document.getElementById('panel-silson');
+  op.style.transition='opacity .4s';op.style.opacity='0';
+  setTimeout(function(){
+    op.style.display='none';
+    sl.style.display='block';sl.style.opacity='0';sl.style.transition='opacity .4s';
+    setTimeout(function(){sl.style.opacity='1';},20);
+    window.scrollTo(0,0);
+  },400);
+}
+
+function backToOpening(){
+  var sl=document.getElementById('panel-silson');
+  var op=document.getElementById('opening');
+  sl.style.transition='opacity .4s';sl.style.opacity='0';
+  setTimeout(function(){
+    sl.style.display='none';
+    op.style.display='flex';op.style.opacity='0';op.style.transition='opacity .4s';
+    setTimeout(function(){op.style.opacity='1';},20);
+    window.scrollTo(0,0);
+  },400);
+}
+
+function startGuide(){
+  var op=document.getElementById('opening'),sh=document.getElementById('shell');
+  op.style.transition='opacity .4s';op.style.opacity='0';
+  setTimeout(function(){
+    op.style.display='none';
+    sh.style.display='block';sh.style.opacity='0';sh.style.transition='opacity .4s';
+    setTimeout(function(){sh.style.opacity='1';},20);
+    window.scrollTo(0,0);
+  },400);
+}
+
+function goBackToOpening(){
+  var sh=document.getElementById('shell'),op=document.getElementById('opening');
+  sh.style.transition='opacity .4s';sh.style.opacity='0';
+  setTimeout(function(){
+    sh.style.display='none';
+    curMain=0;
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+    document.getElementById('panel-0').classList.add('active');
+    updateTopBar();
+    op.style.display='flex';op.style.opacity='0';op.style.transition='opacity .4s';
+    setTimeout(function(){op.style.opacity='1';},20);
+    window.scrollTo(0,0);
+  },400);
+}
+
+function goToPledge(){
+  var sh=document.getElementById('shell'),pl=document.getElementById('pledge');
+  sh.style.transition='opacity .4s';sh.style.opacity='0';
+  setTimeout(function(){
+    sh.style.display='none';
+    pl.style.display='block';pl.style.opacity='0';pl.style.transition='opacity .4s';
+    setTimeout(function(){pl.style.opacity='1';},20);
+    window.scrollTo(0,0);
+  },400);
+}
+
+function startDiag(){
+  var pl=document.getElementById('pledge'),sh=document.getElementById('shell');
+  pl.style.transition='opacity .4s';pl.style.opacity='0';
+  setTimeout(function(){
+    pl.style.display='none';
+    sh.style.display='block';sh.style.opacity='0';sh.style.transition='opacity .4s';
+    setTimeout(function(){
+      sh.style.opacity='1';
+      // 진단 패널로 이동
+      goMain(1);
+    },20);
+    window.scrollTo(0,0);
+  },400);
+}
+
+function backToEssence(){
+  var pl=document.getElementById('pledge'),sh=document.getElementById('shell');
+  pl.style.transition='opacity .4s';pl.style.opacity='0';
+  setTimeout(function(){
+    pl.style.display='none';
+    sh.style.display='block';sh.style.opacity='0';sh.style.transition='opacity .4s';
+    setTimeout(function(){sh.style.opacity='1';},20);
+    curMain=0;updateTopBar();
+    window.scrollTo(0,0);
+  },400);
+}
+
+function togglePledge(el){
+  el.classList.toggle('checked');
+  var total=document.querySelectorAll('.pledge-item').length;
+  var checked=document.querySelectorAll('.pledge-item.checked').length;
+  document.getElementById('pledgeFill').style.width=Math.round(checked/total*100)+'%';
+  document.getElementById('pledgeCount').textContent=checked+' / '+total;
+  var btn=document.getElementById('pledgeBtn');
+  if(checked===total){
+    btn.disabled=false;
+    btn.classList.add('ready');
+    btn.textContent='이 내용을 인지했습니다 →';
+  } else {
+    btn.disabled=true;
+    btn.classList.remove('ready');
+    btn.textContent='동의하지 않는 항목이 있다면 진단은 의미가 없습니다';
+  }
+}
+
+var curMain=0;
+function goMain(n){
+  document.getElementById('panel-'+curMain).classList.remove('active');
+  curMain=n;
+  document.getElementById('panel-'+curMain).classList.add('active');
+  updateTopBar();window.scrollTo(0,0);
+  if(n===2) buildGuide();
+}
+function updateTopBar(){
+  for(var i=0;i<3;i++){
+    var d=document.getElementById('tsd-'+i);
+    var l=document.getElementById('tsl-'+i);
+    if(!d) continue;
+    d.classList.remove('active','done');
+    if(i===curMain)d.classList.add('active');
+    else if(i<curMain)d.classList.add('done');
+    if(l)l.classList.toggle('done',i<curMain);
+  }
+}
+
+var curGroup=0,totalGroups=7;
+var groupOrder = ['grp-0','grp-bias','grp-1','grp-2b','grp-2','grp-3','grp-4'];
+function nextGroup(){
+  if(curGroup<totalGroups-1){
+    document.getElementById(groupOrder[curGroup]).classList.remove('active');
+    curGroup++;
+    document.getElementById(groupOrder[curGroup]).classList.add('active');
+    updateGroupDots();window.scrollTo(0,0);
+  }
+}
+function prevGroup(){
+  if(curGroup>0){
+    document.getElementById(groupOrder[curGroup]).classList.remove('active');
+    curGroup--;
+    document.getElementById(groupOrder[curGroup]).classList.add('active');
+    updateGroupDots();window.scrollTo(0,0);
+  } else { goMain(0); }
+}
+function updateGroupDots(){
+  var dotIds=['gd-0','gd-bias','gd-1','gd-2b','gd-2','gd-3','gd-4'];
+  for(var i=0;i<totalGroups;i++){
+    var d=document.getElementById(dotIds[i]);
+    if(!d) continue;
+    d.classList.remove('active','done');
+    if(i===curGroup)d.classList.add('active');
+    else if(i<curGroup)d.classList.add('done');
+  }
+}
+function finishDiag(){ goMain(2); }
+function startOver(){
+  curGroup=0;
+  groupOrder.forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('active');});
+  document.getElementById('grp-0').classList.add('active');
+  updateGroupDots();
+  ['d1','d2','d_bias','d_recency','d_status_quo','d3i','d4i','d_family_hx','d_hx','d3','d3b','d4','d_debt','d5','d6'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  document.querySelectorAll('.diag-opt.selected').forEach(function(o){o.classList.remove('selected');});
+  document.querySelectorAll('.diag-row.answered').forEach(function(r){r.classList.remove('answered');});
+  document.getElementById('row-d6').style.display='none';
+}
+
+function selectFamilyOpt(el){
+  var val = el.dataset.value;
+  var isMulti = el.classList.contains('multi-ok');
+  var opts = el.parentElement.querySelectorAll('.diag-opt');
+
+  if (!isMulti) {
+    // 단독 선택 (single, couple)
+    opts.forEach(function(o){o.classList.remove('selected');});
+    el.classList.add('selected');
+  } else {
+    // 단독 선택 해제
+    opts.forEach(function(o){if(!o.classList.contains('multi-ok')) o.classList.remove('selected');});
+    el.classList.toggle('selected');
+  }
+
+  // 선택된 값 수집
+  var selected = [];
+  opts.forEach(function(o){
+    if(o.classList.contains('selected')) selected.push(o.dataset.value);
+  });
+  document.getElementById('d4').value = selected.join(',');
+  el.closest('.diag-row').classList.add('answered');
+}
+
+function selectOpt(el){
+  var target=el.dataset.target,val=el.dataset.value;
+  document.getElementById(target).value=val;
+  el.parentElement.querySelectorAll('.diag-opt').forEach(function(s){s.classList.remove('selected');});
+  el.classList.add('selected');
+  el.closest('.diag-row').classList.add('answered');
+  if(target==='d5'){
+    var r=document.getElementById('row-d6');
+    r.style.display=val==='over10'?'block':'none';
+    if(val!=='over10'){document.getElementById('d6').value='';r.querySelectorAll('.diag-opt').forEach(function(o){o.classList.remove('selected');});r.classList.remove('answered');}
+  }
+}
+
+function switchRTab(n){
+  document.querySelectorAll('.rtab').forEach(function(t,i){t.classList.toggle('active',i===n);});
+  document.querySelectorAll('.rtab-panel').forEach(function(p,i){p.classList.toggle('active',i===n);});
+}
+function toggleP(item){item.classList.toggle('open');}
+function toggleType(row){row.classList.toggle('open');}
+function toggleFaq(el){el.parentElement.classList.toggle('open');}
+function toggleCheck(el){
+  el.classList.toggle('checked');
+  var items=document.querySelectorAll('.check-item'),checked=document.querySelectorAll('.check-item.checked').length;
+  document.getElementById('progFill').style.width=Math.round(checked/items.length*100)+'%';
+  document.getElementById('progText').textContent=checked+' / '+items.length+' 완료';
+}
+
+function buildGuide() {
+  var risk    = document.getElementById('d1').value;    // 위험 태도
+  var buffer  = document.getElementById('d2').value;    // 재무 완충력
+  var income  = document.getElementById('d3i').value;   // 소득 안정성
+  var tenure  = document.getElementById('d4i').value;   // 잔여 근속연수
+  var job     = document.getElementById('d3').value;    // 직업 특성
+  var life    = document.getElementById('d3b').value;   // 라이프스타일
+  var family  = document.getElementById('d4').value;    // 가족 구성
+  var asset   = document.getElementById('d5').value;    // 자산 규모
+  var liquid  = document.getElementById('d6').value;    // 금융자산 비중
+
+  var html = '';
+  var anyFilled = risk || buffer || income || tenure || job || life || family || asset;
+
+  if (!anyFilled) {
+    html = '<div class="warn-box"><div class="lbl">안내</div><p>2단계 리스크 진단 항목을 선택하면 맞춤 가이드가 생성됩니다. 이전 버튼을 눌러 입력해 주세요.</p></div>';
+    // ── 보험 요약 카드 생성 ──
+  var summaryRows = [];
+
+  // 실손·배상책임 — 항상 우선 확보
+  summaryRows.push({cls:'yes', icon:'✓', name:'실손의료보험', reason:'의료비 리스크 커버 — 우선 확보'});
+  summaryRows.push({cls:'yes', icon:'✓', name:'배상책임보험', reason:'일상 배상 리스크 — 우선 확보'});
+
+  // 질병보험
+  var needDisease = (famHx && famHx !== 'none') ||
+                    income === 'unstable' ||
+                    (buffer === 'none' || buffer === 'low') ||
+                    (family && family !== 'single' && family !== 'couple');
+  var skipDisease = (income === 'stable' && (buffer === 'rich' || buffer === 'mid'));
+  if (needDisease && !skipDisease) {
+    var diseaseReason = [];
+    if (famHx && famHx !== 'none') diseaseReason.push('가족력');
+    if (income === 'unstable') diseaseReason.push('소득 불안정');
+    if (buffer === 'none' || buffer === 'low') diseaseReason.push('완충력 취약');
+    summaryRows.push({cls:'yes', icon:'✓', name:'질병보험', reason:'검토 — ' + diseaseReason.join('·')});
+  } else if (skipDisease) {
+    summaryRows.push({cls:'no', icon:'—', name:'질병보험', reason:'자력 감당 가능 수준 — 필요성 재검토'});
+  } else {
+    summaryRows.push({cls:'no', icon:'—', name:'질병보험', reason:'해당 조건 없음'});
+  }
+
+  // 정기보험
+  if (hasYoung && hasDep) {
+    summaryRows.push({cls:'yes', icon:'✓', name:'정기보험', reason:'미성년 자녀 + 소득 없는 배우자·부양 부모'});
+  } else if (hasYoung) {
+    summaryRows.push({cls:'yes', icon:'✓', name:'정기보험', reason:'미성년 자녀 독립까지'});
+  } else if (hasDep) {
+    summaryRows.push({cls:'yes', icon:'✓', name:'정기보험', reason:'소득 없는 배우자·부양 부모'});
+  } else if (family === 'couple') {
+    summaryRows.push({cls:'maybe', icon:'△', name:'정기보험', reason:'맞벌이 — 소액 수준 검토'});
+  } else if (family === 'single') {
+    summaryRows.push({cls:'no', icon:'—', name:'정기보험', reason:'피부양자 없음 — 불필요'});
+  }
+
+  // 상해보험
+  var needInjurySummary = (job === 'field') || (life === 'active');
+  if (needInjurySummary) {
+    var injuryReason = [];
+    if (job === 'field') injuryReason.push('직업 상해 위험');
+    if (life === 'active') injuryReason.push('육체적 취미');
+    summaryRows.push({cls:'maybe', icon:'△', name:'상해보험', reason:'조건부 검토 — ' + injuryReason.join('·')});
+  } else if (job || life) {
+    summaryRows.push({cls:'no', icon:'—', name:'상해보험', reason:'직업·라이프스타일 위험 낮음 — 불필요'});
+  }
+
+  // 종신보험
+  if (asset === 'over10') {
+    if (liquid === 'low') {
+      summaryRows.push({cls:'yes', icon:'✓', name:'종신보험', reason:'10억 이상 + 금융자산 비중 낮음 — 검토'});
+    } else if (liquid === 'mid') {
+      summaryRows.push({cls:'maybe', icon:'△', name:'종신보험', reason:'10억 이상 — 부분 검토'});
+    } else {
+      summaryRows.push({cls:'no', icon:'—', name:'종신보험', reason:'유동성 충분 — 불필요'});
+    }
+  } else if (asset === '5to10') {
+    summaryRows.push({cls:'maybe', icon:'△', name:'종신보험', reason:'경계 구간 — 상속 설계 점검 권장'});
+  } else if (asset) {
+    summaryRows.push({cls:'no', icon:'—', name:'종신보험', reason:'자산 5억 미만 — 불필요'});
+  }
+
+  // 요약 HTML 생성
+  if (summaryRows.length > 0) {
+    var summaryHtml = '<div class="ins-summary"><div class="ins-summary-title">보험 종류별 해당 여부</div><div class="ins-summary-grid">';
+    summaryRows.forEach(function(r) {
+      summaryHtml += '<div class="ins-row ' + r.cls + '"><span class="ins-icon">' + r.icon + '</span><span class="ins-name">' + r.name + '</span><span class="ins-reason">' + r.reason + '</span></div>';
+    });
+    summaryHtml += '</div></div>';
+    html = summaryHtml + html;
+  }
+
+  document.getElementById('guideOutput').innerHTML = html;
+    return;
+  }
+
+  // ① 위험 태도 × 재무 완충력 → 보장 강도
+  var scopeContent = '';
+  if (risk === 'high') {
+    scopeContent = '<span class="guide-tag green">넓은 보장 권장</span> 막대한 손실에 민감한 유형입니다. 핵심 위험(중증 질환·사망)을 충분히 커버하는 방향으로 설계하세요. 단, 넓은 보장이 필요하다는 것이 모든 특약을 붙여야 한다는 의미는 아닙니다. 특약은 발생 가능성·대안 부재·감당 불가 여부를 각각 따져 선별하세요. 어떤 보험이 본인에게 해당하는지는 <strong>보험 종류 탭</strong>을 참고하세요.';
+    if (buffer === 'none' || buffer === 'low') {
+      scopeContent += '<br><br><span class="guide-tag gold">미니보험 고려</span> 보험이 필요하지만 보험료 부담도 큰 상황입니다. <strong>1년 단위 갱신형 미니보험</strong>으로 핵심 위험만 최소한으로 커버하면서 보험료 부담을 낮추고, 그 여유분으로 비상금을 먼저 쌓는 것이 우선입니다. 재무 완충력이 확보되면 보장을 재설계하세요.';
+    }
+  } else if (risk === 'low') {
+    scopeContent = '<div class="info-box" style="margin-bottom:.8rem;"><div class="lbl">✓ 먼저 생각해보세요</div><p>경미한 손실을 보험으로 준비하는 것이 합리적인지 먼저 점검하세요. 경미한 손실은 자기부담으로 감당 가능한 수준일 수 있습니다. 어떤 보장이 실제로 필요한지는 <strong>보험 종류 탭</strong>을 참고하세요.</p></div>'
+      + '<span class="guide-tag gold">핵심 위험만 집중</span> 경미한 손실에 민감한 유형입니다. 감당 불가능한 위험(중증 질환·사망)에만 집중하고 특약은 최소화하는 것이 효율적입니다.';
+  } else if (risk === 'both') {
+    var bothRate = (buffer === 'rich') ? '8~10%' : (buffer === 'mid') ? '5~8%' : '3~5%';
+    scopeContent = '<span class="guide-tag red">보장 과부담 주의</span> 모든 위험이 불안한 유형입니다. 불필요한 특약을 과도하게 붙일 가능성이 높습니다. 보험료 총액이 가계 소득의 <strong>' + bothRate + ' 이내</strong>로 제한하세요.';
+    if (buffer === 'none' || buffer === 'low') {
+      scopeContent += '<br><br><span class="guide-tag gold">미니보험 고려</span> 보험이 필요하지만 보험료 부담도 큰 상황입니다. <strong>1년 단위 갱신형 미니보험</strong>으로 핵심 위험(실손·질병)만 최소한으로 커버하면서 보험료 부담을 낮추고, 그 여유분으로 비상금을 먼저 쌓는 것이 우선입니다. 재무 완충력이 확보되면 보장을 재설계하세요.';
+    }
+  } else if (risk === 'none') {
+    if (buffer === 'rich') {
+      scopeContent = '<span class="guide-tag green">최소 보장 전략</span> 위험에 둔감하고 재무 완충력도 충분합니다. 실손의료보험(갱신형)으로 의료비 리스크만 커버하고, 자산 형성에 집중하는 것이 합리적입니다. 보험 과지출이 오히려 자산 형성을 방해합니다. <strong>보험료는 가계 소득의 8~10% 이내</strong>를 유지하세요.';
+    } else if (buffer === 'mid') {
+      scopeContent = '<span class="guide-tag red">재검토 필요</span> 위험에 둔감하지만 재무 완충력이 충분하지 않습니다. 실제로 막대한 손실 상황이 발생하면 감당하기 어려울 수 있습니다. 객관적인 재무 상황을 기준으로 필요 보장을 다시 검토하세요. <strong>보험료는 가계 소득의 5~8% 이내</strong>를 기준으로 삼으세요.';
+    } else if (buffer === 'none' || buffer === 'low') {
+      scopeContent = '<span class="guide-tag red">재검토 필요</span> 위험에 둔감하지만 재무 완충력이 취약합니다. 실손의료보험 정도만 유지하고, 보험료를 최소화해 비상금을 먼저 쌓는 것이 우선입니다. <strong>보험료는 가계 소득의 3~5% 이내</strong>로 엄격히 제한하세요.';
+    } else {
+      scopeContent = '<span class="guide-tag red">재검토 필요</span> 위험에 둔감하지만 재무 완충력이 충분하지 않습니다. 실제로 막대한 손실 상황이 발생하면 감당하기 어려울 수 있습니다. 객관적인 재무 상황을 기준으로 필요 보장을 다시 검토하세요.';
+    }
+  } else {
+    scopeContent = '';
+  }
+
+  // 완충력 추가 코멘트
+  if (buffer) {
+    if (buffer === 'none' || buffer === 'low') {
+      if (risk === 'none') {
+        scopeContent += '<br><br><strong>재무 완충력이 취약하지만 위험에 둔감한 유형입니다.</strong> 실손의료보험 정도만 유지하고, 보험료를 최소화해 비상금을 먼저 쌓는 것이 우선입니다. 불필요한 보험료 지출이 비상금 형성을 방해합니다.';
+      } else if (risk !== 'both') {
+        // both는 이미 위에서 3~5% 메시지 포함했으므로 중복 방지
+        scopeContent += '<br><br><div class="info-box"><div class="lbl">✓ 보험보다 먼저</div><p>완충력이 낮아 보이더라도 실제로 조달 가능한 자원이 있을 수 있습니다. <strong>주택 담보, 연금 담보, 퇴직금</strong> 등 위기 시 활용 가능한 자원을 먼저 파악하세요. 이를 고려한 뒤에도 감당하기 어려운 손실이 남는다면 그때 보험을 검토하는 것이 순서입니다.</p></div><div class="warn-box" style="margin-top:.5rem;"><div class="lbl">⚠ 재무 완충력 취약</div><p>같은 위험도 당신에게는 막대한 손실이 될 수 있습니다. 실손의료보험을 먼저 확보하고, 추가 보장이 꼭 필요하다고 판단되는 경우에만 <strong>가계 소득의 3~5% 이내</strong>에서 최소한으로 구성하세요. 여유분으로 비상금을 먼저 쌓으세요.</p></div>';
+      }
+    } else if (buffer === 'mid') {
+      if (risk !== 'both' && risk !== 'none') {
+        // both·none은 이미 보험료 기준 포함하므로 중복 방지
+        scopeContent += ' 재무 완충력이 보통 수준입니다. <strong>보험료는 가계 소득의 5~8% 이내</strong>를 기준으로 삼고, 핵심 보장을 내실 있게 구성하세요.';
+      }
+    } else if (buffer === 'rich') {
+      if (risk !== 'both') {
+        scopeContent += ' 재무 완충력이 충분하므로 단기적 소득 공백은 자력으로 감당 가능합니다. 장기·고액 손실에 집중해 설계하세요. <strong>보험료는 가계 소득의 8~10% 이내</strong>를 유지하세요.';
+      } else {
+        scopeContent += ' 재무 완충력이 충분하므로 단기적 소득 공백은 자력으로 감당 가능합니다. 장기·고액 손실에 집중해 설계하세요.';
+      }
+    }
+  }
+
+  // ② 납입기간 전략 (소득 안정성 × 잔여 근속연수)
+  var payContent = '';
+  if (income === 'stable') {
+    // 전문직·고소득 체크포인트 — 소득 안정 + 완충력 rich/mid면 표시
+    var proMsg = '';
+    if (buffer === 'rich' || buffer === 'mid') {
+      proMsg = '<br><br><div class="gold-box"><div class="lbl">✓ 전문직·고소득자 체크포인트</div><p>소득이 안정적인 전문직·고소득자라면 질병·상해 보험의 필요성 자체를 먼저 검토하세요. 자산이 커질수록 같은 손실도 상대적으로 경미해질 수 있습니다.<br><br>질병·상해 보험의 필요성을 판단할 때 <strong>주택 담보, 연금 담보, 퇴직금 등 위기 시 실제로 조달 가능한 자원</strong>도 함께 고려하세요. 이 자원이 충분하다면 보험의 필요성은 더 낮아질 수 있습니다.<br><br>오히려 우선순위가 높은 것은 두 가지입니다.<br><strong>조기 사망 대비</strong>: 경제활동 기간 중 사망 시 소득 대체가 충분한지 확인하세요. 피부양자가 있다면 정기보험으로 소득 공백을 커버하세요.<br><strong>상속 설계</strong>: 자산 규모가 상속세 과세 기준에 근접하거나 초과한다면 지금부터 상속 설계를 검토하세요. 이 구간에서 종신보험이 유효한 수단이 될 수 있습니다.</p></div>';
+    }
+    var reMsg = '';
+    if (buffer === 'none' || buffer === 'low') {
+      reMsg = '<br><br><div class="info-box"><div class="lbl">✓ 보험보다 먼저</div><p>완충력이 낮아 보이더라도 실제로 조달 가능한 자원이 있을 수 있습니다. <strong>주택 담보, 연금 담보, 퇴직금</strong> 등 위기 시 활용 가능한 자원을 먼저 파악하세요. 이를 고려한 뒤에도 감당하기 어려운 손실이 남는다면 그때 보험을 검토하세요. 재검토 결과 보험이 필요 없을 수도 있습니다.</p></div>';
+    }
+    if (tenure === 'long') {
+      payContent = '<span class="guide-tag green">20~30년납 권장</span> 소득이 안정적이고 장기간 유지됩니다. 납입을 길게 분산해 월 보험료를 낮추고, 확보된 현금흐름으로 투자·저축 등 다른 재무목표를 병행하세요.' + proMsg + reMsg;
+    } else if (tenure === 'mid') {
+      payContent = '<span class="guide-tag green">10~20년납 권장</span> 안정적 소득이지만 잔여 근속연수를 감안해 20년납 내외로 설계하는 것이 현실적입니다.' + proMsg + reMsg;
+    } else if (tenure === 'short') {
+      payContent = '<span class="guide-tag gold">10년납 이내 또는 신규 가입 재검토</span> 잔여 근속연수가 짧습니다. 납입 기간이 소득 기간 안에 완납될 수 있도록 단기납으로 설계하거나, 신규 가입 필요성 자체를 재검토하세요.' + proMsg + reMsg;
+    } else if (tenure === 'unknown') {
+      payContent = '<span class="guide-tag gold">완납 우선 전략</span> 잔여 근속연수를 예측하기 어렵습니다. 소득이 안정적이더라도 납입 기간이 불확실하다면 완납을 우선 목표로 삼는 것이 안전합니다. 소득이 유지되는 동안 완납할 수 있는 납입기간으로 설계하세요.' + proMsg + reMsg;
+    } else {
+      payContent = '<span class="guide-tag green">20~30년납 기준</span> 안정적 소득 유형입니다. 잔여 근속연수를 추가로 입력하면 더 정밀한 납입기간을 안내드릴 수 있습니다.' + proMsg + reMsg;
+    }
+  } else if (income === 'semi') {
+    var semiReMsg = '';
+    if (buffer === 'none' || buffer === 'low') {
+      semiReMsg = '<br><br><div class="info-box"><div class="lbl">✓ 보험보다 먼저</div><p>완충력이 낮아 보이더라도 <strong>주택 담보, 연금 담보, 퇴직금</strong> 등 조달 가능한 자원을 먼저 파악하세요. 이를 고려한 뒤 보험 필요성을 판단하세요.</p></div>';
+    }
+    var semiProMsg = '';
+    if (buffer === 'rich' || buffer === 'mid') {
+      semiProMsg = '<br><br><div class="gold-box"><div class="lbl">✓ 담보 활용 체크포인트</div><p>질병·상해 보험의 필요성을 판단할 때 <strong>주택 담보, 연금 담보, 퇴직금 등 위기 시 실제로 조달 가능한 자원</strong>도 함께 고려하세요. 이 자원이 충분하다면 보험의 필요성은 더 낮아질 수 있습니다.</p></div>';
+    }
+    if (tenure === 'short' || tenure === 'unknown') {
+      payContent = '<span class="guide-tag gold">단기납 우선</span> 소득 변동이 있고 잔여 근속연수가 짧거나 예측이 어렵습니다. 가능한 범위에서 단기납으로 완납을 목표로 하세요.' + semiProMsg + semiReMsg;
+    } else if (tenure) {
+      payContent = '<span class="guide-tag gold">10~20년납 검토</span> 소득 변동이 있는 만큼 월 보험료 부담이 과도하지 않은 수준으로 설계하고, 소득 상황에 따라 납입기간 조정을 검토하세요.' + semiProMsg + semiReMsg;
+    } else {
+      payContent = '<span class="guide-tag gold">소득 변동 구간</span> 소득 변동이 있는 만큼 납입 중 실효 위험을 주의해야 합니다. 잔여 근속연수를 함께 선택하면 더 정밀한 납입기간을 안내드릴 수 있습니다.' + semiProMsg + semiReMsg;
+    }
+  } else if (income === 'unstable') {
+    payContent = '<span class="guide-tag red">단기납 우선 (5년납 이하) — 완납이 핵심</span> 소득이 언제 끊길지 모르므로 빠른 완납이 최우선입니다. 보장금액이 다소 작더라도 "완납된 작은 보험"이 "실효 위험이 있는 큰 보험"보다 낫습니다. 납입 면제 특약도 함께 검토하세요.';
+    if (!tenure) {
+      payContent += ' 잔여 근속연수를 함께 선택하면 더 정밀한 납입기간을 안내드릴 수 있습니다.';
+    }
+  } else {
+    payContent = '';
+  }
+
+  // stable인데 tenure 없을 때 이미 처리됨, 공통 안내 추가
+  if (income && !tenure && income !== 'unstable' && income !== 'semi') {
+    // stable + no tenure → 이미 위에서 처리
+  }
+
+  // ③ 상해 보장 검토 여부 (직업 + 라이프스타일)
+  var injuryContent = '';
+  var needInjury = (job === 'field') || (life === 'active');
+  if (job || life) {
+    if (needInjury) {
+      var reasons = [];
+      if (job === 'field') reasons.push('직업상 상해 위험 높음');
+      if (life === 'active') reasons.push('육체적 취미 활동');
+      injuryContent = '<div class="info-box" style="margin-bottom:.8rem;"><div class="lbl">✓ 보험보다 먼저</div><p>상해 위험이 높다면 보험보다 <strong>안전 습관과 위험 행동 예방</strong>이 먼저입니다. 보험은 사고 후 손실을 보전할 뿐, 사고를 막아주지 않습니다.</p></div>'
+        + '<span class="guide-tag gold">상해보험 조건부 검토</span> ' + reasons.join(', ') + ' 으로 인해 상해 노출이 일반인보다 높습니다.<br><br>단, 상해보험 가입 전 먼저 확인할 것이 있습니다. <strong>소액 자기부담 여력이 있다면 굳이 보험료를 쓸 필요가 없습니다.</strong> 상해 발생 시 치료비의 대부분은 실손의료보험으로 커버됩니다. 실손으로 감당하기 어려운 수준의 후유장해·사망 위험이 실제로 높은 경우에만 상해보험을 검토하세요. 직업 특성상 보험료 할증 여부도 반드시 확인하세요.';
+    } else {
+      injuryContent = '<span class="guide-tag green">상해보험 불필요</span> 직업과 라이프스타일 모두 상해 위험이 낮습니다. 소액 상해는 자기부담으로 감당 가능한 수준이라면 실손의료보험으로 충분할 수 있습니다.';
+    }
+  } else {
+    injuryContent = '';
+  }
+
+  // ④ 사망보험 설계
+  var deathContent = '';
+  var d4raw = document.getElementById('d4').value;
+  var d4vals = d4raw ? d4raw.split(',') : [];
+  var hasYoung = d4vals.indexOf('family-young') !== -1;
+  var hasDep   = d4vals.indexOf('family-dep') !== -1;
+
+  if (family === 'single') {
+    deathContent = '<span class="guide-tag gold">사망보험 불필요</span> 경제적 피부양자가 없으므로 사망보험은 불필요합니다. 보험료를 다른 재무목표 달성에 집중하세요.';
+  } else if (family === 'couple') {
+    deathContent = '<span class="guide-tag gold">소액 정기보험 검토</span> 맞벌이 배우자가 있으면 각자 소득으로 생활 유지가 가능합니다. 장례비·긴급 생활비 수준의 소액 정기보험으로 충분합니다.';
+  } else if (hasYoung || hasDep) {
+    if (hasYoung) {
+      deathContent += '<span class="guide-tag red">정기보험 핵심 구성 — 미성년 자녀</span> <strong>막내 자녀가 독립할 때까지</strong>를 보장기간으로 설정한 정기보험이 가장 합리적입니다. 보장금액 기준: 막내 자녀 독립까지 남은 기간 × 연간 생활비. 자녀가 모두 독립한 후에는 사망보험 유지 필요성을 반드시 재검토하세요.';
+    }
+    if (hasDep) {
+      if (hasYoung) deathContent += '<br><br>';
+      deathContent += '<div class="gold-box" style="margin-bottom:.8rem;"><div class="lbl">✓ 보험 밖에서 먼저</div><p>피부양자의 생존 기간이 본인의 경제활동 기간을 초과할 가능성이 있다면, 그 이후는 사망보험이 아닌 <strong>충분한 은퇴 준비 또는 신탁</strong>으로 대비하세요. 보험으로 해결하려 하지 마세요.</p></div>'
+        + '<span class="guide-tag red">충분한 사망 보장 필요 — 소득 없는 배우자·부양 부모</span> 사망 시 생계 공백이 큽니다. 보장기간은 <strong>본인의 경제활동 기간까지</strong>로 설정하고, 보장금액은 그 기간 × 생활비를 기준으로 삼으세요.';
+    }
+  } else {
+    deathContent = '';
+  }
+
+  // ⑤ 종신보험 필요 여부 (자산 규모 × 금융자산 비중)
+  var wholeContent = '';
+  if (asset === 'over10') {
+    var singleMsg = '';
+    if (!family || family === 'single') {
+      singleMsg = '<div class="gold-box" style="margin-bottom:.8rem;"><div class="lbl">✓ 상속 계획 먼저</div><p>피부양자나 상속인이 없다면 상속세를 고민하기 전에 <strong>상속 계획 자체를 먼저 고민하세요.</strong> 상속계획이 없다면 살아 생전 이 자산을 어떻게 유용하게 쓸지를 먼저 설계하는 것이 더 중요할 수 있습니다.</p></div>';
+    }
+    if (liquid === 'low') {
+      wholeContent = singleMsg + '<span class="guide-tag red">종신보험 검토 권장</span> 자산의 대부분이 부동산·사업체여서 상속세 납부 재원이 부족할 수 있습니다. 종신보험을 상속세 납부 재원 마련 수단으로 검토할 실익이 있습니다. 단, 보장 목적이 아닌 재무설계 도구로 접근하세요.';
+    } else if (liquid === 'mid') {
+      wholeContent = singleMsg + '<span class="guide-tag gold">종신보험 부분 검토</span> 금융자산 비중이 중간 수준입니다. 상속 자산 규모와 예상 상속세를 전문가와 계산한 후 종신보험 필요 규모를 결정하세요.';
+    } else if (liquid === 'high') {
+      wholeContent = singleMsg + '<span class="guide-tag green">종신보험 불필요</span> 금융자산 비중이 충분해 상속세를 현금으로 납부할 여력이 있습니다. 종신보험 없이도 상속세 재원 마련이 가능합니다.';
+    } else {
+      wholeContent = singleMsg + '<span class="guide-tag gold">금융자산 비중 확인 필요</span> 10억 이상 자산 보유자입니다. 금융자산 비중을 선택하면 종신보험 필요 여부를 안내드릴 수 있습니다.';
+    }
+  } else if (asset === '5to10') {
+    var singleMsg5 = '';
+    if (!family || family === 'single') {
+      singleMsg5 = '<div class="gold-box" style="margin-bottom:.8rem;"><div class="lbl">✓ 상속 계획 먼저</div><p>피부양자나 상속인이 없다면 상속세를 고민하기 전에 <strong>상속 계획 자체를 먼저 고민하세요.</strong> 상속계획이 없다면 살아 생전 이 자산을 어떻게 유용하게 쓸지를 먼저 설계하는 것이 더 중요할 수 있습니다.</p></div>';
+    }
+    wholeContent = singleMsg5 + '<span class="guide-tag gold">경계 구간 — 상속 설계 점검 권장</span> 자산이 상속세 과세 기준(10억)에 근접한 경계 구간입니다. 향후 자산 증가에 따라 상속세 이슈가 발생할 수 있으므로 지금부터 상속 설계를 점검해두는 것이 합리적입니다. 현재 시점에서 종신보험이 반드시 필요한 것은 아닙니다.';
+  } else if (asset) {
+    wholeContent = '<span class="guide-tag green">종신보험 불필요</span> 현재 자산 규모상 상속세 납부 재원 마련 목적의 종신보험은 해당 없습니다. 순수 사망 보장이 필요하다면 정기보험이 압도적으로 효율적입니다.';
+  } else {
+    wholeContent = '';
+  }
+
+  // ⑥ 편향 진단
+  var biasContent = '';
+  var bias = document.getElementById('d_bias').value;
+  var recency = document.getElementById('d_recency').value;
+  var statusQuo = document.getElementById('d_status_quo').value;
+
+  var biasItems = [];
+
+  if (bias === 'high') {
+    biasItems.push('<span class="guide-tag red">가용성 편향 주의</span> 주변에서 비슷한 일이 생길 때 보험을 늘리고 싶어지는 경향이 있습니다. 이는 가용성 편향으로, 실제 통계적 발생 확률과 무관하게 위험을 과대평가하는 심리입니다. <strong>보험 가입 충동이 생기면 최소 한 달 유보하고</strong>, 실제 발생률 데이터와 본인의 재무 완충력을 기준으로 냉정하게 판단하세요.');
+  } else if (bias === 'under') {
+    biasItems.push('<span class="guide-tag gold">가용성 편향 — 과소평가 주의</span> 주변에 피해자가 없다는 것은 위험이 낮다는 근거가 아닙니다. 통계적 발생 확률은 주변 경험과 무관합니다. 필요한 보장을 객관적인 기준으로 점검하세요.');
+  } else if (bias === 'mid') {
+    biasItems.push('<span class="guide-tag gold">가용성 편향 — 보통</span> 영향을 받지만 곧 객관적으로 판단하는 편입니다. 보험 관련 결정을 내릴 때 감정적 충동보다 재무 완충력과 실제 필요성을 기준으로 삼는 습관을 유지하세요.');
+  }
+
+  if (recency === 'high') {
+    biasItems.push('<span class="guide-tag red">최신 편향 주의</span> 최근 경험이 보험 판단에 영향을 주고 있습니다. 본인의 최근 경험은 실제 발생 확률을 바꾸지 않습니다. 감정이 가라앉은 뒤 냉정하게 판단하세요. 지금 당장 보험을 추가하고 싶은 충동이 있다면 최소 한 달 유보하세요.');
+  }
+
+  if (statusQuo === 'high') {
+    biasItems.push('<span class="guide-tag red">현상유지 편향 주의</span> 유지하는 것도 결정입니다. 매달 나가는 보험료는 자동이체라 잘 안 보이지만, 연간으로 계산하면 적지 않은 금액입니다. <strong>"해지하면 손해"라는 말은 판매자의 언어입니다.</strong> 이미 낸 보험료는 돌아오지 않습니다. 지금부터 내는 돈이 기준입니다. 필요 없다고 판단되면 주저 없이 정리하세요.');
+  }
+
+  if (biasItems.length > 0) {
+    biasContent = biasItems.join('<br><br>');
+  } else if (bias || recency || statusQuo) {
+    biasContent = '<span class="guide-tag green">편향 낮음</span> 주변 경험이나 최근 사건에 흔들리지 않고 판단하는 편입니다. 기존 보험도 정기적으로 검토하고 있습니다. 이 성향을 유지하면서 객관적 기준으로 보험을 설계하세요.';
+  } else {
+    biasContent = '';
+  }
+
+  // ⑦ 가족력·기왕력
+  var healthContent = '';
+  var famHx = document.getElementById('d_family_hx').value;
+  var hx = document.getElementById('d_hx').value;
+  if (famHx || hx) {
+    // 공통: 예방·건강검진 우선 메시지
+    var commonMsg = '<div class="info-box" style="margin-bottom:.8rem;"><div class="lbl">✓ 보험보다 먼저</div><p>가족력이나 기왕력이 있다면 보험보다 <strong>예방과 정기 건강검진이 우선</strong>입니다. 보험은 발생한 손실을 보전하는 도구일 뿐, 질병을 막아주지 않습니다. 정기적인 검진으로 조기 발견·조기 치료에 집중하세요.</p></div>';
+
+    if (famHx && famHx !== 'none') {
+      var famMsg = '';
+      // 과보장 경고 먼저
+      famMsg = '<span class="guide-tag gold">과보장 주의</span> <strong>가족력은 발생 확률을 높이는 요인일 뿐, 발생을 확정하지 않습니다.</strong> 불안감에 의해 과도한 보장을 여러 개 가입하는 것을 먼저 경계하세요.<br><br>';
+      if (famHx === 'cancer') famMsg += '암 가족력이 있습니다. 실제로 보험이 필요하다고 판단되면 질병보험 설계 시 암 보장을 검토하세요.';
+      else if (famHx === 'cardio') famMsg += '심혈관·뇌혈관질환 가족력이 있습니다. 실제로 보험이 필요하다고 판단되면 해당 질환 중심의 질병보험을 검토하세요.';
+      else if (famHx === 'both') famMsg += '암·심혈관·뇌혈관 복합 가족력이 있습니다. 실제로 보험이 필요하다고 판단되면 두 영역을 검토하세요.';
+      healthContent += famMsg;
+    }
+    if (hx && hx !== 'none') {
+      if (healthContent) healthContent += '<br><br>';
+      // 과보장 경고 먼저
+      var hxWarning = '<span class="guide-tag gold">과보장 주의</span> 기왕력이 있다고 해당 질환 보장을 반드시 두텁게 해야 하는 것은 아닙니다. 재발 확률과 본인의 재무 완충력을 냉정하게 따진 후 결정하세요.<br><br>';
+      if (hx === 'recent') {
+        healthContent += hxWarning + '<span class="guide-tag red">가입 가능 여부 먼저 확인</span> 현재 치료 중이거나 완치 후 5년 미만입니다. 일반 심사 가입이 어려울 수 있으므로 가입 가능 여부를 먼저 확인하는 것이 순서입니다. 간편심사 상품은 보험료가 높고 보장이 제한적이므로, 가입 가능하다는 이유만으로 무리하게 가입하지 마세요.';
+      } else if (hx === 'old') {
+        healthContent += hxWarning + '<span class="guide-tag gold">일반심사 가능 여부 확인</span> 완치 후 5년 이상 경과했습니다. 일반 심사 가입 가능 여부를 확인한 후 설계하세요.';
+      }
+    }
+    if (!healthContent) healthContent = '<span class="guide-tag green">특이 이력 없음</span> 가족력·기왕력 제약 없이 일반 기준으로 보험을 설계할 수 있습니다.';
+    healthContent = commonMsg + healthContent;
+  } else {
+    healthContent = '';
+  }
+
+  // ⑧ 부채 반영 (사망보험 결과가 있을 때만)
+  var debt = document.getElementById('d_debt').value;
+  if (deathContent && debt === 'risk') {
+    deathContent += '<br><br><span class="guide-tag red">부채 반영 필요</span> 상속 시 금융자산으로 부채를 상환하기 어렵습니다. 사망보험금 산정 시 니즈분석 기준액에 잔여 부채를 더해 설계하세요.';
+  } else if (deathContent && debt === 'ok') {
+    deathContent += '<br><br><span class="guide-tag green">부채 별도 반영 불필요</span> 상속 시 금융자산으로 부채 상환이 가능합니다.';
+  }
+
+  // ⑨ 갱신형 활용 안내 (납입기간 블록에 추가)
+  if (tenure === 'short') {
+    payContent += '<br><br><span class="guide-tag gold">갱신형 활용 검토</span> 잔여 근속연수가 짧아 비갱신형 장기 설계가 부담스러울 수 있습니다. <strong>단기 집중 보장 목적으로 갱신형을 활용</strong>하고, 상황이 바뀌면 재설계하는 전략을 고려하세요. 단, 갱신 시 보험료 인상을 반드시 감안하세요.';
+  } else if (risk === 'none' && (tenure === 'long' || tenure === 'mid')) {
+    payContent += '<br><br><span class="guide-tag gold">자산 형성기 갱신형 활용</span> 위험에 둔감하고 소득이 장기간 유지됩니다. 자산이 충분히 쌓이기 전까지는 <strong>갱신형으로 보험료를 최소화</strong>하고, 자산 형성 후 보장 필요성을 재검토하는 전략이 효율적입니다.';
+  }
+
+  // 렌더링 — 미입력 항목 블록 숨김
+  function addBlock(title, val) {
+    if (!val) return '';
+    return makeBlock(title, val);
+  }
+
+  html += addBlock('보장 강도 · 범위', scopeContent);
+  html += addBlock('가용성 편향 진단', biasContent);
+  html += addBlock('납입기간 전략', payContent);
+  html += addBlock('건강 이력 반영', healthContent);
+  html += addBlock('상해 보장 검토', injuryContent);
+  html += addBlock('사망보험 설계', deathContent);
+  html += addBlock('종신보험 필요 여부', wholeContent);
+
+  if (!html) {
+    html = '<div class="info-box"><div class="lbl">안내</div><p>2단계 리스크 진단 항목을 선택하면 맞춤 가이드가 생성됩니다.</p></div>';
+  }
+
+  // ── 보험 요약 카드 생성 ──
+  var summaryRows = [];
+
+  // 실손·배상책임 — 항상 우선 확보
+  summaryRows.push({cls:'yes', icon:'✓', name:'실손의료보험', reason:'의료비 리스크 커버 — 우선 확보'});
+  summaryRows.push({cls:'yes', icon:'✓', name:'배상책임보험', reason:'일상 배상 리스크 — 우선 확보'});
+
+  // 질병보험
+  var needDisease = (famHx && famHx !== 'none') ||
+                    income === 'unstable' ||
+                    (buffer === 'none' || buffer === 'low') ||
+                    (family && family !== 'single' && family !== 'couple');
+  var skipDisease = (income === 'stable' && (buffer === 'rich' || buffer === 'mid'));
+  if (needDisease && !skipDisease) {
+    var diseaseReason = [];
+    if (famHx && famHx !== 'none') diseaseReason.push('가족력');
+    if (income === 'unstable') diseaseReason.push('소득 불안정');
+    if (buffer === 'none' || buffer === 'low') diseaseReason.push('완충력 취약');
+    summaryRows.push({cls:'yes', icon:'✓', name:'질병보험', reason:'검토 — ' + diseaseReason.join('·')});
+  } else if (skipDisease) {
+    summaryRows.push({cls:'no', icon:'—', name:'질병보험', reason:'자력 감당 가능 수준 — 필요성 재검토'});
+  } else {
+    summaryRows.push({cls:'no', icon:'—', name:'질병보험', reason:'해당 조건 없음'});
+  }
+
+  // 정기보험
+  if (hasYoung && hasDep) {
+    summaryRows.push({cls:'yes', icon:'✓', name:'정기보험', reason:'미성년 자녀 + 소득 없는 배우자·부양 부모'});
+  } else if (hasYoung) {
+    summaryRows.push({cls:'yes', icon:'✓', name:'정기보험', reason:'미성년 자녀 독립까지'});
+  } else if (hasDep) {
+    summaryRows.push({cls:'yes', icon:'✓', name:'정기보험', reason:'소득 없는 배우자·부양 부모'});
+  } else if (family === 'couple') {
+    summaryRows.push({cls:'maybe', icon:'△', name:'정기보험', reason:'맞벌이 — 소액 수준 검토'});
+  } else if (family === 'single') {
+    summaryRows.push({cls:'no', icon:'—', name:'정기보험', reason:'피부양자 없음 — 불필요'});
+  }
+
+  // 상해보험
+  var needInjurySummary = (job === 'field') || (life === 'active');
+  if (needInjurySummary) {
+    var injuryReason = [];
+    if (job === 'field') injuryReason.push('직업 상해 위험');
+    if (life === 'active') injuryReason.push('육체적 취미');
+    summaryRows.push({cls:'maybe', icon:'△', name:'상해보험', reason:'조건부 검토 — ' + injuryReason.join('·')});
+  } else if (job || life) {
+    summaryRows.push({cls:'no', icon:'—', name:'상해보험', reason:'직업·라이프스타일 위험 낮음 — 불필요'});
+  }
+
+  // 종신보험
+  if (asset === 'over10') {
+    if (liquid === 'low') {
+      summaryRows.push({cls:'yes', icon:'✓', name:'종신보험', reason:'10억 이상 + 금융자산 비중 낮음 — 검토'});
+    } else if (liquid === 'mid') {
+      summaryRows.push({cls:'maybe', icon:'△', name:'종신보험', reason:'10억 이상 — 부분 검토'});
+    } else {
+      summaryRows.push({cls:'no', icon:'—', name:'종신보험', reason:'유동성 충분 — 불필요'});
+    }
+  } else if (asset === '5to10') {
+    summaryRows.push({cls:'maybe', icon:'△', name:'종신보험', reason:'경계 구간 — 상속 설계 점검 권장'});
+  } else if (asset) {
+    summaryRows.push({cls:'no', icon:'—', name:'종신보험', reason:'자산 5억 미만 — 불필요'});
+  }
+
+  // 요약 HTML 생성
+  if (summaryRows.length > 0) {
+    var summaryHtml = '<div class="ins-summary"><div class="ins-summary-title">보험 종류별 해당 여부</div><div class="ins-summary-grid">';
+    summaryRows.forEach(function(r) {
+      summaryHtml += '<div class="ins-row ' + r.cls + '"><span class="ins-icon">' + r.icon + '</span><span class="ins-name">' + r.name + '</span><span class="ins-reason">' + r.reason + '</span></div>';
+    });
+    summaryHtml += '</div></div>';
+    html = summaryHtml + html;
+  }
+
+  document.getElementById('guideOutput').innerHTML = html;
+}
+
+function makeBlock(title, content) {
+  return '<div class="guide-block">'
+    + '<div class="guide-block-head">' + title + '</div>'
+    + '<div class="guide-block-body">' + content + '</div>'
+    + '</div>';
+}
+
+// ── 저축성 보험 패널 ──
+function startSavings(){
+  var op=document.getElementById('opening'),sv=document.getElementById('panel-savings');
+  op.style.transition='opacity .4s';op.style.opacity='0';
+  setTimeout(function(){
+    op.style.display='none';
+    sv.style.display='block';sv.style.opacity='0';sv.style.transition='opacity .4s';
+    setTimeout(function(){
+      sv.style.opacity='1';
+      attachSavingsListeners();
+      updateAmountDisplay(document.getElementById('sim-amount').value);
+      runSimulation();
+    },20);
+    window.scrollTo(0,0);
+  },400);
+}
+function backToOpeningFromSavings(){
+  var sv=document.getElementById('panel-savings'),op=document.getElementById('opening');
+  sv.style.transition='opacity .4s';sv.style.opacity='0';
+  setTimeout(function(){
+    sv.style.display='none';
+    op.style.display='flex';op.style.opacity='0';op.style.transition='opacity .4s';
+    setTimeout(function(){op.style.opacity='1';},20);
+    window.scrollTo(0,0);
+  },400);
+}
+
+var savChart=null;
+
+function attachSavingsListeners(){
+  var sv=document.getElementById('panel-savings');
+  if(sv._listenersAttached)return;
+  sv._listenersAttached=true;
+  var els=sv.querySelectorAll('input[type=number]');
+  for(var i=0;i<els.length;i++){
+    els[i].addEventListener('input',function(){runSimulation();});
+  }
+}
+
+function syncTaxDisplay(){
+  var v=parseFloat(document.getElementById('sim-tax-rate').value);
+  document.getElementById('sim-tax-display').textContent=v.toFixed(1)+'%';
+}
+
+function syncExtraDisplay(){
+  var v=parseFloat(document.getElementById('sim-extra-pct').value)||0;
+  document.getElementById('sim-extra-display').textContent=v+'%';
+}
+
+function setPayType(t){
+  document.getElementById('sim-paytype').value=t;
+  var isMonthly=t==='monthly';
+  var amtEl=document.getElementById('sim-amount');
+  if(isMonthly&&parseFloat(amtEl.value)>=10000000){amtEl.value=1500000;}
+  if(!isMonthly&&parseFloat(amtEl.value)<10000000){amtEl.value=100000000;}
+  updateAmountDisplay(amtEl.value);
+  document.getElementById('btn-monthly').style.background=isMonthly?'var(--accent)':'white';
+  document.getElementById('btn-monthly').style.color=isMonthly?'white':'var(--ink)';
+  document.getElementById('btn-monthly').style.borderColor=isMonthly?'var(--accent)':'var(--line)';
+  document.getElementById('btn-lump').style.background=isMonthly?'white':'var(--accent)';
+  document.getElementById('btn-lump').style.color=isMonthly?'var(--ink)':'white';
+  document.getElementById('btn-lump').style.borderColor=isMonthly?'var(--line)':'var(--accent)';
+  document.getElementById('sim-amount-label').textContent=isMonthly?'월 납입액 (원)':'납입 원금 (원)';
+  document.getElementById('acc-years-field').style.display=isMonthly?'':'none';
+  runSimulation();
+}
+
+function setTax(v){
+  document.getElementById('sim-tax-rate').value=v;
+  document.getElementById('sim-tax-display').textContent=v+'%';
+  runSimulation();
+}
+
+function runSimulation(){
+  var pv=function(id,d){var v=document.getElementById(id).value;return v===''?d:parseFloat(v);};
+  var payType  = document.getElementById('sim-paytype').value;
+  var P        = parseFloat(document.getElementById('sim-amount').value)||500000;
+  var accYrs   = payType==='lump'?0:parseInt(document.getElementById('sim-acc-years').value)||10;
+  var totYrs   = parseInt(document.getElementById('sim-years').value)||20;
+  if(totYrs<accYrs)totYrs=accYrs;
+  var eRate    = pv('sim-equity-rate',7)/100;
+  var _taxVal  = document.getElementById('sim-tax-rate').value;
+  var taxR     = (_taxVal===''?15.4:parseFloat(_taxVal))/100;
+  var vFee     = pv('sim-var-fee',9)/100;
+  var vMgmt    = pv('sim-var-mgmt',0.5)/100;
+  // 슬라이더값: 기본보험료 대비 추가납입 비율(extraRatio, 0~3.0)
+  // 총액 P 고정: extraPct(총 중 추가납입 비율) = extraRatio/(1+extraRatio)
+  var extraRatio = (parseFloat(document.getElementById('sim-extra-pct').value)||0)/100;
+  var extraPct = extraRatio/(1+extraRatio);
+  var extraFee = pv('sim-extra-fee',0.5)/100;
+  var isoFee   = pv('sim-isa-fee',0.01)/100;
+
+  // 비과세 금액 조건 (총 납입 P 기준, 10년 유지는 루프에서 체크)
+  var isNontaxable = payType==='lump' ? (P<=100000000) : (P<=1500000);
+
+  var basicRatio=1-extraPct;
+  var months=totYrs*12;
+  var accMonths=payType==='lump'?1:accYrs*12;
+  var labels=[],dV=[],dI=[],dB=[];
+  var bV=0,bI=0,bI_brk=0,bB=0,prin=0;
+  // ISA 한도: 연 2,000만원, 총 1억원
+  var ISA_ANNUAL=20000000,ISA_TOTAL=100000000;
+  var isaPrin=0,isaBrkPrin=0,isaYearContrib=0;
+
+  if(payType==='lump'){
+    bV=P*basicRatio*(1-vFee)+P*extraPct*(1-extraFee);
+    var isaLump=Math.min(P,ISA_TOTAL);
+    bI=isaLump; isaPrin=isaLump;
+    bI_brk=P-isaLump; isaBrkPrin=P-isaLump;
+    bB=P; prin=P;
+  }
+
+  for(var m=1;m<=months;m++){
+    var isAcc=payType==='monthly'&&m<=accMonths;
+    var early=isAcc;
+    var contrib=isAcc?P:0;
+    if(payType==='monthly'&&isAcc)prin+=P;
+
+    // 변액보험: P 중 basicRatio는 사업비 적용, extraPct는 소액 수수료만
+    bV=bV*(1+eRate/12-vMgmt/12)+contrib*basicRatio*(1-(early?vFee:0))+contrib*extraPct*(1-extraFee);
+    // ISA: 연 2,000만·총 1억 한도, 초과분은 일반 계좌로
+    if(isAcc){
+      if((m-1)%12===0)isaYearContrib=0;
+      var isaC=Math.min(contrib,Math.max(0,ISA_ANNUAL-isaYearContrib),Math.max(0,ISA_TOTAL-isaPrin));
+      var brkC=contrib-isaC;
+      isaYearContrib+=isaC; isaPrin+=isaC; isaBrkPrin+=brkC;
+      bI=bI*(1+eRate/12-isoFee/12)+isaC;
+      bI_brk=bI_brk*(1+eRate/12-isoFee/12)+brkC;
+    } else {
+      bI=bI*(1+eRate/12-isoFee/12);
+      bI_brk=bI_brk*(1+eRate/12-isoFee/12);
+    }
+    bB=bB*(1+eRate/12-isoFee/12)+contrib;
+
+    if(m%12===0){
+      var yr=m/12;
+      labels.push(yr+'년');
+      // 차트: 보험은 항상 gross 잔액 표시, 세율 변경은 증권·ISA 라인에만 영향
+      dV.push(Math.round(bV));
+      var pI_isa=Math.max(0,bI-isaPrin);
+      var pI_brk=Math.max(0,bI_brk-isaBrkPrin);
+      dI.push(Math.round((bI+bI_brk)-Math.max(0,pI_isa-2000000)*0.099-pI_brk*taxR));
+      var pB=Math.max(0,bB-prin);
+      dB.push(Math.round(bB-pB*taxR));
+    }
+  }
+
+  var fV_=dV[dV.length-1];
+  var pI_isa_f=Math.max(0,bI-isaPrin),pI_brk_f=Math.max(0,bI_brk-isaBrkPrin);
+  var fI_=(bI+bI_brk)-Math.max(0,pI_isa_f-2000000)*0.099-pI_brk_f*taxR;
+  var fB_=dB[dB.length-1];
+
+  var pBgross=Math.max(0,bB-prin);
+  var beRaw=pBgross>0?(bB-bV)/pBgross*100:null;
+  var breakEven=beRaw!==null?Math.round(beRaw*10)/10:null;
+
+  var insNote;
+  if(isNontaxable&&totYrs>=10) insNote='비과세';
+  else if(!isNontaxable) insNote=payType==='lump'?'비과세 불가 (1억 초과)':'비과세 불가 (월 150만 초과)';
+  else insNote='비과세 미충족 (10년 미달)';
+
+  var finals=[
+    {name:'변액보험 (실적배당형)',val:fV_,note:insNote},
+    {name:'일반 증권계좌',val:fB_,note:Math.round(taxR*1000)/10+'% 과세'},
+    {name:'ISA계좌 활용 시',val:fI_,note:isaBrkPrin>0?'ISA 한도 초과 — 초과분 일반과세':'200만 비과세 + 9.9%'},
+  ];
+  var best=Math.max.apply(null,finals.map(function(r){return r.val;}));
+
+  var beHtml='';
+  if(isNontaxable&&totYrs>=10&&breakEven!==null){
+    var beats=taxR*100>breakEven;
+    beHtml='<div class="'+(beats?'info-box':'warn-box')+'" style="margin-bottom:1.2rem;">'
+      +'<div class="lbl">변액보험 vs 일반 증권계좌 — 손익분기 세율</div>'
+      +'<p>변액보험이 증권계좌를 역전하는 세율: <strong>약 '+breakEven+'%</strong><br>'
+      +(beats
+        ?'현재 세율 '+Math.round(taxR*1000)/10+'%는 손익분기('+breakEven+'%)보다 높습니다. <strong>변액보험이 유리합니다.</strong>'
+        :'현재 세율 '+Math.round(taxR*1000)/10+'%는 손익분기('+breakEven+'%)보다 낮습니다. <strong>일반 증권계좌가 유리합니다.</strong>'
+      )+'</p></div>';
+  }
+
+  var th='<div class="sim-table-wrap"><table class="sim-table"><thead><tr>'
+    +'<th>상품</th><th>투입 원금</th><th>최종 자산 (세후)</th><th>세후 수익</th><th>과세 방식</th>'
+    +'</tr></thead><tbody>';
+  finals.forEach(function(r){
+    var profit=r.val-prin;
+    var cls=r.val===best?'sim-best':'';
+    th+='<tr class="'+cls+'"><td>'+r.name+'</td>'
+      +'<td>'+fmtW(prin)+'원</td>'
+      +'<td><strong>'+fmtW(r.val)+'원</strong></td>'
+      +'<td>'+(profit>=0?'+':'')+fmtW(profit)+'원</td>'
+      +'<td style="font-size:.72rem;color:var(--ink-faint)">'+r.note+'</td></tr>';
+  });
+  th+='</tbody></table></div>';
+  document.getElementById('simTableWrap').innerHTML=beHtml+th;
+
+  if(savChart)savChart.destroy();
+  var ctx=document.getElementById('savingsChart').getContext('2d');
+  savChart=new Chart(ctx,{
+    type:'line',
+    data:{labels:labels,datasets:[
+      {label:'변액보험',data:dV,borderColor:'#c0392b',backgroundColor:'rgba(192,57,43,.07)',borderWidth:2,tension:.3,fill:true,pointRadius:0,pointHoverRadius:4},
+      {label:'증권계좌',data:dB,borderColor:'#2980b9',backgroundColor:'rgba(41,128,185,.07)',borderWidth:2,tension:.3,fill:true,pointRadius:0,pointHoverRadius:4},
+      {label:'ISA계좌 활용 시',data:dI,borderColor:'#1a6b47',backgroundColor:'rgba(26,107,71,.07)',borderWidth:2,tension:.3,fill:true,pointRadius:0,pointHoverRadius:4},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:true,aspectRatio:1.8,
+      interaction:{mode:'index',intersect:false},
+      scales:{y:{ticks:{callback:function(v){return fmtW(Math.round(v/10000))+'만';}}}},
+      plugins:{tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtW(c.parsed.y)+'원';}}}}
+    }
+  });
+  document.getElementById('simChartBox').style.display='block';
+}
+
+function fmtW(n){return new Intl.NumberFormat('ko-KR').format(Math.round(n));}
+
+function fmtKorean(n){
+  n=Math.round(n);
+  if(n<=0)return '';
+  var eok=Math.floor(n/100000000);
+  var man=Math.floor((n%100000000)/10000);
+  var rest=n%10000;
+  var s='';
+  if(eok>0)s+=eok+'억 ';
+  if(man>0)s+=man+'만 ';
+  if(rest>0)s+=rest;
+  return s.trim()+'원';
+}
+
+function updateAmountDisplay(val){
+  var el=document.getElementById('sim-amount-kor');
+  if(!el)return;
+  var n=parseFloat(val)||0;
+  el.textContent=n>0?fmtKorean(n):'';
+}
+
+</script>
+
+<!-- 실손보험 전환 가이드 패널 (shell 외부) -->
+<div class="silson-panel" id="panel-silson">
+<div class="hero">
+  <div class="hero-eyebrow">금융소비자 정보 가이드</div>
+  <h1>내 실손보험,<br><em>지금 전환해야 할까요</em></h1>
+  <p class="hero-sub">전환 여부는 본인이 판단해야 합니다. 이 가이드는 그 판단에 필요한 정보를 공식 자료 기반으로 정리했습니다.</p>
+  <div class="hero-source">출처: 금융위원회 · 금융감독원 · 손해보험협회 · 생명보험협회 공식 자료</div>
+</div>
+
+<div class="wrap">
+
+  <!-- 섹션 1: 내 세대 확인 -->
+  <div class="section">
+    <div class="section-eyebrow">Step 01</div>
+    <h2 class="section-title">내 실손보험 세대를 먼저 확인하세요</h2>
+    <p class="section-desc">보험증권 또는 가입 시기로 확인할 수 있습니다. 세대마다 만기 구조, 자기부담금, 보장 범위가 다르므로 전환 판단의 기준이 됩니다.</p>
+
+    <div style="overflow-x:auto;">
+    <table class="gen-table">
+      <thead>
+        <tr>
+          <th>세대</th>
+          <th>가입 시기</th>
+          <th>만기</th>
+          <th>자기부담금</th>
+          <th>비급여 보장</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1세대</strong></td>
+          <td>~2009년 9월</td>
+          <td><span class="gen-badge badge-green">없음 (80·100세)</span></td>
+          <td>손보 0%, 생보 20%</td>
+          <td>전 항목 보장</td>
+        </tr>
+        <tr>
+          <td><strong>2세대 초기</strong><br><small style="color:var(--ink-faint)">선택형</small></td>
+          <td>2009년 10월~<br>2012년 12월</td>
+          <td><span class="gen-badge badge-green">없음 (100세)</span></td>
+          <td>10%</td>
+          <td>전 항목 보장</td>
+        </tr>
+        <tr>
+          <td><strong>2세대 후기</strong><br><small style="color:var(--ink-faint)">표준형</small></td>
+          <td>2013년 1월~<br>2017년 3월</td>
+          <td><span class="gen-badge badge-gold">15년 재가입</span></td>
+          <td>20%</td>
+          <td>전 항목 보장</td>
+        </tr>
+        <tr>
+          <td><strong>3세대</strong></td>
+          <td>2017년 4월~<br>2021년 6월</td>
+          <td><span class="gen-badge badge-gold">15년 재가입</span></td>
+          <td>급여 20%<br>비급여 특약 30%</td>
+          <td>3대 비급여 특약 분리</td>
+        </tr>
+        <tr>
+          <td><strong>4세대</strong></td>
+          <td>2021년 7월~<br>2026년 5월</td>
+          <td><span class="gen-badge badge-gold">5년 재가입</span></td>
+          <td>급여 20%<br>비급여 30%</td>
+          <td>할인·할증제 적용</td>
+        </tr>
+        <tr>
+          <td><strong>5세대</strong></td>
+          <td>2026년 6월~</td>
+          <td><span class="gen-badge badge-gold">5년 재가입</span></td>
+          <td>비중증 비급여 50%</td>
+          <td>비중증 비급여 대폭 축소<br>임신·출산 급여 신규 보장</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="info-box" style="margin-top:1rem;">
+      <div class="lbl">가입 세대 확인 방법</div>
+      <p>생명보험협회(klia.or.kr) 또는 손해보험협회(knia.or.kr) 홈페이지에서 실손보험 가입 내역을 조회할 수 있습니다. 보험증권의 가입일자를 위 표와 대조하세요.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 섹션 2: 세대별 상황 -->
+  <div class="section">
+    <div class="section-eyebrow">Step 02</div>
+    <h2 class="section-title">내 세대의 상황은 이렇습니다</h2>
+    <p class="section-desc">세대마다 처한 상황이 다릅니다. 먼저 내 세대의 상황을 파악하세요.</p>
+
+    <div class="gen-cards">
+
+      <!-- 1세대·2세대 초기 -->
+      <div class="gen-card urgent">
+        <div class="gen-card-head">
+          <div>
+            <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.2rem;">가장 신중하게 판단해야 하는 구간</div>
+            <div class="gen-card-label">1세대 · 2세대 초기 (선택형)</div>
+          </div>
+          <div class="gen-card-period">약 1,600만 건</div>
+        </div>
+        <div class="gen-card-body">
+          <p><strong>강제 전환은 없습니다.</strong> 약관변경(재가입) 조항이 없어 계약 만기(100세)까지 현재 약관이 유지됩니다. 지금 당장 전환하지 않아도 됩니다.</p>
+          <div class="warn-box" style="margin-top:.8rem;">
+            <div class="lbl">그럼에도 고민이 필요한 이유</div>
+            <p>보험료는 매년 갱신되며 연령 증가·손해율에 따라 계속 오릅니다. 보험료 인상률은 연간 25% 이내로 법적 제한이 있으나, 장기적으로 부담이 커질 수 있습니다.<br><br>2026년 11월부터 1·2세대 초기 가입자를 대상으로 5세대 전환 시 보험료 3년간 50% 할인 제도 시행이 예정되어 있습니다. <strong>단, 세부 내용은 아직 최종 확정되지 않았습니다.</strong> 금융감독원 공식 발표를 확인하세요.</p>
+          </div>
+          <div class="warn-box" style="margin-top:.8rem;">
+            <div class="lbl">전환 시 반드시 알아야 할 것</div>
+            <p>전환하면 비급여 보장이 현행보다 줄어드는 구조입니다. 전환 후 <strong>6개월 이내</strong>에는 보험금 청구가 없었다면 철회하고 이전 계약으로 돌아갈 수 있습니다. 단, 전환 후 3개월이 지나면 보험금을 청구하지 않은 계약에 한해서만 철회 가능합니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2세대 후기·3세대 -->
+      <div class="gen-card caution">
+        <div class="gen-card-head">
+          <div>
+            <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.2rem;">재가입 시기 순차 도래 예정</div>
+            <div class="gen-card-label">2세대 후기 (표준형) · 3세대</div>
+          </div>
+          <div class="gen-card-period">약 2,000만 건 중 일부</div>
+        </div>
+        <div class="gen-card-body">
+          <p>재가입 주기 15년으로, <strong>2028년 4월부터 2036년 6월까지 순차적으로 재가입 시기가 도래합니다.</strong> 재가입 시점에 당시 판매 중인 약관으로 변경됩니다.</p>
+          <div class="gold-box" style="margin-top:.8rem;">
+            <div class="lbl">지금 서두를 필요가 없는 이유</div>
+            <p>재가입 시기가 아직 남아 있습니다. 지금 자발적으로 전환하는 것은 재가입 시기보다 일찍 보장을 축소하는 결과가 될 수 있습니다. 보험사나 설계사가 전환을 권유하더라도, 재가입 시기가 도래할 때까지 현재 보장을 유지하는 것이 원칙적으로 유리합니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4세대 -->
+      <div class="gen-card safe">
+        <div class="gen-card-head">
+          <div>
+            <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:.2rem;">5년 재가입 주기</div>
+            <div class="gen-card-label">4세대</div>
+          </div>
+          <div class="gen-card-period">2021년 7월~ 가입자</div>
+        </div>
+        <div class="gen-card-body">
+          <p>재가입 주기가 5년으로, 재가입 시점에 당시 판매 중인 약관으로 변경됩니다. <strong>지금 서두를 필요가 없습니다.</strong> 재가입 안내가 오면 그 시점에 보장 내용을 확인하면 됩니다.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 섹션 3: 판단 기준 -->
+  <div class="section">
+    <div class="section-eyebrow">Step 03</div>
+    <h2 class="section-title">전환을 고민한다면 — 판단 기준 4가지</h2>
+    <p class="section-desc">특히 1세대·2세대 초기 가입자가 전환을 고려할 때 아래 기준으로 스스로 판단하세요. 정답은 없습니다. 본인의 상황이 기준입니다.</p>
+
+    <div class="criteria-list">
+      <div class="criterion">
+        <span class="criterion-num">01</span>
+        <div class="criterion-body">
+          <div class="criterion-title">비급여 의료 이용 패턴</div>
+          <div class="criterion-desc">도수치료·비급여 주사·MRI 등 비급여 진료를 자주 받고 있다면 전환 시 자기부담률이 크게 높아집니다. <strong>비급여 이용이 많을수록 현행 유지가 유리합니다.</strong> 반대로 병원을 거의 가지 않는다면 낮은 보험료의 신세대가 실질적으로 유리할 수 있습니다.</div>
+        </div>
+      </div>
+      <div class="criterion">
+        <span class="criterion-num">02</span>
+        <div class="criterion-body">
+          <div class="criterion-title">현재 보험료 부담 수준</div>
+          <div class="criterion-desc">보험료 부담이 이미 감당하기 어려운 수준이라면 전환 후 낮아지는 보험료가 실질적 이득이 될 수 있습니다. <strong>단, 3년 한시 할인 이후의 보험료도 반드시 계산해보세요.</strong> 할인 종료 후 보험료가 얼마인지 확인하지 않으면 단기 판단이 됩니다.</div>
+        </div>
+      </div>
+      <div class="criterion">
+        <span class="criterion-num">03</span>
+        <div class="criterion-body">
+          <div class="criterion-title">임신·출산 계획</div>
+          <div class="criterion-desc">5세대 실손보험은 기존 세대에서 보장하지 않던 <strong>임신·출산 관련 급여 의료비를 새롭게 보장</strong>합니다. 임신을 계획하고 있다면 이 항목이 전환 유인이 될 수 있습니다. 단, 분만예정일로부터 280일 이전에 가입해야 보장됩니다.</div>
+        </div>
+      </div>
+      <div class="criterion">
+        <span class="criterion-num">04</span>
+        <div class="criterion-body">
+          <div class="criterion-title">3년 할인의 실질 가치 계산</div>
+          <div class="criterion-desc">2026년 11월 예정인 3년간 50% 할인은 <strong>아직 최종 확정되지 않은 정책안</strong>입니다. 확정 후에도 3년 할인이 끝난 이후의 보험료와, 현재 보험료를 비교해 실질적으로 유리한지 계산해보세요. 단기 할인에 이끌려 장기적으로 불리한 전환을 하지 않도록 주의하세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 섹션 4: 핵심 원칙 -->
+  <div class="section">
+    <div class="section-eyebrow">핵심 원칙</div>
+    <div class="principle-box">
+      <p>실손보험은 예측하기 어려운 의료비를 최소한으로 커버하는 <strong>위험관리 수단</strong>입니다. 세대별 보장 차이를 지나치게 따지기보다, 지금 본인이 감당할 수 있는 보험료로 기본적인 의료비 리스크를 커버하고 있는지가 핵심입니다.<br><br>전환의 유불리보다 중요한 것은 <strong>"지금 내가 실손보험을 제대로 유지하고 있는가"</strong>입니다. 보험료 부담이 커서 실효 위험이 있다면, 낮은 보험료의 신세대가 오히려 더 나은 선택일 수 있습니다.</p>
+    </div>
+
+    <div class="warn-box">
+      <div class="lbl">⚠ 서두르지 마세요</div>
+      <p>전환은 의무가 아닙니다. 정책 확정 내용과 본인의 실제 의료비 지출 패턴을 확인한 후 결정해도 늦지 않습니다. 금융감독원 공식 발표(fss.or.kr)와 손해보험협회 공시(knia.or.kr)에서 최신 정보를 확인하세요.</p>
+    </div>
+  </div>
+
+  <!-- 출처 -->
+  <div class="source-note">
+    <strong>참고 출처</strong><br>
+    · 금융위원회 — 5세대 실손보험 출시 보도자료 (2026.5)<br>
+    · 금융위원회 — 실손보험 상품구조 개편방안 보도자료 (2025.4)<br>
+    · 금융감독원 — 실손의료보험 소비자유의사항 (2025)<br>
+    · 손해보험협회 공시실 — 실손 전환제도 관련 안내 (kpub.knia.or.kr)<br>
+    · 손해보험협회 공시실 — 실손의료보험 FAQ (kpub.knia.or.kr)<br>
+    · 금융감독원·생명보험협회·손해보험협회 — 실손의료보험 길라잡이 (2015)<br><br>
+    ※ 본 가이드는 공식 자료를 기반으로 한 정보 제공 목적입니다. 특정 상품의 가입 또는 전환을 권유하는 것이 아닙니다. 정책 내용은 변경될 수 있으므로 최신 공식 발표를 반드시 확인하세요.
+  </div>
+
+</div>
+  <div class="silson-back-btn">
+    <button class="btn" onclick="backToOpening()" style="padding:.75rem 2rem;font-size:.9rem;">← 처음으로</button>
+  </div>
+</div>
+
+<!-- 저축성 보험 패널 -->
+<div class="savings-panel" id="panel-savings">
+  <div class="hero">
+    <div class="hero-eyebrow">금융소비자 정보 가이드</div>
+    <h1>저축성 보험,<br><em>내 조건에 적합한가요?</em></h1>
+    <p class="hero-sub">비과세 혜택이 사업비를 실제로 상쇄하는지, 내 세율에서 직접 확인하세요.</p>
+    <div class="hero-source">※ 시뮬레이션 결과는 입력 가정치 기반의 참고값입니다</div>
+  </div>
+
+  <div class="wrap">
+
+    <div class="sav-intro">
+      저축성 보험(금리연동형·변액보험)의 비과세 혜택은 <strong>금융소득종합과세 대상자</strong> — 연 금융소득 2,000만원 초과, 실효세율 15.4% 초과 — 에게 실질적 의미가 있습니다. 실무상 <strong>일시납은 실효세율 약 24% 이상, 월 적립식은 약 35% 이상</strong>이어야 초기 사업비 페널티를 극복하고 보험이 유리해집니다. 그러나 현실에서는 이 조건에 해당하지 않는 많은 일반 가입자들이 높은 사업비를 부담하며 이 상품을 유지하고 있습니다. 내 세율과 조건을 입력해 숫자로 직접 확인해보세요.
+    </div>
+
+    <div class="section">
+      <div class="section-eyebrow">비교 시뮬레이션</div>
+      <h2 class="section-title">세후 수익 직접 비교</h2>
+      <p class="section-desc" style="font-size:.82rem;margin-bottom:1.5rem;">일반 증권계좌와 변액보험의 세후 최종 자산을 비교합니다. 추가납입 효과와 손익분기 세율도 자동 계산됩니다.</p>
+
+      <div class="sim-layout">
+
+        <!-- 왼쪽: 입력 -->
+        <div>
+          <div class="sim-wrap">
+
+            <div class="sim-section-label">납입 방식</div>
+            <div style="display:flex;gap:.6rem;margin-bottom:1rem;">
+              <button id="btn-monthly" onclick="setPayType('monthly')" style="flex:1;padding:.55rem;border-radius:4px;font-size:.85rem;font-weight:700;font-family:var(--sans);cursor:pointer;border:1.5px solid var(--accent);background:var(--accent);color:white;">적립식 (월납)</button>
+              <button id="btn-lump" onclick="setPayType('lump')" style="flex:1;padding:.55rem;border-radius:4px;font-size:.85rem;font-weight:700;font-family:var(--sans);cursor:pointer;border:1.5px solid var(--line);background:white;color:var(--ink);">일시납</button>
+            </div>
+            <input type="hidden" id="sim-paytype" value="monthly">
+
+            <div class="sim-section-label">납입 조건</div>
+            <div class="sim-grid">
+              <div class="sim-field" style="grid-column:1/-1;">
+                <label class="sim-label" for="sim-amount" id="sim-amount-label">월 납입액 (원)</label>
+                <input class="sim-input" type="number" id="sim-amount" value="1500000" step="100000" min="10000" oninput="updateAmountDisplay(this.value)">
+                <span id="sim-amount-kor" style="font-size:.78rem;color:var(--gold);font-weight:700;margin-top:.1rem;">150만원</span>
+              </div>
+              <div class="sim-field" id="extra-pct-field">
+                <label class="sim-label">추가납입 비중 &nbsp;<span id="sim-extra-display" style="font-size:1rem;font-weight:700;color:var(--accent);">0%</span></label>
+                <input type="range" id="sim-extra-pct" class="tax-slider" min="0" max="300" step="10" value="0" oninput="syncExtraDisplay();runSimulation();">
+                <span class="sim-hint" style="margin-top:.25rem;">기본보험료 대비 비율 — 300%이면 기본 25% + 추가 75%</span>
+              </div>
+              <div class="sim-field" id="extra-fee-field">
+                <label class="sim-label" for="sim-extra-fee">추가납입 수수료 (%)</label>
+                <input class="sim-input" type="number" id="sim-extra-fee" value="0.5" step="0.1" min="0">
+              </div>
+              <div class="sim-field" id="acc-years-field">
+                <label class="sim-label" for="sim-acc-years">적립기간 (년) <span class="sim-hint">납입 기간 — 전기납이라면 운용기간과 동일하게 설정</span></label>
+                <input class="sim-input" type="number" id="sim-acc-years" value="10" min="1" max="30">
+              </div>
+              <div class="sim-field">
+                <label class="sim-label" for="sim-years">총 운용기간 (년) <span class="sim-hint">납입 종료 후에도 운용 계속</span></label>
+                <input class="sim-input" type="number" id="sim-years" value="30" min="1" max="50">
+              </div>
+            </div>
+
+            <div class="sim-divider"></div>
+            <div class="sim-section-label">수익률 가정</div>
+            <div class="sim-grid">
+              <div class="sim-field">
+                <label class="sim-label" for="sim-equity-rate">투자 기대수익률 (%/년) <span class="sim-hint">ETF 운용보수 차감 후 순수익률 기준 — 모든 상품 동일 적용</span></label>
+                <input class="sim-input" type="number" id="sim-equity-rate" value="5" step="0.5" min="0">
+              </div>
+            </div>
+
+            <div class="sim-divider"></div>
+            <div class="sim-section-label">비용 조건</div>
+            <div class="sim-grid">
+              <div class="sim-field">
+                <label class="sim-label" for="sim-var-fee">변액보험 기본 사업비 (%) <span class="sim-hint">납입기간 전체 적용</span></label>
+                <input class="sim-input" type="number" id="sim-var-fee" value="9" step="0.5" min="0">
+              </div>
+              <div class="sim-field">
+                <label class="sim-label" for="sim-var-mgmt">특별계정 추가수수료 (%/년) <span class="sim-hint">ETF 보수 외 보험사가 추가로 부과하는 특별계정 비용</span></label>
+                <input class="sim-input" type="number" id="sim-var-mgmt" value="0.5" step="0.1" min="0">
+              </div>
+              <div class="sim-field">
+                <label class="sim-label" for="sim-isa-fee">증권사 플랫폼 수수료 (%/년) <span class="sim-hint">ETF 보수 외 플랫폼 추가 비용</span></label>
+                <input class="sim-input" type="number" id="sim-isa-fee" value="0.01" step="0.01" min="0">
+              </div>
+            </div>
+
+            <!-- 사업비 참고 테이블 (비용 조건 바로 아래) -->
+            <div class="gold-box" style="margin-top:1.2rem;">
+              <div class="lbl" onclick="(function(el){var b=el.nextElementSibling;var a=el.querySelector('.toggle-arrow');b.style.display=b.style.display==='none'?'':'none';a.style.transform=b.style.display===''?'':'rotate(-90deg)';})(this)" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;">
+                참고 — 사업비 구조와 가입 시기별 수준
+                <span class="toggle-arrow" style="font-size:.85rem;transition:transform .2s;display:inline-block;">▾</span>
+              </div>
+              <div class="toggle-body" style="display:none;">
+              <p style="margin-bottom:.9rem;margin-top:.8rem;">"사업비"는 <strong>납입보험료에서 적립보험료를 제외한 전부</strong>입니다. 위험보험료 + 부가보험료(모집수당·운영비) + 기타 공제. 아래는 업계 평균 추정치이며, 실제 상품마다 차이가 큽니다.</p>
+              <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+                <thead>
+                  <tr>
+                    <th style="background:var(--ink);color:var(--paper);padding:.45rem .65rem;text-align:left;font-weight:600;">가입 시기</th>
+                    <th style="background:var(--ink);color:var(--paper);padding:.45rem .65rem;text-align:center;font-weight:600;">변액보험</th>
+                    <th style="background:var(--ink);color:var(--paper);padding:.45rem .65rem;text-align:center;font-weight:600;">금리연동형</th>
+                    <th style="background:var(--ink);color:var(--paper);padding:.45rem .65rem;text-align:left;font-weight:600;">배경</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);">~2005년</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);text-align:center;background:#fdf0ee;color:var(--accent);font-weight:700;">20~30%</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);text-align:center;">10~15%</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);font-size:.72rem;color:var(--ink-faint);">변액보험 초기, 규제 미비</td></tr>
+                  <tr style="background:var(--paper-warm)"><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);">2006~2010년</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);text-align:center;background:#fdf0ee;color:var(--accent);font-weight:700;">15~20%</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);text-align:center;">8~12%</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);font-size:.72rem;color:var(--ink-faint);">금감원 표준화 시작</td></tr>
+                  <tr><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);">2011~2015년</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);text-align:center;background:var(--gold-bg);color:var(--gold);font-weight:700;">10~15%</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);text-align:center;">6~9%</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);font-size:.72rem;color:var(--ink-faint);">공시 강화, 업계 경쟁 심화</td></tr>
+                  <tr style="background:var(--paper-warm)"><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);">2016~2020년</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);text-align:center;background:var(--gold-bg);color:var(--gold);font-weight:700;">8~12%</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);text-align:center;">5~8%</td><td style="padding:.42rem .65rem;border-bottom:1px solid var(--line);font-size:.72rem;color:var(--ink-faint);">비교공시 의무화, 온라인 판매 확산</td></tr>
+                  <tr><td style="padding:.42rem .65rem;">2021년~현재</td><td style="padding:.42rem .65rem;text-align:center;background:var(--green-bg);color:var(--green);font-weight:700;">7~10%</td><td style="padding:.42rem .65rem;text-align:center;">4~7%</td><td style="padding:.42rem .65rem;font-size:.72rem;color:var(--ink-faint);">추가납입 확대로 실질 비용 감소 가능</td></tr>
+                </tbody>
+              </table>
+              </div>
+              <p style="margin-top:.7rem;font-size:.7rem;color:var(--ink-faint);">※ 업계 평균 추정치 (적립식 기준). 실제 상품은 생명보험협회·손해보험협회 비교공시(klia.or.kr / knia.or.kr)에서 확인하세요.</p>
+              </div><!-- /toggle-body -->
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 오른쪽: 결과 (실시간) -->
+        <div>
+          <div class="sim-results-sticky">
+            <div id="simTableWrap"><p style="padding:2rem;text-align:center;color:var(--ink-faint);font-size:.88rem;">왼쪽 조건을 입력하면 자동으로 계산됩니다.</p></div>
+            <div class="sim-wrap" style="margin-top:1rem;padding:1rem 1.2rem;">
+              <div class="sim-section-label">적용 세율</div>
+              <div class="sim-field" style="margin-bottom:.6rem;">
+                <label class="sim-label">세율 &nbsp;<span id="sim-tax-display" style="font-size:1rem;font-weight:700;color:var(--accent);">15.4%</span> <span class="sim-hint">금융소득종합과세 대상 최대 49.5%</span></label>
+                <input type="range" id="sim-tax-rate" class="tax-slider" min="0" max="49.5" step="0.1" value="15.4" oninput="syncTaxDisplay();runSimulation();">
+              </div>
+              <div style="position:relative;height:1.2rem;margin-top:.2rem;font-size:.63rem;color:var(--ink-faint);">
+                <span style="position:absolute;left:0%;">0%</span>
+                <span style="position:absolute;left:31.1%;transform:translateX(-50%);">15.4%</span>
+                <span style="position:absolute;left:53.3%;transform:translateX(-50%);">26.4%</span>
+                <span style="position:absolute;left:77.8%;transform:translateX(-50%);">38.5%</span>
+                <span style="position:absolute;right:0%;">49.5%</span>
+              </div>
+            </div>
+            <div id="simChartBox" style="display:none;" class="sim-chart-box">
+              <canvas id="savingsChart"></canvas>
+            </div>
+            <div class="sim-note">
+              ※ <strong>보험</strong>: 사업비 차감 후 적립. 추가납입은 사업비 없이 소액 수수료만. 금액조건+10년 유지 시 이자소득 비과세.<br>
+              ※ <strong>ISA</strong>: 계좌 1개로 장기 운용 가정 (200만원 비과세, 초과분 9.9% 분리과세). 실제로는 최소 3년 후 재가입 시 비과세 한도가 살아나므로 실제 혜택은 더 클 수 있음. 단, 금융소득종합과세 대상자는 ISA 개설·연장 불가.<br>
+              ※ <strong>증권계좌</strong>: 수익에 설정 세율 과세. ETF 매매차익 실제 과세 방식과 다를 수 있음.<br>
+              ※ 모든 수치는 입력 가정치 기반의 참고값입니다.
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /sim-layout -->
+    </div>
+
+    <!-- 구조 이해 (시뮬레이션 아래) -->
+    <div class="section" style="margin-top:1rem;">
+      <div class="section-eyebrow">구조 이해</div>
+      <h2 class="section-title">두 가지 유형의 저축성 보험</h2>
+
+      <div class="principle-box" style="margin-bottom:1.2rem;">
+        <p><strong>적립식 비과세 조건:</strong> 월 납입 보험료 150만원 이하(기본+추가납입 합산) + 계약 후 10년 이상 유지.</p>
+        <p style="margin-top:.5rem;"><strong>일시납 비과세 조건:</strong> 납입 원금 1억원 이하 + 계약 후 10년 이상 유지.</p>
+        <p style="margin-top:.5rem;">두 조건을 동시에 충족해야 이자소득세(15.4%)가 면제됩니다. 단, 비과세 혜택이 사업비 페널티를 실제로 상쇄하려면 <strong>일시납 기준 실효세율 약 24% 이상, 월 적립식 기준 약 35% 이상</strong>이어야 합니다. 금융소득종합과세 비대상자(세율 15.4%)에게는 대부분 불리합니다.</p>
+      </div>
+
+      <div class="sav-compare">
+        <div class="sav-card">
+          <div class="sav-card-head fixed">금리연동형 저축보험</div>
+          <div class="sav-pros">
+            <div class="sav-plbl">장점</div>
+            <ul>
+              <li>원금 최저 보증</li>
+              <li>공시이율 연동 — 예측 가능</li>
+              <li>조건 충족 시 보험차익 과세제외</li>
+              <li>추가납입 활용 시 사업비 절감</li>
+            </ul>
+          </div>
+          <div class="sav-cons">
+            <div class="sav-clbl">단점</div>
+            <ul>
+              <li>초기 높은 사업비로 복리효과 저하</li>
+              <li>수익률 물가상승률 하회 가능</li>
+              <li>조기 해지 시 원금 손실</li>
+              <li>중단기 자금 유동성 제약</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sav-card">
+          <div class="sav-card-head variable">변액보험 (실적배당형)</div>
+          <div class="sav-pros">
+            <div class="sav-plbl">장점</div>
+            <ul>
+              <li>수익률 상한 없음</li>
+              <li>인플레이션 대응 가능</li>
+              <li>조건 충족 시 보험차익 과세제외</li>
+              <li>추가납입 활용 시 사업비 절감</li>
+            </ul>
+          </div>
+          <div class="sav-cons">
+            <div class="sav-clbl">단점</div>
+            <ul>
+              <li>초기 높은 사업비로 복리효과 저하</li>
+              <li>특별계정 운용보수 연 0.5~1%</li>
+              <li>원금 미보장</li>
+              <li>중단기 자금 유동성 제약</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="warn-box">
+        <div class="lbl">⚠ 핵심 질문</div>
+        <p>비과세 혜택이 사업비와 운용보수를 실제로 상쇄하는가? 수학적으로 보험이 증권계좌를 이기려면 <strong>일시납 기준 실효세율 약 24% 이상, 월 적립식 기준 약 35% 이상</strong>이어야 합니다. 그 미만 세율이라면 사업비 손실이 비과세 이익을 초과합니다. 시뮬레이션에서 내 조건의 정확한 손익분기 세율을 확인하세요.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="silson-back-btn">
+    <button class="btn" onclick="backToOpeningFromSavings()" style="padding:.75rem 2rem;font-size:.9rem;">← 처음으로</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
