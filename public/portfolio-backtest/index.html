@@ -797,6 +797,7 @@ function updateTotal(){
 // ── Data fetching ──────────────────────────────────────────────
 // Proxy list
 const PROXIES = [
+  url => `/api/yahoo-proxy?url=${encodeURIComponent(url)}`,
   url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
   url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
   url => `https://thingproxy.freeboard.io/fetch/${url}`,

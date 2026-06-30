@@ -9,6 +9,7 @@
     "api/financial-statement.js": { "maxDuration": 10 },
     "api/insurance-check.js": { "maxDuration": 10 },
     "api/pension-tax.js": { "maxDuration": 10 },
-    "api/portfolio-backtest.js": { "maxDuration": 30 }
+    "api/portfolio-backtest.js": { "maxDuration": 30 },
+    "api/yahoo-proxy.js": { "maxDuration": 15 }
   }
 }
