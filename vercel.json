@@ -1,3 +1,8 @@
 {
-  "outputDirectory": "public"
+  "outputDirectory": "public",
+  "functions": {
+    "api/fetch-data.js": { "maxDuration": 30 },
+    "api/retirement-sim.js": { "maxDuration": 30 },
+    "api/backtest-asset.js": { "maxDuration": 30 }
+  }
 }

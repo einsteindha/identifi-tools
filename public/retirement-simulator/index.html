@@ -695,6 +695,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border:none;border-ra
 <script>
 const $=id=>document.getElementById(id);
 let cA=null,cB=null,cS=null;
+let _updateGen=0; // 비동기 경쟁 방지용 세대 카운터
 let hasSp=false,meMode='normal',spMode='normal';
 let mePenType='nps',spPenType='nps'; // 'nps'=국민연금, 'pub'=직역연금
 
@@ -1136,12 +1137,6 @@ function getNormalPensionAge(currentAge){
   return 65;
 }
 
-// ── 공적연금
-function calcP(base,mode,ea,da,normalAge=65){
-  if(mode==='early'){const a=-6*(normalAge-ea);return{sa:ea,amt:Math.round(base*(1+a/100)),adj:a};}
-  if(mode==='defer'){const a=7.2*(da-normalAge);return{sa:da,amt:Math.round(base*(1+a/100)),adj:a};}
-  return{sa:normalAge,amt:base,adj:0};
-}
 function renderPMeta(who,p,retAge,base,normalAge=65,penType='nps'){
   const mode=who==='me'?meMode:spMode;
   const col={early:var_red,normal:var_blue,defer:var_green}[mode]||'#c4933f';
@@ -1198,88 +1193,6 @@ function setMode(who,mode){
   update();
 }
 function switchTab(t){['a','s'].forEach(x=>{$('tab-'+x).className='sc-btn'+(x===t?' act-'+(x==='s'?'b':t):'');$('panel-'+x).className='rp'+(x===t?' active':'');});}
-
-// 인출액 빌더
-function buildW(stages,pensions,years,infl,evts,retireAge){
-  const activeS=stages.filter(s=>stageState[s.id].on);
-  const monByY=new Array(years).fill(0);
-  let cur=0;
-  activeS.forEach(s=>{
-    const st=stageState[s.id];
-    for(let y=cur;y<Math.min(cur+st.yrs,years);y++) monByY[y]=st.mon;
-    cur+=st.yrs;
-  });
-  const lastMon=activeS.length?stageState[activeS[activeS.length-1].id].mon:200;
-  for(let y=0;y<years;y++) if(monByY[y]===0) monByY[y]=lastMon;
-
-  return Array.from({length:years},(_,i)=>{
-    const inflFactor=Math.pow(1+infl/100,i+1);
-    const living=monByY[i]*12;
-    // 연도별 공적연금 수령 여부 (수령 시작 연도 기준 — 자동 반영)
-    let totalP=0;
-    pensions.forEach(p=>{ if(i>=p.startY) totalP+=p.amt*12; });
-    const ageAtY=retireAge+i;
-    // 물가연동 현금흐름 (실질 고정 — inflFactor 적용)
-    let extraCF=0;
-    cashflows.forEach(cf=>{const end=cf.endAge>0?cf.endAge:200;if(ageAtY>=cf.startAge&&ageAtY<end)extraCF+=cf.amt*12;});
-    // 정액 연금 (명목 고정 — 물가할인 적용: 실질가치는 매년 감소)
-    let extraFP=0;
-    fixedPensions.forEach(fp=>{const end=fp.endAge>0?fp.endAge:200;if(ageAtY>=fp.startAge&&ageAtY<end)extraFP+=fp.amt*12;});
-    const evtCost=evts.filter(e=>{const ey=e.age-retireAge;return ey>=0&&Math.floor(ey)===i;}).reduce((s,e)=>s+e.amt*Math.pow(1+infl/100,e.age-retireAge),0);
-    // 생활비(물가반영) - 공적연금(물가반영) - 현금흐름(물가반영) = 물가반영 순인출
-    // 정액연금은 명목고정이므로 inflFactor와 관계없이 그대로 차감
-    // 초과소득(음수 인출)도 자산에 반영: Math.max(0,...) 제거
-    const livingInflated = living * inflFactor;
-    const pensionInflated = totalP * inflFactor;
-    const cfInflated = extraCF * inflFactor;
-    // 순인출 = 물가반영생활비 - 물가반영연금 - 물가반영현금흐름 - 정액연금(명목) + 일시유출
-    const net = livingInflated - pensionInflated - cfInflated - extraFP + evtCost;
-    // 음수(초과소득)도 그대로 반환하여 자산에 가산되도록 허용
-    return net;
-  });
-}
-
-function deterPath(start,w,ret,yrs,inflowArr=[]){
-  let b=start;const p=[b];
-  for(let y=1;y<=yrs;y++){
-    b=b*(1+ret/100)-(w[y-1]||0);
-    if(inflowArr[y-1]) b+=inflowArr[y-1];
-    p.push(Math.max(0,b));
-  }
-  return p;
-}
-
-// 시퀀스 리스크: 특정 구간에 고정 수익률 적용 (인출기 전용)
-function deterPathSeq(start,w,ret,yrs,inflowArr,seqStart,seqDur,seqRet){
-  let b=start;const p=[b];
-  for(let y=1;y<=yrs;y++){
-    const inSeq=(y-1>=seqStart&&y-1<seqStart+seqDur);
-    const r=inSeq?seqRet:ret;
-    b=b*(1+r/100)-w[y-1];
-    if(inflowArr&&inflowArr[y-1]) b+=inflowArr[y-1];
-    p.push(Math.max(0,b));
-  }
-  return p;
-}
-// 시퀀스 리스크: 적립기(평균수익률) + 인출기(시퀀스 적용) 전체 경로
-// 차트 labA (현재 나이 ~ 사망)와 동일한 길이의 배열 반환
-function deterPathSeqFull(assetNow,wAccum,accumYrs,wRetire,retAccumPct,retPct,chartYrs,inflowArr,seqStart,seqDur,seqRet){
-  let b=assetNow;const p=[b];
-  // 적립기: 평균 수익률 사용
-  for(let y=0;y<accumYrs;y++){
-    b=Math.max(0,b*(1+retAccumPct/100)+(wAccum[y]||0));
-    p.push(b);
-  }
-  // 인출기: seqStart/seqDur 구간에 seqRet 적용
-  for(let y=1;y<=chartYrs;y++){
-    const inSeq=(y-1>=seqStart&&y-1<seqStart+seqDur);
-    const r=inSeq?seqRet:retPct;
-    b=b*(1+r/100)-(wRetire[y-1]||0);
-    if(inflowArr&&inflowArr[y-1]) b+=inflowArr[y-1];
-    p.push(Math.max(0,b));
-  }
-  return p;
-}
 
 // 시퀀스 리스크 상태
 let seqActive=false,seqStartV=0,seqDurV=5,seqRetV=-15;
@@ -1367,7 +1280,6 @@ function drawC(id,ds,labels,prev){
 // 팬 차트: p10/p50/p90 + 음영 구간
 function drawFanChart(id, p10, p50, p90, labels, prev, color='#c4933f', inheritCurve=null){
   if(typeof Chart==='undefined') return null;
-  if(prev) try{prev.destroy();}catch(e){}
   const el=$(id);
   if(!el) return null;
   const hex=color.replace('#','');
@@ -1375,7 +1287,7 @@ function drawFanChart(id, p10, p50, p90, labels, prev, color='#c4933f', inheritC
   const fillAlpha='rgba('+r+','+g+','+b+',0.12)';
   const lineAlpha='rgba('+r+','+g+','+b+',0.35)';
 
-  const datasets=[
+  const baseSets=[
     {label:'상위 10%',data:p90,borderColor:lineAlpha,borderWidth:1,borderDash:[3,3],
      pointRadius:0,fill:'+1',backgroundColor:fillAlpha,tension:.3},
     {label:'중앙값',data:p50,borderColor:color,borderWidth:2.5,
@@ -1383,9 +1295,8 @@ function drawFanChart(id, p10, p50, p90, labels, prev, color='#c4933f', inheritC
     {label:'하위 10%',data:p10,borderColor:lineAlpha,borderWidth:1,borderDash:[3,3],
      pointRadius:0,fill:false,tension:.3},
   ];
-  // 상속 목표 물가 반영 곡선
   if(inheritCurve){
-    datasets.push({
+    baseSets.push({
       label:'상속 목표 (물가 반영)',
       data:inheritCurve,
       borderColor:'#c4933f',
@@ -1396,8 +1307,23 @@ function drawFanChart(id, p10, p50, p90, labels, prev, color='#c4933f', inheritC
       tension:.3
     });
   }
-  return new Chart(el,{type:'line',data:{labels,datasets},options:{
+
+  // 기존 인스턴스가 있으면 데이터만 교체 (destroy 없이) → 깜빡임 방지
+  if(prev && prev.data){
+    try{
+      prev.data.labels=labels;
+      // 데이터셋 수 맞추기 (baseSets 개수로 고정, seqActive 레이어는 호출 측에서 추가)
+      prev.data.datasets.splice(0, prev.data.datasets.length, ...baseSets);
+      prev.update('none');
+      return prev;
+    }catch(e){
+      try{prev.destroy();}catch(e2){}
+    }
+  }
+
+  return new Chart(el,{type:'line',data:{labels,datasets:baseSets},options:{
     responsive:true,maintainAspectRatio:false,
+    animation:{duration:0}, // 초기 생성 시 애니메이션 제거 (재생성 플래시 방지)
     plugins:{
       legend:{display:false},
       tooltip:{mode:'index',intersect:false,callbacks:{
@@ -1540,6 +1466,7 @@ function renderCFTable(bodyId,stages,pensions,infl,evts,retireAge){
 }
 
 async function update(){
+  const _myGen = ++_updateGen; // 이 호출의 세대 번호
   updateSoloPensionTotals();
   syncAllNumInputs();
   const age=+$('age').value,retAge=+$('retire').value;
@@ -1736,27 +1663,6 @@ async function update(){
   // 일시 자산 유입 집계
   const totalInflowFV=inflows.reduce((s,e)=>{const ey=e.age-retAge;return s+(ey>=0?e.amt*Math.pow(1+infl/100,ey):0);},0);
   $('inflow-total').textContent=inflows.length>0?`자산 유입 ${inflows.length}건 — 미래가치 합계 ${fmtW(totalInflowFV)}`:'자산 유입 없음';
-  // 연도별 inflow 배열 (periodA 기준)
-  function buildInflowArr(years, retireAge){
-    return Array.from({length:years},(_,i)=>{
-      const ageAtY = retireAge + i;
-      // 일시 자산 유입
-      const onceInflow = inflows.filter(e=>Math.floor(e.age)===ageAtY&&e.age>=retireAge)
-        .reduce((s,e)=>s+e.amt*Math.pow(1+infl/100,e.age-retireAge),0);
-      // 배우자 잔여 적립기 저축 (구간 B: i < spExtra인 기간)
-      // 자산 전체는 인출기 수익률로 운용, 배우자 저축은 그해 명목액 그대로 유입
-      let spSaveInflow = 0;
-      if(hasSp && i < spExtra){
-        const curAge = retireAge + i; // 본인 나이 기준 (= age + ytr + i)
-        const spSaveYrIdx = curAge - spAge; // 배우자 저축 시작 기준 경과 연수
-        if(spSaveYrIdx >= 0 && curAge < spRet){
-          spSaveInflow = spSave + (spSaveInc>0 ? spSaveInc*Math.pow(1+spSaveRate/100, spSaveYrIdx) : 0);
-        }
-      }
-      return onceInflow + spSaveInflow;
-    });
-  }
-
   const soloWhoLabel = soloWho==='sp' ? '배우자 독거' : '본인 독거';
   $('ls-summary').innerHTML=hasSp?`부부 함께: ${periodA}년 · 독거 시나리오: ${soloWhoLabel} ${soloPeriod}년`:`본인 은퇴 기간 <b>${mePeriod}년</b>`;
 
@@ -1803,6 +1709,8 @@ async function update(){
     $('tab-s-p').textContent=hasSp?`독거 ${soloPeriod}년`:'';
     tabS.style.display=showTabs?'':'none';
   }
+  // 배우자 없거나 독거 기간 없으면 반드시 a 탭으로 복귀 (panel-s 잔류 방지)
+  if(!showTabs) switchTab('a');
 
   if(retAge<age){$('err-retire').textContent='은퇴 나이가 현재 나이보다 작을 수 없습니다.';return;}$('err-retire').textContent='';
   if(hasSp&&spRet<spAge){$('err-sp-retire').textContent='배우자 은퇴 나이가 현재 나이보다 작을 수 없습니다.';return;}if(hasSp)$('err-sp-retire').textContent='';
@@ -1855,269 +1763,47 @@ async function update(){
   }
   const mePubAge = +($('me-pub-age')?.value || retAge);
   const spPubAge = +($('sp-pub-age')?.value || spRet);
-  const meP = mePenType==='pub'
-    ? {sa: mePubAge, amt: meBase, adj: 0}
-    : calcP(meBase,meMode,+$('me-early').value,+$('me-defer').value,meNormalAge);
-  const spP = spPenType==='pub'
-    ? {sa: spPubAge, amt: spBase, adj: 0}
-    : calcP(spBase,spMode,+$('sp-early').value,+$('sp-defer').value,spNormalAge);
+  const sP = getSoloPension();
+
+  const result = await callSimApi({
+    mode:'full',
+    age,retAge,meLife,hasSp,spAge,spRet,spLife,
+    assetNow,saveYr,saveInc,saveRate,
+    spSave,spSaveInc,spSaveRate,
+    retAccum,volAccum,ret,vol,
+    infl,buf,inherit,
+    mePenType,meBase,meMode,meEA,meDA,mePubAge,meNormalAge,
+    spPenType,spBase,spMode,spEA,spDA,spPubAge,spNormalAge,
+    stages:STAGES.map(s=>({id:s.id,solo:!!s.solo,on:stageState[s.id].on,yrs:stageState[s.id].yrs,mon:stageState[s.id].mon})),
+    cashflows,fixedPensions,events,inflows,
+    soloPensionTotal:sP.total,
+    runs:10000,seqActive,seqStartV,seqDurV,seqRetV,
+  });
+
+  // stale 응답 무시: 더 최신 update() 호출이 이미 API를 완료했다면 중단
+  if(_myGen !== _updateGen) return;
+
+  const{meP,spP,mePstartY,spPstartY,spAgeAtRetire,spExtra,soloStartAge,
+    assetAtRet,wAccum,wA,inflowArrA,
+    initBuf,maxBuf,maxBufStartAge,bufRows,bufAmt,investable,
+    rateA,neededA,gapA,
+    probA,fanA,seqProb,seqFullWithAccum,seqEndVal,medEndVal,
+    assetAtDeath,soloBufAmt,rateS,fanS90,fanS50,fanS10,
+    neededS,gapS,probS,condProbS,monS,
+  }=result;
+  const ytr=retAge-age;
 
   renderPMeta('me',meP,retAge,meBase,meNormalAge,mePenType);
   if(hasSp)renderPMeta('sp',spP,spRet,spBase,spNormalAge,spPenType);
-  $('pt-me').textContent=meP.amt+'만원';$('pt-sp').textContent=spP.amt+'만원';
-  $('pt-tot').textContent=(hasSp?meP.amt+spP.amt:meP.amt)+'만원';
+  $('pt-me').textContent=meP.amt+'만원';
+  if(hasSp&&spP)$('pt-sp').textContent=spP.amt+'만원';
+  $('pt-tot').textContent=(hasSp&&spP?meP.amt+spP.amt:meP.amt)+'만원';
 
-  const ytr=retAge-age;
-  // 올바른 복리 공식: 현재자산×(1+적립기수익률)^기간 + 저축액×연금현가계수
-  // 저축액은 매년 말 납입 가정 (연금미래가치: ((1+r)^n - 1) / r)
-  const accumGrowth = Math.pow(1+retAccum/100, ytr);
-
-  // 증액저축 미래가치 계산 헬퍼
-  // 1년차 저축 base, 매년 growR 비율로 증가, 적립기간 n년, 투자수익률 r
-  // FV = Σ_{t=1}^{n} base*(1+growR)^(t-1) * (1+r)^(n-t)
-  function calcSaveFV(base, inc, growR, r, n){
-    if(n <= 0) return 0;
-    if(inc === 0){
-      // 정액저축: 연금미래가치
-      return r > 0 ? base * (Math.pow(1+r,n) - 1) / r : base * n;
-    }
-    // 증액저축: 매년 firstYearTotal = base + inc*(1+growR)^(t-1) 납입
-    // = base의 정액FV + inc×성장연금FV
-    const flatFV = r > 0 ? base * (Math.pow(1+r,n)-1)/r : base*n;
-    // 성장연금 FV: Σ_{t=1}^{n} (1+growR)^(t-1) * (1+r)^(n-t)
-    // = (1+r)^(n-1) * Σ_{t=1}^{n} ((1+growR)/(1+r))^(t-1)
-    let growAnnFV;
-    if(Math.abs(r - growR) < 1e-9){
-      growAnnFV = n * Math.pow(1+r, n-1);
-    } else {
-      growAnnFV = (Math.pow(1+r,n) - Math.pow(1+growR,n)) / (r - growR);
-    }
-    return flatFV + inc * growAnnFV;
-  }
-
-  const saveFV = calcSaveFV(saveYr, saveInc, saveRate/100, retAccum/100, ytr);
-
-  // 배우자 저축 기간을 본인 은퇴 시점 기준으로 분리
-  // - spSaveFV: 본인 은퇴(retAge) 시점까지의 배우자 저축 FV (retAccum 적용)
-  // - spExtra: 본인 은퇴 후에도 배우자가 계속 저축하는 잔여 기간
-  // 본인 은퇴 후 배우자 잔여 저축은 wAccum 연장(적립기 구간)으로 반영 → 적립기 수익률 일관 적용
-  const spAccumYrs = hasSp && spRet > spAge ? spRet - spAge : 0;
-  const spToRet    = hasSp ? Math.max(0, Math.min(spRet, retAge) - spAge) : 0; // 본인 은퇴까지의 배우자 저축 기간
-  const spExtra    = hasSp ? Math.max(0, spRet - retAge) : 0;                  // 본인 은퇴 후 배우자 잔여 적립 기간
-  const spSaveFV   = hasSp && spToRet > 0
-    ? calcSaveFV(spSave, spSaveInc, spSaveRate/100, retAccum/100, spToRet)
-    : 0;
-
-  // ── 적립기 연간 순저축 배열 (순수 적립기 구간 A만, 0 ~ ytr-1)
-  // 구간 B(배우자 잔여 적립기)는 인출기 wRetire/inflowArrA에서 처리:
-  //   - 자산 전체: 인출기 수익률(ret) 적용 (본인 은퇴 후 포트폴리오 전환)
-  //   - 배우자 저축: inflowArrA로 매년 명목액 유입 (그해 납입 소득)
-  //   - 생활비 인출: wRetire 앞부분(0~spExtra-1)에 포함
-  const accumTotalYrs = ytr; // 순수 적립기 = 본인 은퇴까지
-  const wAccum = Array.from({length: Math.max(0, ytr)}, (_,i)=>{
-    const curAge = age + i;
-    // 본인 저축
-    const yr1Save = saveYr + (saveInc>0 ? saveInc*Math.pow(1+saveRate/100,i) : 0);
-    // 배우자 저축 (spAge 기준 인덱스)
-    const spSaveYrIdx = curAge - spAge;
-    const yr1SpSave = (hasSp && curAge < spRet && spSaveYrIdx >= 0)
-      ? spSave + (spSaveInc>0 ? spSaveInc*Math.pow(1+spSaveRate/100, spSaveYrIdx) : 0)
-      : 0;
-    // 유입/유출/현금흐름
-    const inflowAmt = inflows
-      .filter(e=>Math.floor(e.age)===curAge&&e.age<retAge)
-      .reduce((s,e)=>s+e.amt*Math.pow(1+infl/100,e.age-age), 0);
-    const eventAmt = events
-      .filter(e=>Math.floor(e.age)===curAge&&e.age<retAge)
-      .reduce((s,e)=>s+e.amt*Math.pow(1+infl/100,e.age-age), 0);
-    let cfAmt=0;
-    cashflows.forEach(cf=>{const end=cf.endAge>0?cf.endAge:200;if(curAge>=cf.startAge&&curAge<end&&curAge<retAge)cfAmt+=cf.amt*12*Math.pow(1+infl/100,i);});
-    let fpAmt=0;
-    fixedPensions.forEach(fp=>{const end=fp.endAge>0?fp.endAge:200;if(curAge>=fp.startAge&&curAge<end&&curAge<retAge)fpAmt+=fp.amt*12;});
-    return yr1Save + yr1SpSave + inflowAmt - eventAmt + cfAmt + fpAmt;
-  });
-
-  // ── 적립기(은퇴 전) 현금흐름 반영
-  // 일시 자산 유입 (inflows) — 은퇴 전 발생분: 유입 시점 이후 복리 성장
-  const preRetInflows = inflows
-    .filter(e => e.age >= age && e.age < retAge)
-    .reduce((sum, e) => {
-      const yearsToRet = retAge - e.age;
-      const fv = e.amt * Math.pow(1+retAccum/100, yearsToRet) * Math.pow(1+infl/100, e.age - age);
-      return sum + fv;
-    }, 0);
-
-  // 일시 자산 유출 (events) — 은퇴 전 발생분: 유출 시점 이후 복리 성장으로 차감
-  const preRetEvents = events
-    .filter(e => e.age >= age && e.age < retAge)
-    .reduce((sum, e) => {
-      const yearsToRet = retAge - e.age;
-      const fv = e.amt * Math.pow(1+infl/100, e.age - age) * Math.pow(1+retAccum/100, yearsToRet);
-      return sum + fv;
-    }, 0);
-
-  // 정기 수입 cashflows — 은퇴 전 발생분: 연금미래가치
-  const preRetCashflows = cashflows.reduce((sum, cf) => {
-    const startAge = Math.max(cf.startAge, age);
-    const endAge   = Math.min(cf.endAge > 0 ? cf.endAge : retAge, retAge);
-    if(startAge >= endAge) return sum;
-    const yrs = endAge - startAge;
-    const yearsToRet = retAge - startAge;
-    // 각 연도 수입의 미래가치 합산
-    let fv = 0;
-    for(let y = 0; y < yrs; y++){
-      const inflAmt = cf.amt * Math.pow(1+infl/100, startAge - age + y);
-      fv += inflAmt * Math.pow(1+retAccum/100, yearsToRet - y);
-    }
-    return sum + fv;
-  }, 0);
-
-  // 정액 연금 fixedPensions — 은퇴 전 발생분
-  const preRetFixed = fixedPensions.reduce((sum, fp) => {
-    const startAge = Math.max(fp.startAge, age);
-    const endAge   = Math.min(fp.endAge > 0 ? fp.endAge : retAge, retAge);
-    if(startAge >= endAge) return sum;
-    const yrs = endAge - startAge;
-    const yearsToRet = retAge - startAge;
-    let fv = 0;
-    for(let y = 0; y < yrs; y++){
-      fv += fp.amt * Math.pow(1+retAccum/100, yearsToRet - y);
-    }
-    return sum + fv;
-  }, 0);
-
-  // assetAtRet: 본인 은퇴 시점 자산 (배우자 잔여 저축 미포함 — 구간 B에서 wAccum으로 처리)
-  const assetAtRet = assetNow * accumGrowth + saveFV + spSaveFV
-    + preRetInflows - preRetEvents + preRetCashflows + preRetFixed;
-
-  // ── 단계별 버퍼 계산 (핵심 수정)
-  const mePstartY=Math.max(0,meP.sa-retAge);
-  const spAgeAtRetire = hasSp ? spAge + (retAge - age) : 0;
-  const spPstartY=hasSp?Math.max(0,spP.sa-spAgeAtRetire):999;
-  const pensionsA=hasSp?[{startY:mePstartY,amt:meP.amt,_label:'본인 공적연금'},{startY:spPstartY,amt:spP.amt,_label:'배우자 공적연금'}]:[{startY:mePstartY,amt:meP.amt,_label:'본인 공적연금'}];
   const stagesA=STAGES.filter(s=>!s.solo);
-
-  // 구간 중간 시점의 인생 단계 생활비 반환 (단계별 동적 생활비)
-  function getLivingAtYear(yearFromRetire){
-    const coupleOn = STAGES.filter(s=>!s.solo&&stageState[s.id].on);
-    let cursor = 0;
-    for(const s of coupleOn){
-      const yrs = stageState[s.id].yrs;
-      if(yearFromRetire < cursor + yrs) return stageState[s.id].mon;
-      cursor += yrs;
-    }
-    return coupleOn.length ? stageState[coupleOn[coupleOn.length-1].id].mon : 0;
-  }
-
-  function calcBufBySegments(retireAge, meRetireAge, spRetireAge, meP, spP, bufYrs){
-    const bufMonths = bufYrs * 12;
-
-    // 나이 차이를 연도(은퇴 기준)로 환산
-    const T = {
-      meRet : 0,
-      spRet : hasSp ? spRetireAge - retireAge : null,
-      mePen : meP.sa - retireAge,   // 본인 연금 개시 (은퇴 후 N년)
-      spPen : hasSp ? spP.sa - retireAge : null, // 배우자 연금 개시 (은퇴 후 N년, 나이차 반영 안 됨 — 아래에서 보정)
-    };
-
-    // 배우자 연금 개시 시점을 본인 은퇴 기준 연도로 정확히 환산
-    // 배우자가 spP.sa 세에 연금 수령 → 본인 나이 기준으로 환산
-    const spAgeCurrent = +$('sp-age').value;
-    const ageCurrent   = +$('age').value;
-    // 본인 은퇴 시점의 배우자 나이 = spAgeCurrent + (retireAge - ageCurrent)
-    // 배우자 연금 개시까지 남은 나이 차 = spP.sa - 본인은퇴시점배우자나이
-    if(hasSp){
-      const spAgeAtMyRetire = spAgeCurrent + (retireAge - ageCurrent);
-      T.spPen = spP.sa - spAgeAtMyRetire; // 본인 은퇴 후 N년 뒤 배우자 연금 개시
-    }
-
-    const milestones = new Set([0]);
-    if(T.spRet !== null && T.spRet > 0) milestones.add(T.spRet);
-    if(T.mePen > 0) milestones.add(T.mePen);
-    if(T.spPen !== null && T.spPen > 0) milestones.add(T.spPen);
-    // 인생 단계 경계도 구간 마일스톤에 추가 (단계별 생활비 변경 반영)
-    const coupleOnStgs = STAGES.filter(s=>!s.solo&&stageState[s.id].on);
-    let stgCursor = 0;
-    coupleOnStgs.forEach(s => { stgCursor += stageState[s.id].yrs; milestones.add(stgCursor); });
-    // 단계가 없는 경우 대비: 마지막 연금 개시+1을 보정값으로 추가
-    if(stgCursor === 0){ const lastPen=Math.max(T.mePen,T.spPen!==null?T.spPen:0); milestones.add(lastPen+1); }
-
-    const points = [...milestones].sort((a,b)=>a-b);
-    const segments = [];
-    for(let i=0; i<points.length-1; i++){
-      segments.push({ from: points[i], to: points[i+1] });
-    }
-
-    const rows = [];
-
-    // ── 1단계: 각 구간의 순인출(netMon)과 구간 개월수 계산
-    segments.forEach(seg => {
-      const segMonths = (seg.to - seg.from) * 12;
-      const midY = (seg.from + seg.to) / 2;
-      const ageAtMid = retireAge + midY;
-      const living = getLivingAtYear(Math.floor(midY));
-
-      let pension = 0;
-      if(midY >= T.mePen) pension += meP.amt;
-      if(hasSp && T.spPen !== null && midY >= T.spPen) pension += spP.amt;
-
-      const meHasPen = midY >= T.mePen;
-      const spHasPen = hasSp && T.spPen !== null && midY >= T.spPen;
-      let desc = '';
-      if(!meHasPen && (!hasSp || !spHasPen)) desc = hasSp ? '부부 모두 공적연금 미수령' : '본인 공적연금 미수령';
-      else if(meHasPen && hasSp && !spHasPen) desc = '본인 연금 수령, 배우자 미수령';
-      else if(!meHasPen && hasSp && spHasPen) desc = '배우자 연금 수령, 본인 미수령';
-      else desc = hasSp ? '부부 모두 공적연금 수령' : '본인 공적연금 수령';
-
-      let extraIncome = 0;
-      cashflows.forEach(cf => { const end=cf.endAge>0?cf.endAge:200; if(ageAtMid>=cf.startAge&&ageAtMid<end) extraIncome+=cf.amt; });
-
-      const totalIncome = pension + extraIncome;
-      const netMon = Math.max(0, living - totalIncome);
-
-      rows.push({
-        from: seg.from, to: seg.to,
-        fromAge: retireAge + seg.from, toAge: retireAge + seg.to,
-        yrs: seg.to - seg.from, segMonths,
-        living, desc, pension, extraIncome, totalIncome, netMon,
-        monthsInBuf: 0, segBuf: 0  // 아래에서 채움
-      });
-    });
-
-    // ── 2단계: 초기 버퍼 = 은퇴 시점부터 bufYrs 기간의 실제 누적 인출액
-    let initBuf = 0;
-    let monthsLeft = bufMonths;
-    rows.forEach(r => {
-      const used = Math.min(r.segMonths, monthsLeft);
-      r.monthsInBuf = used;
-      r.segBuf = r.netMon * used;
-      initBuf += r.segBuf;
-      monthsLeft -= used;
-    });
-
-    // ── 3단계: 최대 버퍼 = 슬라이딩 윈도우 최대 (잔여 수명 캡 적용)
-    // 잔여 수명이 bufYrs보다 짧으면 실제 남은 기간만큼만 계산
-    const totalRetYears = rows.length > 0 ? rows[rows.length-1].to : 0;
-    let maxBuf = 0, maxBufStartAge = retireAge;
-    for(let si = 0; si < rows.length; si++){
-      const startYr = rows[si].from;
-      const remainMon = Math.max(0, (totalRetYears - startYr) * 12);
-      const winMon = Math.min(bufMonths, remainMon);
-      if(winMon <= 0) continue;
-      let slide = 0, ml = winMon;
-      for(let i = si; i < rows.length && ml > 0; i++){
-        const m = Math.min(rows[i].segMonths, ml);
-        slide += rows[i].netMon * m;
-        ml -= m;
-      }
-      if(slide > maxBuf){ maxBuf = slide; maxBufStartAge = retireAge + startYr; }
-    }
-
-    return { maxBuf, maxBufStartAge, initBuf, rows };
-  }
-
-  const { maxBuf, maxBufStartAge, initBuf, rows: bufRows } = calcBufBySegments(retAge, retAge, hasSp?+$('sp-retire').value:retAge, meP, spP, buf);
-  const bufAmt = initBuf; // 포트폴리오 계산에는 실제 설정액(initBuf) 사용
+  const stagesSolo=STAGES.filter(s=>s.solo);
+  const pensionsA=hasSp&&spP
+    ?[{startY:mePstartY,amt:meP.amt,_label:'본인 공적연금'},{startY:spPstartY,amt:spP.amt,_label:'배우자 공적연금'}]
+    :[{startY:mePstartY,amt:meP.amt,_label:'본인 공적연금'}];
 
   const bufBody = $('buf-body');
   bufBody.innerHTML = '';
@@ -2137,31 +1823,6 @@ async function update(){
     bufBody.appendChild(tr);
   });
   $('buf-max').textContent = fmtW(initBuf);
-
-  const investable=Math.max(0,assetAtRet-bufAmt);
-  const netRet=Math.max(0.01,ret-infl);
-
-  // ── A
-  const wA=buildW(stagesA,pensionsA,periodA,infl,events,retAge);
-  const inflowArrA=buildInflowArr(periodA,retAge);
-  const rateA=investable>0&&isFinite(wA[0]/investable)?(wA[0]/investable)*100:0;
-  // API: couple 모드로 probA + fanA + seqProb 한 번에 계산
-  const _coupleRes = await callSimApi({
-    mode: 'couple',
-    assetNow, wAccum, ytr, wA, ret, vol,
-    retAccum: retAccum_, volAccum: volAccum_,
-    periodA, chartPeriodA: mePeriod, inherit, inflowArrA,
-    runs: 10000, seqActive, seqStartV, seqDurV, seqRetV,
-  });
-  const {probA, fanA, seqProb: _seqProbResult} = _coupleRes;
-  const _mcRawA = probA / 100;
-  // 자산 부족/여유: 연도별 인출액을 각각 직접 할인하여 합산 (평균 사용 시 오차 제거)
-  // wAPV: 인출액은 실질 기준(netRet=ret-infl)으로 할인 (물가반영 인출이므로)
-  // inflowPV: 배우자 저축은 명목 소득(물가와 무관)이므로 명목 수익률(ret)로 할인
-  const wAPV = wA.reduce((s,w,i) => s + w / Math.pow(1+netRet/100, i+1), 0);
-  const inflowPV = inflowArrA.reduce((s,v,i) => s + v / Math.pow(1+ret/100, i+1), 0);
-  const neededA = wAPV + inherit*Math.pow(1+netRet/100,-periodA) + bufAmt - inflowPV;
-  const gapA = assetAtRet - neededA;
 
   $('sh-a-desc').textContent=`${hasSp?'부부/동반':'본인'} 기준, ${periodA}년 계획. 자산유출 ${events.length}건 · 자산유입 ${inflows.length}건 · 현금흐름 ${cashflows.length}건 · 정액연금 ${fixedPensions.length}건 포함.`;
   $('a-asset').textContent=fmtW(assetAtRet);$('a-asset-s').textContent=ytr+'년 후 예상 (본인 은퇴 시점)'+(spExtra>0?' · 배우자 '+spExtra+'년 추가 적립':' ');
@@ -2191,14 +1852,6 @@ async function update(){
   // 시나리오A 차트는 본인 사망(mePeriod)까지 표시 — periodA(두 분 중 오래 사는 쪽)와 다를 수 있음
   const chartPeriodA = mePeriod;
   _seqChartData={assetNow,wAccum,ytr,investable,wA,ret,vol,periodA,inflowArrA,retAccum_:retAccum_,chartPeriodA};
-  // fanA from API (couple 모드)
-  const pathOptimA = fanA.p90;
-  const pathBaseA  = fanA.p50;
-  const pathPessA  = fanA.p10;
-  const fullP90 = fanA.p90;
-  const fullP50 = fanA.p50;
-  const fullP10 = fanA.p10;
-
   // 전체 레이블: 현재 나이부터 본인 사망까지 (적립기 ytr + 인출기 chartPeriodA)
   const labA = [
     ...Array.from({length: ytr+1},       (_,i) => (age+i)+'세'),
@@ -2211,7 +1864,7 @@ async function update(){
     ? Array.from({length:labA.length},(_,i)=>
         i <= inheritTotalYears ? Math.round(inherit*Math.pow(1+infl/100,i)) : null)
     : null;
-  cA = drawFanChart('chart-a', fullP10, fullP50, fullP90, labA, cA, '#c4933f', inheritCurveA);
+  cA = drawFanChart('chart-a', fanA.p10, fanA.p50, fanA.p90, labA, cA, '#c4933f', inheritCurveA);
 
   // 은퇴 시점 어노테이션 메타데이터 업데이트 (플러그인은 전역 1회 등록됨)
   if(cA){
@@ -2224,7 +1877,6 @@ async function update(){
   }
   if(seqActive && cA){
     const sign=seqRetV>=0?'+':'';
-    const seqFullWithAccum=deterPathSeqFull(assetNow,wAccum,ytr,wA,retAccum_,ret,chartPeriodA,inflowArrA,seqStartV,seqDurV,seqRetV);
     cA.data.datasets.push({
       label:`${seqStartV}년차~${seqStartV+seqDurV}년차 ${sign}${seqRetV}%`,
       data:seqFullWithAccum,
@@ -2240,7 +1892,7 @@ async function update(){
   $('note-a').textContent=`▲ ${retAge+mePstartY}세 본인 공적연금 개시`+(hasSp?` · ● ${spAgeAtRetire+spPstartY}세 배우자 공적연금 개시(배우자 나이 기준)`:'')+inflowNote+(ytr>0?` · 황금점선: 본인 은퇴(${retAge}세)`:'')+  (hasSp&&spRet!==retAge?` · 초록점선: 배우자 은퇴(${spRet}세)`+(spExtra>0?' · 음영: 배우자 잔여적립기':''):'') ;
   const taxNote='<div style="font-size:11px;color:var(--text3);margin-top:8px">⚠️ 세금 미반영: 연금소득세·금융소득세 등은 계산에 포함되지 않습니다. 실제 수령액은 세후 기준으로 별도 확인하세요.</div>';
   const runs=10000;
-  const failA=Math.round(runs*(1-_mcRawA));
+  const failA=Math.round(runs*(1-probA/100));
   const probNote=`<div style="font-size:12px;color:var(--text2);margin-top:5px">10,000가지 시장 시나리오 중 <b>${runs-failA}번</b> 성공, <b style="color:var(--red,#D85A30)">${failA}번</b>은 자산 고갈.</div>`;
   let msgA='',clsA='';
   if(probA>=90&&rateA<=4){
@@ -2262,10 +1914,8 @@ async function update(){
   const seqDiv=$('seq-result-a');
   if(seqActive&&seqDiv){
     const _sign=seqRetV>=0?'+':'';
-    const _seqPath=deterPathSeqFull(assetNow,wAccum,ytr,wA,retAccum_,ret,chartPeriodA,inflowArrA,seqStartV,seqDurV,seqRetV);
-    const _endIdx=Math.min(ytr+seqStartV+seqDurV,_seqPath.length-1);
-    const _seqEndVal=_seqPath[_endIdx];
-    const _medEndVal=fanA.p50[_endIdx]||0;
+    const _seqEndVal=seqEndVal;
+    const _medEndVal=medEndVal;
     const _diff=_medEndVal-_seqEndVal;
     const _abs=Math.abs(_diff);
     const _diffTxt=_abs>100
@@ -2274,7 +1924,7 @@ async function update(){
     const _riskTxt=seqRetV<0
       ?`은퇴 초기 손실이 자산 기저를 낮춰 이후 인출 지속 가능성에 불리하게 작용합니다.`
       :`은퇴 초기 고수익이 자산 기저를 높여 이후 자산 유지에 유리하게 작용합니다.`;
-    const _probSeq = _seqProbResult ?? 0;
+    const _probSeq = seqProb ?? 0;
     const _okSeq = Math.round(_probSeq * 100);
     const _failSeq = 10000 - _okSeq;
     const _dp=_probSeq-probA;
@@ -2298,12 +1948,6 @@ async function update(){
   }
 
   // ── 독거 시나리오
-  const dY = Math.min(soloDeathY, periodA);
-  // 적립기+인출기 연속 경로에서 선행사망 시점 인덱스 = ytr + dY
-  const dYIdx = ytr + dY;
-  // 선행 사망 시 잔여 자산 — p50 경로의 해당 시점 값 (그래프와 동일 기준)
-  const assetAtDeath=pathBaseA[dYIdx];
-  const sP=getSoloPension();
   const soloLabel = soloWho==='sp'?'배우자':'본인';
   const firstDiedLabel = soloWho==='sp'?'본인':'배우자';
   const whoDesc=$('solo-pension-who-desc');
@@ -2316,55 +1960,6 @@ async function update(){
   if(ownLabel) ownLabel.textContent=`${soloLabel} 연금`;
   const solCol=$('solo-pension-col');
   if(solCol) solCol.style.borderColor=soloWho==='sp'?'#F5C4B3':'#FAC775';
-  const stagesSolo=STAGES.filter(s=>s.solo);
-  // 독거 시작 시 독거자(생존자)의 나이
-  // soloWho='sp': 배우자가 독거 → 본인 사망 시점의 배우자 나이 = spAge + meYears
-  // soloWho='me': 본인이 독거   → 배우자 사망 시점의 본인 나이  = age  + spYears
-  const soloStartAge = soloWho==='sp' ? spAge + meYears : age + spYears;
-  const wS=buildW(stagesSolo,[{startY:0,amt:sP.total}],soloPeriod,infl,[],soloStartAge);
-  // 독거 버퍼 계산 — 독거 시작부터 버퍼 기간의 실제 누적 인출액 (잔여 수명 캡 적용)
-  const soloActiveStgs=STAGES.filter(s=>s.solo&&stageState[s.id].on);
-  let soloBufAmt=0;
-  if(soloActiveStgs.length>0&&soloPeriod>0){
-    const sBufMon=buf*12;
-    const sTotalMon=soloPeriod*12;
-    let sMonLeft=Math.min(sBufMon,sTotalMon); // 잔여 수명이 버퍼기간보다 짧으면 캡
-    let sCursor=0;
-    for(const sg of soloActiveStgs){
-      if(sMonLeft<=0) break;
-      const mon=stageState[sg.id].mon;
-      const yrs=stageState[sg.id].yrs;
-      const midAge=soloStartAge+sCursor+yrs/2;
-      let sCF=0;
-      cashflows.forEach(cf=>{const end=cf.endAge>0?cf.endAge:200;if(midAge>=cf.startAge&&midAge<end)sCF+=cf.amt;});
-      const net=Math.max(0,mon-sP.total-sCF);
-      const stgMon=yrs*12;
-      const used=Math.min(stgMon,sMonLeft);
-      soloBufAmt+=net*used;
-      sMonLeft-=used;
-      sCursor+=yrs;
-    }
-  }
-  const soloInvestable=Math.max(0,assetAtDeath-soloBufAmt);
-  const rateS=soloInvestable>0?(wS[0]/soloInvestable)*100:0;
-  const _soloRes = await callSimApi({
-    mode: 'solo',
-    assetNow, wAccum, ytr, wA, wS, ret, vol,
-    retAccum: retAccum_, volAccum: volAccum_,
-    soloDeathY, soloPeriod, inherit, inflowArrA,
-    startS90: pathOptimA[dYIdx]??0,
-    startS50: pathBaseA[dYIdx]??0,
-    startS10: pathPessA[dYIdx]??0,
-    runs: 10000,
-  });
-  const {chainedResult, fanS90, fanS50, fanS10} = _soloRes;
-  const _mcRawS   = chainedResult.probTotal;
-  const probS     = Math.round(_mcRawS * 100);
-  const condProbS = Math.round(chainedResult.condProb  * 100);
-  const wSPV = wS.reduce((s,w,i) => s + w / Math.pow(1+netRet/100, i+1), 0);
-  const neededS = wSPV + inherit*Math.pow(1+netRet/100,-soloPeriod) + soloBufAmt;
-  const gapS = assetAtDeath - neededS;
-  const monS=Math.round(soloInvestable*(rateS/100)/12+sP.total);
 
   const isSpSolo = soloWho==='sp';
   const soloLife = isSpSolo?spLife:meLife;
@@ -2406,7 +2001,7 @@ async function update(){
     labS, cS, '#7c5cbf', inheritCurveS
   );
   $('note-s').textContent=`잔여 ${fmtW(assetAtDeath)} | ${soloName} 홀로 ${soloPeriod}년 | 공적연금 월 ${soloPenAmt}만원`;
-  const failS=Math.round(runs*(1-_mcRawS));
+  const failS=Math.round(runs*(1-probS/100));
   const probNoteS=`<div style="font-size:12px;color:var(--text2);margin-top:5px">10,000가지 시장 시나리오 중 <b>${runs-failS}번</b> 성공, <b style="color:var(--red,#D85A30)">${failS}번</b>은 자산 고갈.</div>`;
   // probS  = 처음부터 끝까지 전구간(적립+동반+독거) 성공률
   // condProbS = 동반기를 버텼다는 전제 하에 독거기도 버틸 확률 = probS/probA
@@ -2592,20 +2187,22 @@ const _PRINT_PAGE_H = 1000;
 
 function doPrint(){
   document.body.classList.toggle('print-has-sp', hasSp);
-  // 차트 컨테이너를 인쇄용 높이(150px)로 먼저 설정 후 Chart.js 리사이즈
-  // beforeprint 시점에는 JS layout API가 print CSS를 반영하지 않을 수 있어
-  // doPrint에서 직접 처리한 뒤 100ms 뒤 window.print() 호출
+  var panA=document.getElementById('panel-a');
+  var panS=document.getElementById('panel-s');
   var elA=document.getElementById('chart-a'), wrapA=elA&&elA.parentElement;
   var elS=document.getElementById('chart-s'), wrapS=elS&&elS.parentElement;
+  // 비활성 패널도 잠깐 표시해야 Chart.js가 캔버스 크기를 계산할 수 있음
+  if(panA) panA.style.display='block';
+  if(panS) panS.style.display=hasSp?'block':'none';
   if(wrapA) wrapA.style.height='225px';
   if(wrapS) wrapS.style.height='225px';
   if(cA) try{cA.resize();}catch(e){}
   if(cS) try{cS.resize();}catch(e){}
-  setTimeout(function(){ var _t=document.title;document.title='IdentiFi_RetirementSimulator';window.print();document.title=_t; }, 100);
+  setTimeout(function(){ var _t=document.title;document.title='IdentiFi_RetirementSimulator';window.print();document.title=_t; }, 150);
 }
 
 window.addEventListener('beforeprint', function(){
-  // 차트는 doPrint에서 이미 리사이즈 완료 — 패널 높이 측정 후 zoom 적용만 수행
+  // beforeprint 시점에 print CSS가 이미 적용되므로 여기서 zoom 계산
   ['panel-a','panel-s'].forEach(function(id){
     const el=document.getElementById(id);
     if(!el) return;
@@ -2614,16 +2211,19 @@ window.addEventListener('beforeprint', function(){
     const h=el.scrollHeight;
     if(h>_PRINT_PAGE_H) el.style.zoom=String((_PRINT_PAGE_H/h).toFixed(4));
   });
+  // print CSS가 적용된 최종 레이아웃 기준으로 차트 재리사이즈
+  if(cA) try{cA.resize();}catch(e){}
+  if(cS) try{cS.resize();}catch(e){}
 });
 
 window.addEventListener('afterprint', function(){
   document.body.classList.remove('print-has-sp');
-  // zoom 초기화
+  // zoom 및 인라인 display 초기화 (탭 CSS가 다시 제어하도록)
   ['panel-a','panel-s'].forEach(function(id){
     const el=document.getElementById(id);
-    if(el) el.style.zoom='';
+    if(el){el.style.zoom='';el.style.display='';}
   });
-  // 차트 컨테이너 및 크기 원복
+  // 차트 컨테이너 크기 원복
   var elA=document.getElementById('chart-a'), wrapA=elA&&elA.parentElement;
   var elS=document.getElementById('chart-s'), wrapS=elS&&elS.parentElement;
   if(wrapA) wrapA.style.height='260px';

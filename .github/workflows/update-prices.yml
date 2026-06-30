@@ -1,0 +1,36 @@
+name: 주간 자산 가격 데이터 업데이트
+
+on:
+  schedule:
+    # 매주 월요일 오전 11시 (UTC+9 = 월요일 02:00 UTC)
+    - cron: '0 2 * * 1'
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  update-prices:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate price data
+        run: node scripts/generate-prices.js
+        env:
+          ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/asset-allocation-backtest/prices.json
+          if git diff --staged --quiet; then
+            echo "변경사항 없음, 커밋 생략"
+          else
+            git commit -m "chore: 주간 자산 가격 데이터 업데이트 ($(date +'%Y-%m-%d'))"
+            git push
+          fi
