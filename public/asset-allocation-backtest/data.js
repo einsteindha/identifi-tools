@@ -70,5 +70,36 @@ const state = {
   portfolios:[{name:'포트폴리오 1'},{name:'포트폴리오 2'},{name:'포트폴리오 3'}],
   rows: Array.from({length:8}, ()=>({assetId:'', weights:['','','']})),
 };
-const dataCache = new Map(); // 배치 캐시: key = "assetIds_startYear_endYear"
+const dataCache = new Map();
+
+// ── prices.json 프리로드 ────────────────────────────────────────
+// 페이지 로드 즉시 백그라운드에서 시작 → 버튼 클릭 시 이미 준비 완료
+let _staticPricesData = null;
+let _staticPricesPromise = null;
+
+(function _initStaticPrices() {
+  // localStorage 7일 캐시 확인 (즉시 동기 반환)
+  try {
+    const ts = +localStorage.getItem('bt_prices_ts') || 0;
+    if (Date.now() - ts < 7 * 86_400_000) {
+      const text = localStorage.getItem('bt_prices_data');
+      if (text) { _staticPricesData = JSON.parse(text); return; }
+    }
+  } catch(e) {}
+
+  // 캐시 없으면 백그라운드 fetch
+  _staticPricesPromise = fetch('/asset-allocation-backtest/prices.json')
+    .then(r => r.ok ? r.text() : null)
+    .then(text => {
+      if (!text) return null;
+      const data = JSON.parse(text);
+      _staticPricesData = data;
+      try {
+        localStorage.setItem('bt_prices_data', text);
+        localStorage.setItem('bt_prices_ts', Date.now().toString());
+      } catch(e) {}
+      return data;
+    })
+    .catch(() => null);
+})();
 

@@ -383,7 +383,7 @@ async function doRunBacktest(){
     let stepIdx = 0;
     updateStep(stepIdx++, 'active');
 
-    // 데이터 fetch: 메모리 캐시 → 정적 prices.json(CDN) → 서버 API 순으로 확인
+    // 데이터 fetch: 메모리 캐시 → 프리로드된 prices.json → 서버 API 폴백
     const cacheKey = `${Array.from(uniqueAssets).sort().join(',')}`;
     let fxMap, assetDataMap;
     if(dataCache.has(cacheKey)){
@@ -391,61 +391,48 @@ async function doRunBacktest(){
     } else {
       let fetched = null;
 
-      // 1. 정적 prices.json 시도 (CDN에서 즉시, 브라우저 HTTP 캐시 활용)
-      try {
-        const sr = await fetch('/asset-allocation-backtest/prices.json');
-        if (sr.ok) {
-          const sd = await sr.json();
-          const assetData = {};
-          const missingIds = [];
-          uniqueAssets.forEach(id => {
-            if (sd.assets?.[id] && !sd.assets[id].error) assetData[id] = sd.assets[id];
-            else missingIds.push(id);
-          });
+      // 1. 프리로드된 prices.json 사용 (localStorage 캐시 또는 백그라운드 fetch 결과)
+      const sd = _staticPricesData || (await _staticPricesPromise);
+      if (sd) {
+        const assetData = {};
+        const missingIds = [];
+        uniqueAssets.forEach(id => {
+          if (sd.assets?.[id] && !sd.assets[id].error) assetData[id] = sd.assets[id];
+          else missingIds.push(id);
+        });
 
-          if (missingIds.length === 0) {
-            // 전체 정적 데이터로 커버
-            fetched = { assetData, fxMap: sd.fxMap };
-          } else if (missingIds.length < uniqueAssets.size) {
-            // 일부만 API로 보충
-            try {
-              const apiRes = await fetch('/api/fetch-data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assetIds: missingIds, startYear: s.startYear, endYear: s.endYear }),
-              });
-              if (apiRes.ok) {
-                const apiData = await apiRes.json();
-                missingIds.forEach(id => { assetData[id] = apiData.assetData?.[id] || { error: '데이터 없음' }; });
-                fetched = { assetData, fxMap: sd.fxMap || apiData.fxMap };
-              }
-            } catch (e) {}
+        if (missingIds.length === 0) {
+          fetched = { assetData, fxMap: sd.fxMap };
+        } else {
+          // 정적 파일에 없는 자산만 API로 보충
+          try {
+            const apiRes = await fetch('/api/fetch-data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ assetIds: missingIds, startYear: s.startYear, endYear: s.endYear }),
+            });
+            if (apiRes.ok) {
+              const apiData = await apiRes.json();
+              missingIds.forEach(id => { assetData[id] = apiData.assetData?.[id] || { error: '데이터 없음' }; });
+            } else {
+              missingIds.forEach(id => { assetData[id] = { error: '데이터 없음' }; });
+            }
+          } catch (e) {
+            missingIds.forEach(id => { assetData[id] = { error: '데이터 없음' }; });
           }
+          fetched = { assetData, fxMap: sd.fxMap };
         }
-      } catch (e) {}
+      }
 
-      // 2. 정적 파일 실패 또는 자산 전혀 없을 때 → API 전체 로드 (기존 방식 폴백)
+      // 2. prices.json 로드 실패 시 → API 전체 로드 폴백
       if (!fetched) {
-        // localStorage 확인 (24시간 TTL, API 폴백용)
-        try {
-          const lsRaw = localStorage.getItem('bt_api_' + cacheKey);
-          if (lsRaw) {
-            const { data, ts } = JSON.parse(lsRaw);
-            if (Date.now() - ts < 86_400_000) fetched = data;
-            else localStorage.removeItem('bt_api_' + cacheKey);
-          }
-        } catch (e) {}
-
-        if (!fetched) {
-          const fetchRes = await fetch('/api/fetch-data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ assetIds: Array.from(uniqueAssets), startYear: s.startYear, endYear: s.endYear }),
-          });
-          if (!fetchRes.ok) throw new Error('데이터 서버 오류');
-          fetched = await fetchRes.json();
-          try { localStorage.setItem('bt_api_' + cacheKey, JSON.stringify({ data: fetched, ts: Date.now() })); } catch (e) {}
-        }
+        const fetchRes = await fetch('/api/fetch-data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ assetIds: Array.from(uniqueAssets), startYear: s.startYear, endYear: s.endYear }),
+        });
+        if (!fetchRes.ok) throw new Error('데이터 로드 실패 — 잠시 후 다시 시도해 주세요');
+        fetched = await fetchRes.json();
       }
 
       fxMap = fetched.fxMap;

@@ -391,6 +391,26 @@ async function main() {
     });
   }
 
+  // 정밀도 최적화 (파일 크기 축소)
+  // 가격 자산: 소수점 2자리 / 수익률 자산: 유효숫자 7자리 / 환율: 소수점 2자리
+  function roundMap(priceMap, isReturn) {
+    const out = {};
+    for (const [k, v] of Object.entries(priceMap)) {
+      if (!isFinite(v)) continue;
+      out[k] = isReturn
+        ? parseFloat(v.toPrecision(7))      // 월 수익률 – 복리 정확도 유지
+        : Math.round(v * 100) / 100;        // 가격 – 센트 단위로 충분
+    }
+    return out;
+  }
+
+  for (const [id, asset] of Object.entries(results)) {
+    if (!asset.error && asset.priceMap) {
+      asset.priceMap = roundMap(asset.priceMap, asset.isReturn);
+    }
+  }
+  const roundedFxMap = fxMap ? roundMap(fxMap, false) : null;
+
   // 파일 저장
   const output = {
     generated: new Date().toISOString().slice(0, 10),
@@ -398,7 +418,7 @@ async function main() {
     coverageStart: START_YEAR,
     coverageEnd: END_YEAR,
     assets: results,
-    fxMap,
+    fxMap: roundedFxMap,
   };
 
   fs.writeFileSync(OUT_PATH, JSON.stringify(output));
