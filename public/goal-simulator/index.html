@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>재무 시뮬레이터 — 정원준 CFP</title>
+<title>IdentiFi — 목적자금 시뮬레이터</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap');
@@ -1105,7 +1105,7 @@ function updateGoalCardResults(){
     } else if(card.type==='upgrade'){
       var sp2=res.det.saleProceeds||0,sav2=res.det.savingsAccumulated||0;
       var ftp2=res.det.futureTargetHP||0,ln2=res.det.loanNeeded||0;
-      var lnMC10=res.mc&&res.mc.pct?Math.max(0,ftp2-(res.mc.pct(10)+sp2)):null;
+      var lnMC10=res.mc&&res.mc.pct10!=null?Math.max(0,ftp2-(res.mc.pct10+sp2)):null;
       resEl.innerHTML='<div style="margin-top:8px;font-size:11px;padding:7px 10px;background:var(--bg3);border-radius:6px">'
         +'목표 주택 미래가 <b>'+wan(ftp2)+'</b><br>'
         +'총 자기자금 <b style="color:'+rc+'">'+wan(res.det.finalAsset)+'</b> (처분순자금 <b>'+wan(sp2)+'</b> + 적립 <b>'+wan(sav2)+'</b>)<br>'
@@ -1134,13 +1134,6 @@ function updateCardFromSelect(el){
     }
   }
   updateCard(cid,key,el.value);
-}
-function _getLoanEnd(card){
-  if((card.loanEndMode||'term')==='term'){
-    var sY=card.loanStartY||(new Date().getFullYear()-3),sM=card.loanStartM||1,t=card.loanTerm||30;
-    return{endY:sY+t,endM:sM};
-  }
-  return{endY:card.loanEndY||(new Date().getFullYear()+27),endM:card.loanEndM||1};
 }
 function toggleLoanEndMode(cid){
   var card=goalCards.find(function(c){return c.id===cid;});
@@ -1238,135 +1231,31 @@ function toggleSavingTiming(cid){
   _autoGoals();
 }
 
-// ══ CALC ══
-function calcDet(initAsset,monthly,years,nomRet,inflation,goalNow,incomeGrowth,startYear,savingMode,savingTiming){
-  startYear=startYear||0;savingMode=savingMode||'monthly';savingTiming=savingTiming||'end';
-  const totalYears=startYear+years;
-  const mr=nomRet/12,goalFV=goalNow*Math.pow(1+inflation,totalYears);
-  let asset=initAsset,contrib=initAsset,curSaving=monthly;
-  const yearData=[];
-  for(let y=1;y<=totalYears;y++){
-    const saving=y>startYear;
-    if(savingMode==='annual'){
-      if(savingTiming==='start'&&saving){asset+=curSaving;contrib+=curSaving;}
-      for(let m=0;m<12;m++)asset=asset*(1+mr);
-      if(savingTiming!=='start'&&saving){asset+=curSaving;contrib+=curSaving;}
-      if(saving)curSaving*=(1+incomeGrowth);
-    }else{
-      for(let m=0;m<12;m++)asset=asset*(1+mr)+(saving?curSaving:0);
-      if(saving){contrib+=curSaving*12;curSaving*=(1+incomeGrowth);}
-    }
-    yearData.push({year:y,asset,contrib,gain:asset-contrib,goalFV:goalNow*Math.pow(1+inflation,y),achievePct:asset/(goalNow*Math.pow(1+inflation,y))*100});
-  }
-  let needed;
-  if(savingMode==='annual'){
-    const ear=Math.pow(1+mr,12);
-    const assetAtStart=initAsset*Math.pow(ear,startYear);
-    const fac=years>0?(savingTiming==='start'?ear*(Math.pow(ear,years)-1)/(ear-1):(Math.pow(ear,years)-1)/(ear-1)):1;
-    needed=(goalFV-assetAtStart*Math.pow(ear,years))/fac;
-  }else{
-    const r=mr,n=years*12;
-    const assetAtStart=initAsset*Math.pow(1+r,startYear*12);
-    const fac=n>0?(Math.pow(1+r,n)-1)/r*(1+r):1;
-    needed=(goalFV-assetAtStart*Math.pow(1+r,n))/fac;
-  }
-  return{yearData,finalAsset:asset,goalFV,surplus:asset-goalFV,achieved:asset>=goalFV,neededMonthly:needed};
-}
-
-function calcMC(initAsset,monthly,years,nomRet,inflation,goalNow,stdDev,runs,incomeGrowth,startYear,savingMode,savingTiming){
-  startYear=startYear||0;savingMode=savingMode||'monthly';savingTiming=savingTiming||'end';
-  const totalYears=startYear+years;
-  const mm=nomRet/12,ms=stdDev/Math.sqrt(12),goalFV=goalNow*Math.pow(1+inflation,totalYears),n=totalYears*12;
-  const startMonth=startYear*12;
-  function randn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
-  const finals=[],paths=[];const sample=Math.min(runs,300);
-  for(let i=0;i<runs;i++){
-    let a=initAsset,cm=monthly;
-    const p=i<sample?[initAsset]:null;
-    if(savingMode==='annual'){
-      for(let m=0;m<n;m++){
-        const saving=m>=startMonth;
-        const miy=saving?(m-startMonth)%12:-1;
-        if(savingTiming==='start'&&saving&&miy===0)a+=cm;
-        a=a*(1+mm+ms*randn());
-        if(savingTiming!=='start'&&saving&&miy===11)a+=cm;
-        if(saving&&miy===11)cm*=(1+incomeGrowth);
-        if(p&&(m+1)%12===0)p.push(a);
-      }
-    }else{
-      for(let m=0;m<n;m++){
-        const saving=m>=startMonth;
-        a=a*(1+mm+ms*randn())+(saving?cm:0);
-        if(saving&&(m-startMonth+1)%12===0)cm*=(1+incomeGrowth);
-        if(p&&(m+1)%12===0)p.push(a);
-      }
-    }
-    finals.push(a);if(p)paths.push(p);
-  }
-  finals.sort((a,b)=>a-b);paths.sort((a,b)=>a[a.length-1]-b[b.length-1]);
-  const pct=pp=>finals[Math.min(finals.length-1,Math.floor(pp*runs/100))];
-  const mn=finals[0],mx=finals[finals.length-1],bins=40,bw=(mx-mn)/bins;
-  const hist=Array(bins).fill(0);
-  finals.forEach(v=>hist[Math.min(bins-1,Math.floor((v-mn)/bw))]++);
-  const successCount=finals.filter(v=>v>=goalFV).length;
-  return{
-    successRate:successCount/runs*100,successCount,runs,pct,
-    path10:paths[Math.floor(paths.length*.1)]||[],
-    path50:paths[Math.floor(paths.length*.5)]||[],
-    path90:paths[Math.floor(paths.length*.9)]||[],
-    hist,histLabels:Array.from({length:bins},(_,i)=>(mn+bw*(i+.5))/10000),
-    goalFV,bw,mn
-  };
-}
+// ══ CALC ══ (서버사이드로 이동 — /api/goal-sim)
 
 // ══ RUN ALL GOALS ══
 let chartTimeline=null,goalDetailCharts={};
 let lastHousingEquity=null;
 
-function runAllGoals(){
+async function runAllGoals(){
   if(goalCards.length===0){alert('목적자금을 먼저 추가하세요');return;}
-  const runs=3000;
-
-  goalCards.forEach(function(card){
-    if(card.type==='retire') return; // 은퇴 카드 제외
-    const cardRet=(card.nomRet||6)/100;
-    const cardInf=(card.inflation||2.5)/100;
-    const cardStd=(card.stdDev||10)/100;
-    const cardGrowth=card.monthlyGrowth?(card.monthlyGrowthRate||2)/100:0;
-    var det,mc;
-    if(card.type==='housing'){
-      const hp=card.housePrice||card.amount||80000;
-      const pr=(card.priceRise||3)/100;
-      const cardStartYear=card.startYear||0;
-      const totalYears=cardStartYear+card.years;
-      const futureHP=Math.round(hp*Math.pow(1+pr,totalYears)/100)*100;
-      det=calcDet(card.initAsset,card.monthly,card.years,cardRet,0,futureHP,cardGrowth,cardStartYear,card.savingMode||'monthly',card.savingTiming||'end');
-      mc=calcMC(card.initAsset,card.monthly,card.years,cardRet,0,futureHP,cardStd,runs,cardGrowth,cardStartYear,card.savingMode||'monthly',card.savingTiming||'end');
-      lastHousingEquity={det,mc,years:totalYears,housePrice:futureHP,housePriceNow:hp};
-    } else if(card.type==='upgrade'){
-      const cardStartYear=card.startYear||0;
-      const totalYears=cardStartYear+card.years;
-      const totalMonths=totalYears*12;
-      const futureCurHP=Math.round((card.curHousePrice||50000)*Math.pow(1+(card.curPriceRise||3)/100,totalYears)/100)*100;
-      const futureTargetHP=Math.round((card.targetHousePrice||80000)*Math.pow(1+(card.targetPriceRise||3)/100,totalYears)/100)*100;
-      const _le=_getLoanEnd(card);
-      const remBal=(card.loanBalance||0)>0
-        ?remainingLoanBal(card.loanBalance,card.loanRate||4,card.loanStartY||(new Date().getFullYear()-3),card.loanStartM||1,_le.endY,_le.endM,totalMonths)
-        :0;
-      const saleProceeds=Math.max(0,futureCurHP-remBal);
-      const gap=Math.max(0,futureTargetHP-saleProceeds);
-      const savDet=calcDet(card.initAsset||0,card.monthly||100,card.years,cardRet,0,gap,cardGrowth,cardStartYear,card.savingMode||'monthly',card.savingTiming||'end');
-      const savingsAccumulated=savDet.finalAsset;
-      const totalSelf=savingsAccumulated+saleProceeds;
-      const loanNeeded=Math.max(0,futureTargetHP-totalSelf);
-      det={...savDet,finalAsset:totalSelf,goalFV:futureTargetHP,achieved:totalSelf>=futureTargetHP,surplus:totalSelf-futureTargetHP,saleProceeds,remainBal:remBal,futureCurHP,futureTargetHP,savingsAccumulated,loanNeeded};
-      mc=calcMC(card.initAsset||0,card.monthly||100,card.years,cardRet,0,gap,cardStd,runs,cardGrowth,cardStartYear,card.savingMode||'monthly',card.savingTiming||'end');
-    } else {
-      det=calcDet(card.initAsset,card.monthly,card.years,cardRet,cardInf,card.amount,cardGrowth,card.startYear||0,card.savingMode||'monthly',card.savingTiming||'end');
-      mc=calcMC(card.initAsset,card.monthly,card.years,cardRet,cardInf,card.amount,cardStd,runs,cardGrowth,card.startYear||0,card.savingMode||'monthly',card.savingTiming||'end');
+  const btn=$('btn-run-goals');
+  if(btn){btn.disabled=true;btn.textContent='계산 중...';}
+  try{
+    const res=await fetch('/api/goal-sim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cards:goalCards})});
+    if(!res.ok)throw new Error('서버 오류');
+    const{results}=await res.json();
+    goalCards.forEach(function(card){
+      if(card.type==='retire')return;
+      const r=results[card.id];
+      if(!r)return;
+      card.result={det:r.det,mc:r.mc,houseEquityByYear:r.houseEquityByYear};
+    });
+    const housingCard=goalCards.find(function(c){return c.type==='housing'&&c.result;});
+    if(housingCard){
+      const r=housingCard.result,hp=housingCard.housePrice||housingCard.amount||80000,pr=(housingCard.priceRise||3)/100,totalYears=(housingCard.startYear||0)+housingCard.years;
+      lastHousingEquity={det:r.det,mc:r.mc,years:totalYears,housePrice:Math.round(hp*Math.pow(1+pr,totalYears)/100)*100,housePriceNow:hp};
     }
-    card.result={det,mc};
-  });
 
   // 주택 탭 자기자금 업데이트
   if(lastHousingEquity){
@@ -1384,7 +1273,7 @@ function runAllGoals(){
       +r.years+'년 후 예상 매매가: <b style="color:var(--text)">'+wan(futureHP2)+'</b><br>'
       +r.years+'년 후 예상 자기자금: <b style="color:'+(r.det.achieved?'var(--green)':'var(--amber)')+'">'+wan(fvEquity)+'</b>'
       +(loanNeeded>0?' / 예상 필요 대출: <b style="color:var(--red)">'+wan(loanNeeded)+'</b>':'<span style="color:var(--green)"> ✓ 대출 불필요</span>')+'<br>'
-      +'<span style="color:var(--text3);font-size:10px">MC 하위10%(보수적)='+wan(r.mc.pct(10))+' / 보수적 대출 필요: '+wan(Math.max(0,futureHP2-r.mc.pct(10)))+'</span>';
+      +'<span style="color:var(--text3);font-size:10px">MC 하위10%(보수적)='+wan(r.mc.pct10)+' / 보수적 대출 필요: '+wan(Math.max(0,futureHP2-r.mc.pct10))+'</span>';
   }
 
   updateGoalCardResults();
@@ -1396,9 +1285,10 @@ function runAllGoals(){
   $('goals-content').style.display='block';
   updateFutureIncome();
   _disablePrintBtn();
-  // 연동 탭 자동 갱신
   if(_currentPage==='housing')runHousing();else _autoHousing();
   if(_currentPage==='upgrade')runUpgrade();else _autoUpgrade();
+  }catch(e){alert('계산 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');}
+  finally{if(btn){btn.disabled=false;btn.textContent='목표 달성 시뮬레이션 실행';}}
 }
 
 function renderGoalsDashboard(){
@@ -1423,14 +1313,10 @@ function renderGoalsTimeline(){
     const data=Array(maxYears+1).fill(null);
     const cardTotalYrs=(card.startYear||0)+card.years;
     if(card.type==='upgrade'){
-      const chp=card.curHousePrice||50000,cpr=(card.curPriceRise||3)/100,clb=card.loanBalance||0;
-      const clr=card.loanRate||4,lsY=card.loanStartY||(new Date().getFullYear()-3),lsM=card.loanStartM||1;
-      const _le2=_getLoanEnd(card),leY=_le2.endY,leM=_le2.endM;
-      data[0]=(card.initAsset+Math.max(0,chp-clb))/10000;
+      const hev=card.result.houseEquityByYear||[];
+      data[0]=(card.initAsset+(hev[0]||0))/10000;
       det.yearData.forEach(d=>{
-        const hpY=Math.round(chp*Math.pow(1+cpr,d.year)/100)*100;
-        const remY=clb>0?remainingLoanBal(clb,clr,lsY,lsM,leY,leM,d.year*12):0;
-        data[d.year]=(d.asset+Math.max(0,hpY-remY))/10000;
+        data[d.year]=(d.asset+(hev[d.year]||0))/10000;
       });
     } else {
       data[0]=card.initAsset/10000;
@@ -1500,13 +1386,13 @@ function buildGoalPanel(card){
     const pr=(card.priceRise||3)/100;
     const fhp=Math.round(hp*Math.pow(1+pr,totalYrs)/100)*100;
     const loanEst=Math.max(0,fhp-det.finalAsset);
-    const loanMC=Math.max(0,fhp-mc.pct(10));
+    const loanMC=Math.max(0,fhp-mc.pct10);
     const startNote=card.startYear>0?' (준비시점 '+card.startYear+'년 후, 적립 '+card.years+'년)':'';
     return '<div class="result-msg">'
       +'<b>'+card.name+'</b> — 현재가 <b>'+wan(hp)+'</b> → '+totalYrs+'년 후 예상 매매가 <b>'+wan(fhp)+'</b>'+startNote+'<br>'
       +'예상 자기자금(결정론적): <b style="'+c+'">'+wan(det.finalAsset)+'</b>'
       +(loanEst>0?' / 예상 필요 대출: <b style="color:var(--red)">'+wan(loanEst)+'</b>':' <span style="color:var(--green)">✓ 대출 불필요</span>')+'<br>'
-      +'MC 중앙값: '+wan(mc.pct(50))+' / MC 하위10%(보수적) 대출 필요: <b style="color:var(--amber)">'+wan(loanMC)+'</b>'
+      +'MC 중앙값: '+wan(mc.pct50)+' / MC 하위10%(보수적) 대출 필요: <b style="color:var(--amber)">'+wan(loanMC)+'</b>'
       +'</div>'
       +'<div class="chart-wrap"><canvas id="gc-chart-'+card.id+'" class="chart-canvas" height="433"></canvas></div>';
   }
@@ -1514,7 +1400,7 @@ function buildGoalPanel(card){
     const sp=det.saleProceeds||0,sa=det.savingsAccumulated||0;
     const ftp=det.futureTargetHP||0,ln=det.loanNeeded||0;
     const startNote=card.startYear>0?' (준비시점 '+card.startYear+'년 후, 적립 '+card.years+'년)':'';
-    const loanMC10=Math.max(0,ftp-(mc.pct(10)+sp));
+    const loanMC10=Math.max(0,ftp-(mc.pct10+sp));
     return '<div class="result-msg">'
       +'<b>'+card.name+'</b>'+startNote+'<br>'
       +'현 주택 미래가 <b>'+wan(det.futureCurHP||0)+'</b> — 잔여 대출 <b style="color:var(--amber)">'+wan(det.remainBal||0)+'</b> = 처분순자금 <b>'+wan(sp)+'</b><br>'
@@ -1529,7 +1415,7 @@ function buildGoalPanel(card){
   return '<div class="result-msg">'
     +'<b>'+card.name+'</b> 목표 '+wan(card.amount)+' → '+totalYrs+'년 후 미래가치 <span style="'+c+';font-weight:700">'+wan(det.goalFV)+'</span>'+startNote+'<br>'
     +'최종 예상: <b>'+wan(det.finalAsset)+'</b> <span style="'+c+';font-weight:700">'+verdictText+'</span> &nbsp;|&nbsp; 필요 '+(card.savingMode==='annual'?'연':'월')+'적립: <b style="color:var(--amber)">'+wan(det.neededMonthly)+'/'+(card.savingMode==='annual'?'년':'월')+'</b><br>'
-    +'몬테카를로 <b style="color:'+mcc+'">'+mc.runs+'회 중 '+mc.successCount+'번 성공 ('+mc.successRate.toFixed(1)+'%)</b> &nbsp; 중앙값: '+wan(mc.pct(50))+' &nbsp; 하위10%: '+wan(mc.pct(10))
+    +'몬테카를로 <b style="color:'+mcc+'">'+mc.runs+'회 중 '+mc.successCount+'번 성공 ('+mc.successRate.toFixed(1)+'%)</b> &nbsp; 중앙값: '+wan(mc.pct50)+' &nbsp; 하위10%: '+wan(mc.pct10)
     +'</div>'
     +'<div class="chart-wrap"><canvas id="gc-chart-'+card.id+'" class="chart-canvas" height="433"></canvas></div>';
 }
@@ -1555,15 +1441,8 @@ function renderGoalPanelChart(id){
     const inf=(card.inflation||2.5)/100;
     goalData=Array.from({length:cardTotalYrs+1},function(_,i){return card.amount*Math.pow(1+inf,i)/10000;});
   }
-  // upgrade: 연도별 현 주택 순자산(집값 − 잔여대출) 계산
-  var houseEquityByYear=null;
-  if(card.type==='upgrade'){
-    houseEquityByYear=Array.from({length:cardTotalYrs+1},function(_,i){
-      var fhp=Math.round((card.curHousePrice||50000)*Math.pow(1+(card.curPriceRise||3)/100,i)/100)*100;
-      var _le3=_getLoanEnd(card);var rb=(card.loanBalance||0)>0?remainingLoanBal(card.loanBalance,card.loanRate||4,card.loanStartY||(new Date().getFullYear()-3),card.loanStartM||1,_le3.endY,_le3.endM,i*12):0;
-      return Math.max(0,fhp-rb);
-    });
-  }
+  // upgrade: 서버에서 사전 계산된 연도별 주택 순자산 사용
+  var houseEquityByYear=card.type==='upgrade'?(card.result.houseEquityByYear||[]):null;
   const initForChart=card.type==='upgrade'?((card.initAsset||0)+(houseEquityByYear[0]||0)):(card.initAsset||0);
   var _gcEl=$('gc-chart-'+id); if(!_gcEl)return;
   const _pSY=card.startYear||0;
@@ -1649,7 +1528,7 @@ function runUpgrade(){
       var _sp=ucDet.saleProceeds||0,_sa=ucDet.savingsAccumulated||0;
       var _ftp=ucDet.futureTargetHP||0,_ln=ucDet.loanNeeded||0;
       var _fchp=ucDet.futureCurHP||0,_rb=ucDet.remainBal||0;
-      var _mc10loan=ucMc&&ucMc.pct?Math.max(0,_ftp-(ucMc.pct(10)+_sp)):null;
+      var _mc10loan=ucMc&&ucMc.pct10!=null?Math.max(0,_ftp-(ucMc.pct10+_sp)):null;
       var _achieved=ucDet.finalAsset>=_ftp;
       linkBox.style.display='block';
       linkBox.innerHTML='<b>📊 목적자금 시뮬레이션 연결</b><br>'
@@ -1786,21 +1665,6 @@ function runUpgrade(){
 const LTV={toher:{first:40,replace:40,multi:30},speculate:{first:40,replace:40,multi:30},adjust:{first:70,replace:60,multi:50},normal:{first:80,replace:80,multi:60}};
 let chartAmort=null,chartBalance=null;
 
-function remainingLoanBal(curBal,annualRatePct,startY,startM,endY,endM,futureMonths){
-  var now=new Date();
-  var nowY=now.getFullYear(),nowM=now.getMonth()+1;
-  var totalM=(endY-startY)*12+(endM-startM);
-  var elapsed=(nowY-startY)*12+(nowM-startM);
-  var remNow=Math.max(1,totalM-elapsed);
-  var n=Math.min(Math.round(futureMonths),remNow);
-  if(curBal<=0)return 0;
-  if(n<=0)return curBal;
-  var mr=annualRatePct/100/12;
-  if(mr===0)return Math.max(0,curBal*(1-n/remNow));
-  var pmt=curBal*mr*Math.pow(1+mr,remNow)/(Math.pow(1+mr,remNow)-1);
-  var factor=Math.pow(1+mr,n);
-  return Math.max(0,curBal*factor-pmt*(factor-1)/mr);
-}
 function mpi(P,r,n){if(r===0)return P/n;const mr=r/12;return P*mr*Math.pow(1+mr,n)/(Math.pow(1+mr,n)-1)}
 function api(P,r,y){return mpi(P,r,y*12)*12}
 

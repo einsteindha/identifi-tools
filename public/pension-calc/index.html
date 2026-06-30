@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연금계좌 납입 시뮬레이터 · IdentiFi</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="납입 시뮬레이터">
+<meta name="theme-color" content="#faf8f4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;--bg2:#f2efe9;--bg3:#e8e4db;
+  --text:#1a1814;--text2:#3d3a35;--text3:#7a776f;
+  --border:rgba(26,24,20,.1);--border2:rgba(26,24,20,.18);
+  --blue:#c4933f;--green:#2a7c6f;--amber:#b86e1a;--red:#943030;
+  --gold:#c4933f;--gold-light:#f0d99a;--gold-pale:#fdf5e0;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  min-height:100%;
+  font-family:'Noto Sans KR',system-ui,sans-serif;
+  background:var(--bg3);color:var(--text);font-size:14px;line-height:1.6;
+}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+input[type=range]{height:4px;-webkit-appearance:none;appearance:none;background:linear-gradient(to right,var(--gold) 0%,var(--gold) var(--pct,0%),var(--bg3) var(--pct,0%));border-radius:4px;padding:0;border:none;cursor:pointer;width:100%;display:block;margin:6px 0 2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);box-shadow:0 0 0 2px rgba(196,147,63,.3)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border:none;border-radius:50%;background:var(--gold);border:2px solid var(--bg);box-shadow:0 0 0 2px rgba(196,147,63,.3)}
+
+.wrap{display:flex;flex-direction:column;min-height:100vh}
+
+.hd{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border2);padding:1.2rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.hd-left{display:flex;align-items:center;gap:1.5rem}
+.hd-logo{font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);font-weight:400;text-decoration:none}
+.hd-logo span{color:var(--gold);font-style:italic}
+.hd-page-title{font-family:'Noto Serif KR',serif;font-size:1.15rem;font-weight:500;color:var(--text)}
+.hd-page-sub{font-size:.82rem;color:var(--text3)}
+@media(max-width:600px){.hd{padding:.9rem 1rem}.hd-page-sub{display:none}}
+
+.layout{display:flex;flex:1}
+.panel-left{flex:0 0 41%;padding:20px 24px 60px;overflow-y:auto}
+.panel-right{flex:1;padding:20px 24px 60px;background:var(--bg3);overflow-y:auto;border-left:1px solid var(--border)}
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .panel-left{flex:none;width:100%}
+  .panel-right{flex:none;width:100%;border-left:none;border-top:2px solid var(--border)}
+}
+
+.pt{font-family:'Noto Serif KR',serif;font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.ic{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:11px 13px;margin-bottom:9px}
+.ic.highlight{border-color:var(--gold)}
+.ic-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ic-label{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.badge{font-size:10px;padding:1px 6px;border-radius:2px;font-weight:600;background:var(--gold-pale);color:var(--amber)}
+.ic-right{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.num-input{width:68px;padding:4px 6px;border:1px solid var(--border2);border-radius:2px;background:var(--bg2);color:var(--text);font-size:12px;font-weight:600;text-align:right;outline:none}
+.num-unit{font-size:11px;color:var(--text2);white-space:nowrap}
+.ic-note{font-size:11px;color:var(--text2);line-height:1.5;padding:5px 8px;background:var(--bg2);border-radius:2px;margin-bottom:8px}
+.ic-info{font-size:11px;color:var(--text2);padding:5px 8px;background:var(--bg2);border-radius:2px;margin-bottom:9px;line-height:1.5}
+.result-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:12px;color:var(--text3);text-align:center}
+.main-card{background:var(--text);border-radius:4px;padding:18px 20px;margin-bottom:14px;position:relative;overflow:hidden}
+.main-card-glow{position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(196,147,63,.18) 0%,transparent 70%);pointer-events:none}
+.main-label{font-size:11px;color:rgba(250,248,244,.45);margin-bottom:6px;letter-spacing:.07em;text-transform:uppercase}
+.main-value{font-family:'DM Serif Display',serif;font-size:36px;font-weight:400;color:var(--gold-light);line-height:1}
+.main-value span{font-size:16px;color:var(--gold);margin-left:6px;font-weight:400}
+.main-sub{font-size:11px;color:rgba(250,248,244,.45);margin-top:8px}
+.pmt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+@media(max-width:600px){.pmt-grid{grid-template-columns:1fr}}
+.pmt-card{background:var(--text);border-radius:4px;padding:15px 16px;position:relative;overflow:hidden}
+.pmt-card-glow{position:absolute;top:-24px;right:-24px;width:90px;height:90px;background:radial-gradient(circle,rgba(196,147,63,.15) 0%,transparent 70%);pointer-events:none}
+.pmt-card.active{outline:2px solid var(--gold)}
+.pmt-tag{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(250,248,244,.45);margin-bottom:5px}
+.pmt-value{font-family:'DM Serif Display',serif;font-size:24px;font-weight:400;color:var(--gold-light);line-height:1}
+.pmt-value span{font-size:13px;color:var(--gold);margin-left:4px;font-weight:400}
+.pmt-sub{font-size:10px;color:rgba(250,248,244,.45);margin-top:6px;line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:7px;margin-bottom:14px}
+.met{background:var(--bg2);border-radius:4px;padding:11px 13px}
+.ml{font-size:12px;color:var(--text2);margin-bottom:3px}
+.mv{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;line-height:1.2}
+.ms{font-size:11px;color:var(--text3);margin-top:3px}
+.tbl-wrap{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:13px;margin-bottom:14px}
+.tbl-title{font-family:'Noto Serif KR',serif;font-size:13px;font-weight:500;margin-bottom:9px}
+.cf-table{width:100%;border-collapse:collapse;font-size:11px}
+.cf-table th{padding:5px 7px;text-align:left;font-weight:600;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg2)}
+.cf-table td{padding:6px 7px;border-bottom:1px solid var(--border)}
+.cf-table tr:last-child td{border-bottom:none}
+.row-current td{background:var(--gold-pale);font-weight:700;color:var(--amber)}
+.tag-small{font-size:10px;margin-left:4px;color:var(--text3)}
+.tag-current{font-size:10px;margin-left:4px;color:var(--amber)}
+.inflation-banner{font-size:12px;color:var(--text2);padding:8px 12px;background:var(--bg2);border-left:3px solid var(--gold);border-radius:2px;margin-bottom:12px;line-height:1.6}
+.inflation-banner strong{color:var(--text)}
+.disclaimer{padding:12px 14px;font-size:12px;line-height:1.7;border-radius:4px;background:var(--gold-pale);border-left:3px solid var(--amber)}
+.disclaimer-title{font-weight:700;color:var(--amber);margin-bottom:6px}
+.disclaimer ul{padding-left:16px;color:var(--text2)}
+.disclaimer li{margin-bottom:4px}
+.disclaimer li:last-child{margin-bottom:0}
+.footer{text-align:center;padding:14px;font-size:11px;color:var(--text3);border-top:1px solid var(--border);flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hd">
+    <div class="hd-left">
+      <a href="https://identifi.co.kr" target="_blank" rel="noopener" class="hd-logo">Identi<span>Fi</span></a>
+      <div>
+        <div class="hd-page-title">연금계좌 납입 시뮬레이터</div>
+        <div class="hd-page-sub">얼마를 받으려면 얼마를 넣을까 — 은퇴 준비 계산기</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <div class="panel-left">
+
+      <div style="margin-bottom:20px">
+        <div class="pt">0 · 현재 은퇴 준비 계좌 평가액</div>
+        <div class="ic highlight">
+          <div class="ic-row">
+            <span class="ic-label">현재 은퇴 준비 계좌 평가액</span>
+            <div class="ic-right">
+              <input class="num-input" id="num-currentBalance" type="number" min="0" max="300000" step="1" value="0">
+              <span class="num-unit">만원</span>
+            </div>
+          </div>
+          <div id="display-currentBalance" style="font-size:12px;font-weight:600;color:var(--blue);text-align:right;margin-bottom:4px">0원</div>
+          <input type="range" id="sl-currentBalance" min="0" max="300000" step="100" value="0">
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div class="pt">1 · 나이 설정</div>
+
+        <div class="ic">
+          <div class="ic-row">
+            <span class="ic-label">현재 나이</span>
+            <div class="ic-right">
+              <input class="num-input" id="num-currentAge" type="number" min="0" max="100" step="1" value="30">
+              <span class="num-unit">세</span>
+            </div>
+          </div>
+          <input type="range" id="sl-currentAge" min="0" max="100" step="1" value="30">
+        </div>
+
+        <div class="ic">
+          <div class="ic-row">
+            <span class="ic-label">수령 시작 나이</span>
+            <div class="ic-right">
+              <input class="num-input" id="num-startAge" type="number" min="40" max="100" step="1" value="55">
+              <span class="num-unit">세</span>
+            </div>
+          </div>
+          <input type="range" id="sl-startAge" min="40" max="100" step="1" value="55">
+        </div>
+
+        <div class="ic">
+          <div class="ic-row">
+            <span class="ic-label">적립 기간</span>
+            <div class="ic-right">
+              <input class="num-input" id="num-accumYears" type="number" min="0" max="60" step="1" value="25">
+              <span class="num-unit">년</span>
+            </div>
+          </div>
+          <div class="ic-note" id="note-accumYears">수령 시작 나이까지 최대 25년</div>
+          <input type="range" id="sl-accumYears" min="0" max="25" step="1" value="25">
+        </div>
+
+        <div class="ic" id="ic-escalation">
+          <div class="ic-row" style="cursor:pointer" id="escalation-toggle-row">
+            <span class="ic-label" style="gap:8px">
+              <span id="escalation-arrow" style="font-size:10px;color:var(--text3);transition:transform .2s">▶</span>
+              증액저축
+              <span id="escalation-badge" style="font-size:10px;padding:1px 7px;border-radius:4px;font-weight:700;background:var(--bg3);color:var(--text3)">OFF</span>
+            </span>
+          </div>
+          <div id="escalation-body" style="display:none;margin-top:8px">
+            <div class="ic-row">
+              <span class="ic-label">연 증액률</span>
+              <div class="ic-right">
+                <input class="num-input" id="num-escalation" type="number" min="0" max="10" step="0.1" value="2">
+                <span class="num-unit">%</span>
+              </div>
+            </div>
+            <div class="ic-note">매년 납입액이 입력한 비율만큼 증가합니다. 결과는 <strong>첫 해</strong> 납입액으로 표시됩니다. (0% 입력 시 정액과 동일)</div>
+            <input type="range" id="sl-escalation" min="0" max="10" step="0.1" value="2">
+          </div>
+        </div>
+
+        <div class="ic">
+          <div class="ic-row">
+            <span class="ic-label">수령 기간</span>
+            <div class="ic-right">
+              <input class="num-input" id="num-withdrawYears" type="number" min="1" max="60" step="1" value="30">
+              <span class="num-unit">년</span>
+            </div>
+          </div>
+          <div class="ic-note" id="note-withdrawYears">수령 시작 나이부터 최대 45년 (100세 기준)</div>
+          <input type="range" id="sl-withdrawYears" min="1" max="45" step="1" value="30">
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div class="pt">2 · 수익률 설정</div>
+        <div class="ic-info">적립기·인출기 수익률을 각각 입력하세요. -10%~+20% 범위, 0.1% 단위.</div>
+
+        <div class="ic">
+          <div class="ic-row">
+            <span class="ic-label">적립기 수익률 (연)</span>
+            <div class="ic-right">
+              <input class="num-input" id="num-accumRate" type="number" min="-10" max="20" step="0.1" value="0">
+              <span class="num-unit">%</span>
+            </div>
+          </div>
+          <input type="range" id="sl-accumRate" min="-10" max="20" step="0.1" value="0">
+        </div>
+
+        <div class="ic">
+          <div class="ic-row">
+            <span class="ic-label">인출기 수익률 (연)</span>
+            <div class="ic-right">
+              <input class="num-input" id="num-withdrawRate" type="number" min="-10" max="20" step="0.1" value="0">
+              <span class="num-unit">%</span>
+            </div>
+          </div>
+          <input type="range" id="sl-withdrawRate" min="-10" max="20" step="0.1" value="0">
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div class="pt">3 · 목표 월 수령액</div>
+        <div class="ic highlight">
+          <div class="ic-row">
+            <span class="ic-label">월 목표 수령액 <span class="badge">현재 물가 기준</span></span>
+            <div class="ic-right">
+              <input class="num-input" id="num-targetMonthly" type="number" min="1" max="5000" step="1" value="100">
+              <span class="num-unit">만원</span>
+            </div>
+          </div>
+          <input type="range" id="sl-targetMonthly" min="1" max="5000" step="1" value="100">
+        </div>
+
+        <div class="ic">
+          <div class="ic-row">
+            <span class="ic-label">물가상승률 (연)</span>
+            <div class="ic-right">
+              <input class="num-input" id="num-inflation" type="number" min="0" max="8" step="0.1" value="3">
+              <span class="num-unit">%</span>
+            </div>
+          </div>
+          <div class="ic-note" id="note-inflation">수령 시작 시점 및 인출 기간 중 실질 구매력 유지에 반영됩니다.</div>
+          <input type="range" id="sl-inflation" min="0" max="8" step="0.1" value="3">
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-right">
+      <div class="pt" style="margin-bottom:16px">결과 <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">입력 변경 시 실시간 업데이트</span></div>
+      <div id="result-area">
+        <div class="result-empty">
+          <div style="font-size:40px;opacity:.25">◎</div>
+          <p style="font-size:13px;line-height:1.8">기본값으로 바로 계산됩니다</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">본 계산기는 상담용 참고자료입니다. 실제 재무 의사결정은 반드시 CFP와 상담하세요. · IdentiFi</div>
+</div>
+
+<script>
+let escalationOn = false;
+let renderTimer = null;
+
+function fmtWon(n) {
+  if (n == null || isNaN(n) || !isFinite(n)) return '—';
+  const abs = Math.abs(n);
+  if (abs >= 100000000) return (n / 100000000).toFixed(1) + '억원';
+  return Math.round(n / 10000).toLocaleString('ko-KR') + '만원';
+}
+function fmtMan(n) {
+  if (n == null || isNaN(n) || !isFinite(n)) return '—';
+  return Math.round(n / 10000).toLocaleString('ko-KR') + ' 만원';
+}
+function fmtBalanceDisplay(man) {
+  if (man == null || isNaN(man)) return '0원';
+  man = Math.round(man);
+  if (man === 0) return '0원';
+  const uk = Math.floor(man / 10000), rem = man % 10000;
+  if (uk > 0 && rem > 0) return `${uk.toLocaleString('ko-KR')}억 ${rem.toLocaleString('ko-KR')}만원`;
+  if (uk > 0) return `${uk.toLocaleString('ko-KR')}억원`;
+  return `${rem.toLocaleString('ko-KR')}만원`;
+}
+function updateBalanceDisplay() {
+  const v = parseFloat(document.getElementById('num-currentBalance').value) || 0;
+  document.getElementById('display-currentBalance').textContent = fmtBalanceDisplay(v);
+}
+
+function bindPair(slId, numId, onChange) {
+  const sl = document.getElementById(slId), nm = document.getElementById(numId);
+  sl.addEventListener('input', () => { nm.value = sl.value; onChange(); });
+  nm.addEventListener('input', () => {
+    let v = parseFloat(nm.value);
+    if (isNaN(v)) return;
+    v = Math.min(parseFloat(sl.max), Math.max(parseFloat(sl.min), v));
+    sl.value = v; onChange();
+  });
+  nm.addEventListener('blur', () => { if (nm.value === '' || isNaN(parseFloat(nm.value))) nm.value = sl.value; });
+}
+
+function val(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function syncAccumMax() {
+  const ca = val('sl-currentAge'), sa = val('sl-startAge');
+  const newMax = Math.max(0, sa - ca);
+  const slAY = document.getElementById('sl-accumYears'), nmAY = document.getElementById('num-accumYears');
+  slAY.max = newMax; nmAY.max = newMax;
+  document.getElementById('note-accumYears').textContent = `수령 시작 나이까지 최대 ${newMax}년${newMax === 0 ? ' (0년 = 지금 바로 수령 시작)' : ''}`;
+  if (parseFloat(slAY.value) > newMax) { slAY.value = newMax; nmAY.value = newMax; }
+}
+function syncWithdrawMax() {
+  const sa = val('sl-startAge'), newMax = Math.max(1, 100 - sa);
+  const slWY = document.getElementById('sl-withdrawYears'), nmWY = document.getElementById('num-withdrawYears');
+  slWY.max = newMax; nmWY.max = newMax;
+  document.getElementById('note-withdrawYears').textContent = `수령 시작 나이부터 최대 ${newMax}년 (100세 기준)`;
+  if (parseFloat(slWY.value) > newMax) { slWY.value = newMax; nmWY.value = newMax; }
+}
+
+function render() {
+  const ca = val('sl-currentAge'), sa = val('sl-startAge');
+  const ay = val('sl-accumYears'), wy = val('sl-withdrawYears');
+  const ar = val('sl-accumRate'), wr = val('sl-withdrawRate');
+  const tm = val('sl-targetMonthly');
+  const inf = val('sl-inflation');
+  const cb = val('sl-currentBalance');
+  const area = document.getElementById('result-area');
+
+  if (sa < 40 || sa > 100 || ca < 0 || ca > sa || ay < 0 || ay > sa - ca || wy < 1 || tm <= 0) {
+    area.innerHTML = `<div class="result-empty"><div style="font-size:40px;opacity:.25">△</div><p style="font-size:13px;line-height:1.8">입력값을 확인해주세요<br><span style="font-size:11px">수령 시작 나이는 현재 나이 이상이어야 합니다</span></p></div>`;
+    return;
+  }
+
+  fetch('/api/pension-calc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      currentAge: ca, startAge: sa, accumYears: ay, withdrawYears: wy,
+      accumRate: ar, withdrawRate: wr, targetMonthly: tm * 10000,
+      inflation: inf, currentBalance: cb * 10000,
+      escalationOn, escalation: val('sl-escalation')
+    })
+  })
+  .then(r => r.json())
+  .then(d => renderResult(d, { ca, sa, ay, wy, ar, wr, cb, inf }))
+  .catch(() => {});
+}
+
+function renderResult(d, { ca, sa, ay, wy, ar, wr, cb, inf }) {
+  const area = document.getElementById('result-area');
+
+  if (d.type === 'impossible') {
+    area.innerHTML = `<div class="result-empty"><div style="font-size:40px;opacity:.25">△</div><p>계산할 수 없는 조합입니다</p></div>`;
+    return;
+  }
+
+  if (d.type === 'zero-accum') {
+    const infNote0 = inf > 0
+      ? `물가상승률 ${inf}% 반영 · 수령 시작 시 <strong>${Math.round(d.inflatedTarget / 10000).toLocaleString('ko-KR')}만원/월</strong> → 매년 ${inf}% 증가`
+      : `물가상승률 0% · 수령액 고정`;
+    const surp0 = d.cbFV - d.neededPV;
+    area.innerHTML = `
+      <div class="main-card">
+        <div class="main-card-glow"></div>
+        <div class="main-label">적립기간 0년 · 지금 바로 수령 시작</div>
+        <div class="main-value" style="font-size:24px;color:${d.alreadySufficient ? '#4ade80' : '#f87171'}">${d.alreadySufficient ? '목표 달성 가능' : fmtWon(d.shortfall) + ' 부족'}</div>
+        <div class="main-sub">${sa}세부터 ${wy}년 수령 · 목표 적립 원금 ${fmtWon(d.neededPV)}</div>
+      </div>
+      <div class="inflation-banner">${infNote0}</div>
+      <div class="inflation-banner" style="border-left-color:${d.alreadySufficient ? 'var(--green)' : 'var(--red)'}">
+        ${cb > 0 ? `현재 잔액 <strong>${fmtBalanceDisplay(cb)}</strong> — ` : '잔액 없음 — '}
+        ${d.alreadySufficient
+          ? `<strong style="color:var(--green)">✓ 목표 달성 가능${surp0 > 0 ? ` · ${fmtWon(surp0)} 여유` : ''}</strong>`
+          : `<strong style="color:var(--red)">${fmtWon(d.shortfall)} 부족</strong>`}
+      </div>
+      <div class="stats">
+        <div class="met"><div class="ml">목표 적립 원금</div><div class="mv">${fmtWon(d.neededPV)}</div><div class="ms">수령 시작 시점 기준</div></div>
+        ${cb > 0 ? `<div class="met"><div class="ml">현재 잔액</div><div class="mv" style="color:${d.alreadySufficient ? 'var(--green)' : 'var(--text)'}">${fmtWon(d.cbFV)}</div><div class="ms">적립기간 없음</div></div>` : ''}
+        <div class="met"><div class="ml">${d.alreadySufficient ? '여유 금액' : '부족 금액'}</div><div class="mv" style="color:${d.alreadySufficient ? 'var(--green)' : 'var(--red)'}">${d.alreadySufficient ? fmtWon(surp0) : fmtWon(d.shortfall)}</div><div class="ms">${d.alreadySufficient ? '목표 초과분' : '추가 필요 금액'}</div></div>
+        <div class="met"><div class="ml">총 수령 예상액 (명목)</div><div class="mv">${fmtWon(d.nominalTotalReceived)}</div><div class="ms">${wy}년 합산 · 물가 반영</div></div>
+      </div>
+      <div class="disclaimer"><div class="disclaimer-title">⚠ 주의사항</div><ul><li><strong>세금 · 건보료 · 수수료 미반영</strong></li><li>물가상승률은 <strong>인출기 전 구간</strong>에 반영됩니다.</li><li>정밀한 분석은 <strong>IdentiFi CFP</strong>와 상담하세요.</li></ul></div>`;
+    return;
+  }
+
+  // normal
+  const ratio = d.ratio;
+  const ratioColor = ratio > 1 ? 'var(--green)' : 'var(--red)';
+  const totalColor = d.nominalTotalReceived > d.nominalTotalPaid ? 'var(--green)' : 'var(--text)';
+  const cbFVWon = fmtWon(d.cbFV);
+  const scenarioRows = d.scenarios.map(s => {
+    const label = `${s.rate % 1 === 0 ? s.rate.toFixed(1) : s.rate}%`;
+    const tag = s.isCurrent ? `<span class="tag-current">◀ 입력값</span>` : `<span class="tag-small">기준</span>`;
+    const pmtStr = s.pmt != null ? s.pmt.toLocaleString('ko-KR') + ' 만원' : '—';
+    const totalStr = s.pmt != null ? Math.round(s.pmt * ay * 12).toLocaleString('ko-KR') + ' 만원' : '—';
+    return `<tr class="${s.isCurrent ? 'row-current' : ''}"><td>${label}${tag}</td><td style="text-align:right">${pmtStr}</td><td style="text-align:right">${totalStr}</td></tr>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="pmt-grid">
+      <div class="pmt-card active"><div class="pmt-card-glow"></div><div class="pmt-tag">${d.card1.label}</div><div class="pmt-value">${d.card1.val != null ? d.card1.val.toLocaleString('ko-KR') : '—'}<span>만원</span></div><div class="pmt-sub">${d.card1.sub}</div></div>
+      <div class="pmt-card"><div class="pmt-card-glow"></div><div class="pmt-tag">${d.card2.label}</div><div class="pmt-value">${d.card2.val != null ? d.card2.val.toLocaleString('ko-KR') : '—'}<span>만원</span></div><div class="pmt-sub">${d.card2.sub}</div></div>
+      <div class="pmt-card"><div class="pmt-card-glow"></div><div class="pmt-tag">${d.card3.label}</div><div class="pmt-value">${d.card3.val != null ? d.card3.val.toLocaleString('ko-KR') : '—'}<span>만원</span></div><div class="pmt-sub">${d.card3.sub}</div></div>
+    </div>
+    <div class="inflation-banner">${d.infNote}</div>
+    ${cb > 0 ? `<div class="inflation-banner" style="border-left-color:${d.isOverfunded ? 'var(--red)' : 'var(--green)'};margin-bottom:12px">
+      현재 은퇴 준비 계좌 평가액 <strong>${fmtBalanceDisplay(cb)}</strong> →
+      적립 완료 시 <strong style="color:${d.isOverfunded ? 'var(--red)' : 'var(--green)'}">${cbFVWon}</strong> 기여
+      ${d.isOverfunded
+        ? `<br><strong style="color:var(--red)">⚠ 목표 원금 대비 ${d.surplusRatio}% 초과 — 납입 중단을 고려할 수 있습니다.</strong><br><span style="font-size:11px;color:var(--text2)">과잉 적립은 다른 자산 배분 계획과의 균형을 해칠 수 있습니다. IdentiFi CFP와 포트폴리오 재조정을 상담하세요.</span>`
+        : d.alreadySufficient ? `<br><strong style="color:var(--green)">✓ 추가 납입 없이 목표 달성 가능합니다</strong>` : ''}
+    </div>` : ''}
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;padding:0 2px">${d.subLine}</div>
+    <div class="stats">
+      <div class="met"><div class="ml">목표 적립 원금</div><div class="mv">${fmtWon(d.neededPV)}</div><div class="ms">${d.holdYears > 0 ? `예치 ${d.holdYears}년 후 → ${fmtWon(d.withdrawPV)}` : '수령 시작 시점'}</div></div>
+      ${cb > 0 ? `<div class="met"><div class="ml">평가액 기여분</div><div class="mv" style="color:${d.isOverfunded ? 'var(--red)' : 'var(--green)'}">${cbFVWon}</div><div class="ms">적립 완료 시점 환산${d.isOverfunded ? ` · +${d.surplusRatio}% 초과` : ''}</div></div>` : ''}
+      <div class="met"><div class="ml">총 납입액 (명목)</div><div class="mv">${d.alreadySufficient ? '0원' : fmtWon(d.nominalTotalPaid)}</div><div class="ms">${d.alreadySufficient ? '추가 납입 불필요' : `${ay}년 합산${escalationOn && val('sl-escalation') > 0 ? ' · 증액 반영' : ''}`}</div></div>
+      <div class="met"><div class="ml">총 수령 예상액 (명목)</div><div class="mv" style="color:${totalColor}">${fmtWon(d.nominalTotalReceived)}</div><div class="ms">${wy}년 합산 · 물가 반영</div></div>
+      <div class="met"><div class="ml">수익 배율</div><div class="mv" style="color:${ratioColor}">${d.nominalTotalPaid > 0 ? ratio.toFixed(2) + '배' : '—'}</div><div class="ms">명목 총수령 / 총납입</div></div>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-title">적립기 수익률별 비교</div>
+      <table class="cf-table">
+        <thead><tr><th>적립기 수익률</th><th style="text-align:right">월 납입액</th><th style="text-align:right">총 납입액</th></tr></thead>
+        <tbody>${scenarioRows}</tbody>
+      </table>
+    </div>
+    <div class="disclaimer"><div class="disclaimer-title">⚠ 주의사항</div><ul><li><strong>세금 · 건보료 · 수수료 미반영</strong></li><li>물가상승률은 <strong>적립기·예치기·인출기 전 구간</strong>에 반영됩니다. 실제 물가는 변동될 수 있습니다.</li><li>정밀한 적립 전략은 <strong>IdentiFi 고도화 시뮬레이터</strong>를 이용하거나 <strong>IdentiFi CFP</strong>와 상담하세요.</li></ul></div>`;
+}
+
+function update() {
+  syncAccumMax();
+  syncWithdrawMax();
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(render, 100);
+}
+
+bindPair('sl-currentBalance', 'num-currentBalance', () => { updateBalanceDisplay(); update(); });
+bindPair('sl-currentAge',    'num-currentAge',    update);
+bindPair('sl-startAge',      'num-startAge',      update);
+bindPair('sl-accumYears',    'num-accumYears',    update);
+bindPair('sl-withdrawYears', 'num-withdrawYears', update);
+bindPair('sl-accumRate',     'num-accumRate',     update);
+bindPair('sl-withdrawRate',  'num-withdrawRate',  update);
+bindPair('sl-targetMonthly', 'num-targetMonthly', update);
+bindPair('sl-inflation',     'num-inflation',     update);
+bindPair('sl-escalation',    'num-escalation',    update);
+
+document.getElementById('escalation-toggle-row').addEventListener('click', () => {
+  escalationOn = !escalationOn;
+  document.getElementById('escalation-body').style.display = escalationOn ? 'block' : 'none';
+  document.getElementById('escalation-arrow').style.transform = escalationOn ? 'rotate(90deg)' : '';
+  const badge = document.getElementById('escalation-badge');
+  if (escalationOn) { badge.textContent = 'ON'; badge.style.background = 'rgba(42,124,111,0.12)'; badge.style.color = 'var(--green)'; }
+  else { badge.textContent = 'OFF'; badge.style.background = 'var(--bg3)'; badge.style.color = 'var(--text3)'; }
+  update();
+});
+
+updateBalanceDisplay();
+update();
+(function(){function _rp(e){var v=parseFloat(e.value),mn=parseFloat(e.min)||0,mx=parseFloat(e.max)||100;if(mx!==mn)e.style.setProperty('--pct',((v-mn)/(mx-mn)*100).toFixed(1)+'%');}document.querySelectorAll('input[type=range]').forEach(_rp);document.addEventListener('input',function(e){if(e.target.type==='range')_rp(e.target);});})();
+</script>
+</body>
+</html>

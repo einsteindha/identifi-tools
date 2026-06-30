@@ -283,6 +283,8 @@ async function fetchOneAsset(assetId, startYear, endYear) {
 
   const parsed = normalizeFetch(fetchResult);
   let proxyNote = null;
+  const etfFirstYear = parsed.firstYear;
+  const etfFirstMonth = parsed.firstMonth;
 
   // 상장 전 기간 proxy로 연장
   if (def.proxy && parsed.firstYear > startYear) {
@@ -314,7 +316,7 @@ async function fetchOneAsset(assetId, startYear, endYear) {
     } catch (e) {}
   }
 
-  const result = { priceMap: parsed.priceMap, firstYear: parsed.firstYear, firstMonth: parsed.firstMonth, isReturn: false, proxyNote };
+  const result = { priceMap: parsed.priceMap, firstYear: parsed.firstYear, firstMonth: parsed.firstMonth, isReturn: false, proxyNote, etfFirstYear, etfFirstMonth };
   _dataCache.set(ck, result);
   return result;
 }

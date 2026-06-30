@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1a1814">
+<title>IdentiFi — 스스로 해보는 재무설계</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1a1814; --ink-2:#3d3a35; --ink-3:#7a776f; --ink-4:#b5b2a9;
+  --paper:#faf8f4; --paper-2:#f2efe9; --paper-3:#e8e4db;
+  --gold:#c4933f; --gold-light:#f0d99a; --gold-pale:#fdf5e0;
+  --teal:#2a7c6f; --amber:#b86e1a; --r:4px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6}
+
+/* ── 헤더 ── */
+.hd{background:var(--paper);padding:0 32px;border-bottom:1px solid var(--paper-3)}
+.hd-inner{max-width:1200px;margin:0 auto;display:flex;align-items:baseline;justify-content:space-between;padding:1.5rem 0}
+.brand-name{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;color:var(--ink)}
+.brand-name span{color:var(--gold);font-style:italic}
+.hd-tag{font-size:10px;color:var(--ink-4);letter-spacing:.12em;text-transform:uppercase}
+
+/* ── 히어로 ── */
+.hero{max-width:1200px;margin:0 auto;padding:3.5rem 32px 2.5rem}
+.hero-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:.75rem}
+.hero-title{font-family:'Noto Serif KR',serif;font-size:26px;font-weight:500;color:var(--ink);line-height:1.45;margin-bottom:.75rem}
+.hero-sub{font-size:13px;color:var(--ink-3);line-height:1.8;max-width:520px}
+
+/* ── 여정 흐름 표시 ── */
+.journey{max-width:1200px;margin:0 auto;padding:0 32px 2.5rem}
+.jflow{display:flex;align-items:center;gap:0;margin-bottom:0;flex-wrap:nowrap;overflow-x:auto}
+.jflow-step{display:flex;align-items:center;gap:8px;padding:10px 18px;background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--r);white-space:nowrap;flex-shrink:0;text-decoration:none;color:inherit;cursor:pointer;transition:border-color .2s}
+.jflow-step:hover{border-color:var(--gold)}
+.jflow-step.active{background:var(--ink);border-color:var(--ink);color:var(--gold-light)}
+.jflow-num{width:20px;height:20px;border-radius:50%;background:var(--paper-3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--ink-3);flex-shrink:0}
+.jflow-step.active .jflow-num{background:var(--gold);color:var(--ink)}
+.jflow-label{font-size:11px;font-weight:500}
+.jflow-arrow{color:var(--paper-3);font-size:18px;margin:0 4px;flex-shrink:0}
+
+/* ── 본문 ── */
+.main{max-width:1200px;margin:0 auto;padding:0 32px 4rem}
+
+/* ── 섹션 헤더 ── */
+.sec-hd{font-family:'Noto Serif KR',serif;font-size:14px;font-weight:600;color:var(--ink);padding:14px 0 10px;margin-top:28px;margin-bottom:6px;border-bottom:2px solid var(--ink);display:flex;align-items:center;gap:10px}
+.sec-num{width:24px;height:24px;background:var(--ink);color:var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'Noto Sans KR',sans-serif}
+.sec-desc{font-size:12px;color:var(--ink-3);margin-bottom:14px;line-height:1.7;padding:10px 14px;background:var(--paper-2);border-left:3px solid var(--paper-3);border-radius:0 var(--r) var(--r) 0}
+
+/* ── 도구 카드 ── */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:8px}
+a.tool-card{background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--r);padding:22px 20px;text-decoration:none;color:inherit;display:block;transition:border-color .2s,box-shadow .2s,transform .15s}
+a.tool-card:hover{border-color:var(--gold);box-shadow:0 2px 12px rgba(196,147,63,.15);transform:translateY(-2px)}
+.tool-featured{border:1.5px solid var(--gold-light)!important;background:var(--gold-pale)!important}
+.tool-featured:hover{box-shadow:0 4px 16px rgba(196,147,63,.22)!important}
+.tool-icon{font-size:24px;margin-bottom:10px}
+.tool-name{font-family:'Noto Serif KR',serif;font-size:15px;font-weight:500;color:var(--ink);margin-bottom:7px}
+.tool-desc{font-size:12px;color:var(--ink-3);line-height:1.75}
+.tool-arrow{margin-top:14px;font-size:12px;color:var(--gold);font-weight:600}
+
+/* ── 반응형 ── */
+@media(max-width:768px){
+  .hd{padding:0 16px}
+  .hero{padding:2.5rem 16px 2rem}
+  .journey{padding:0 16px 2rem}
+  .main{padding:0 16px 3rem}
+  .hero-title{font-size:21px}
+  .tool-grid{grid-template-columns:1fr}
+  .jflow{gap:0}
+  .jflow-step{padding:8px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ 헤더 ══ -->
+<header class="hd">
+  <div class="hd-inner">
+    <div class="brand-name">Identi<span>Fi</span></div>
+    <div class="hd-tag">스스로 해보는 재무설계</div>
+  </div>
+</header>
+
+<!-- ══ 히어로 ══ -->
+<div class="hero">
+  <div class="hero-label">Personal Finance Toolkit</div>
+  <div class="hero-title">숫자보다 방향이 먼저,<br>방향보다 실행이 중요합니다</div>
+  <div class="hero-sub">재무 설계는 순서가 있습니다. 내가 원하는 삶을 먼저 정의하고, 현재 상태를 파악한 뒤, 구체적인 계획을 세우세요.</div>
+</div>
+
+<!-- ══ 여정 흐름 ══ -->
+<div class="journey">
+  <div class="jflow">
+    <a href="#sec1" class="jflow-step">
+      <div class="jflow-num">①</div>
+      <span class="jflow-label">방향 잡기</span>
+    </a>
+    <div class="jflow-arrow">›</div>
+    <a href="#sec2" class="jflow-step">
+      <div class="jflow-num">②</div>
+      <span class="jflow-label">현재 상태 파악</span>
+    </a>
+    <div class="jflow-arrow">›</div>
+    <a href="#sec3" class="jflow-step">
+      <div class="jflow-num">③</div>
+      <span class="jflow-label">계획 · 점검 · 실행</span>
+    </a>
+  </div>
+</div>
+
+<!-- ══ 본문 ══ -->
+<div class="main">
+
+  <!-- ① 방향 잡기 -->
+  <div id="sec1" class="sec-hd">
+    <div class="sec-num">①</div>
+    방향 잡기 — 내가 원하는 삶부터
+  </div>
+  <div class="sec-desc">
+    💡 숫자를 보기 전에 방향을 먼저 잡으세요. 어떤 삶을 원하는지 모르면, 어떤 숫자도 의미 없습니다.
+  </div>
+  <div class="tool-grid">
+    <a href="/life-planning" target="_blank" class="tool-card">
+      <div class="tool-icon">🧭</div>
+      <div class="tool-name">라이프 플래닝</div>
+      <div class="tool-desc">가치 기반으로 인생 목표를 정리합니다. 재무 설계의 시작점 — 지금 어떤 삶을 원하는지 먼저 확인하세요.</div>
+      <div class="tool-arrow">시작하기 →</div>
+    </a>
+  </div>
+
+  <!-- ② 현재 상태 파악 -->
+  <div id="sec2" class="sec-hd">
+    <div class="sec-num">②</div>
+    현재 상태 파악 — 있는 그대로 보기
+  </div>
+  <div class="sec-desc">
+    📋 내가 지금 어디에 있는지 파악해야 어디로 가야 할지 알 수 있습니다. 세 가지 도구로 현재를 입체적으로 진단하세요.
+  </div>
+  <div class="tool-grid">
+    <a href="/financial-statement" target="_blank" class="tool-card">
+      <div class="tool-icon">📊</div>
+      <div class="tool-name">가계 재무 현황 분석</div>
+      <div class="tool-desc">자산·부채·수입·지출을 종합해 재무 건강도를 진단합니다. 비율 기준으로 강점과 약점을 한눈에 파악하세요.</div>
+      <div class="tool-arrow">진단하기 →</div>
+    </a>
+    <a href="/investment-profile" target="_blank" class="tool-card">
+      <div class="tool-icon">🧬</div>
+      <div class="tool-name">투자성향 분석</div>
+      <div class="tool-desc">위험감수능력(객관)과 위험수용성향(심리)을 2축으로 분석합니다. 25개 유형 중 나의 포트폴리오 전략을 찾으세요.</div>
+      <div class="tool-arrow">분석하기 →</div>
+    </a>
+    <a href="/asset-allocation-backtest" target="_blank" class="tool-card">
+      <div class="tool-icon">📈</div>
+      <div class="tool-name">자산배분 백테스트</div>
+      <div class="tool-desc">주식·채권·대안자산 비중별 과거 수익률과 변동성을 검증합니다. 포트폴리오 설계 전 기대수익률 근거를 확인하세요.</div>
+      <div class="tool-arrow">백테스트 →</div>
+    </a>
+  </div>
+
+  <!-- ③ 계획·점검·실행 -->
+  <div id="sec3" class="sec-hd">
+    <div class="sec-num">③</div>
+    계획 · 점검 · 실행 — 숫자로 구체화하기
+  </div>
+  <div class="sec-desc">
+    🎯 나아가려는 방향과 현 상태를 바탕으로 목표를 이루기 위한 구체적인 시나리오를 시뮬레이션하세요.
+  </div>
+  <div class="tool-grid">
+    <a href="/goal-simulator" target="_blank" class="tool-card">
+      <div class="tool-icon">🎯</div>
+      <div class="tool-name">목적자금 시뮬레이터</div>
+      <div class="tool-desc">교육비·주택·차량 등 목적자금 적립 시뮬레이션. 몬테카를로 분석으로 달성 확률을 계산하고, 주택대출·증여세·전세 비교까지.</div>
+      <div class="tool-arrow">시뮬레이션 →</div>
+    </a>
+    <a href="/retirement-simulator" target="_blank" class="tool-card">
+      <div class="tool-icon">🏖️</div>
+      <div class="tool-name">은퇴 인출 시뮬레이터</div>
+      <div class="tool-desc">몬테카를로 10,000회로 은퇴 후 자산 고갈 확률을 분석합니다. 공적연금·생애 단계별 생활비·상속 목표를 반영하세요.</div>
+      <div class="tool-arrow">시뮬레이션 →</div>
+    </a>
+  </div>
+
+</div>
+
+</body>
+</html>

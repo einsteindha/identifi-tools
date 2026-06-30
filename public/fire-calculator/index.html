@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>조기 은퇴 준비 계산기 (FIRE) | IdentiFi</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;--bg2:#f2efe9;--bg3:#e8e4db;
+  --text:#1a1814;--text2:#3d3a35;--text3:#7a776f;
+  --border:rgba(26,24,20,.1);--border2:rgba(26,24,20,.18);
+  --radius:2px;--radius-lg:4px;
+  --blue:#c4933f;--green:#2a7c6f;--amber:#b86e1a;--red:#943030;
+  --gold:#c4933f;--gold-light:#f0d99a;--gold-pale:#fdf5e0;
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'Noto Sans KR',system-ui,sans-serif;background:var(--bg3);color:var(--text);font-size:14px;line-height:1.6}
+
+/* ── HEADER ── */
+.header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border2);padding:1.2rem 2rem;display:flex;justify-content:space-between;align-items:center}
+.header-left{display:flex;align-items:center;gap:1.5rem}
+.logo{font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);font-weight:400;text-decoration:none}
+.logo span{color:var(--gold);font-style:italic}
+.page-title{font-family:'Noto Serif KR',serif;font-size:1.15rem;font-weight:500;color:var(--text)}
+.page-sub{font-size:.82rem;color:var(--text3)}
+@media(max-width:600px){.header{padding:.9rem 1rem}.page-sub{display:none}}
+
+/* ── LAYOUT ── */
+.wrap{max-width:820px;margin:0 auto;padding:20px 16px 60px}
+
+/* ── DISCLAIMER ── */
+.disclaimer{display:flex;align-items:flex-start;gap:8px;background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:var(--radius-lg);padding:10px 13px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.6}
+.fun-notice{display:flex;align-items:flex-start;gap:8px;background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:var(--radius-lg);padding:10px 13px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.6}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:8px;margin-bottom:18px}
+.tab{flex:1;padding:12px 10px 10px;font-size:13px;font-weight:600;border:1px solid var(--border2);border-radius:var(--radius-lg);background:var(--bg);color:var(--text3);cursor:pointer;text-align:center;transition:all .2s;font-family:'Noto Sans KR',inherit;line-height:1.5}
+.tab:hover:not(.active){border-color:var(--gold);color:var(--text)}
+.tab.active{background:var(--gold-pale);color:var(--text);border-color:var(--gold);box-shadow:0 2px 8px rgba(196,147,63,.15)}
+.tab-icon{display:block;font-size:20px;margin-bottom:3px}
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── SECTION HEADING ── */
+.pt{font-family:'Noto Serif KR',serif;font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+
+/* ── INPUT GRID ── */
+.g-row{display:grid;gap:10px;margin-bottom:10px}
+.g-row-2{grid-template-columns:1fr 1fr}
+.g-row-3{grid-template-columns:1fr 1fr 1fr}
+.g-row:last-of-type{margin-bottom:6px}
+.ic{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 13px;transition:border-color .2s}
+.ic.error{border-color:var(--red);background:#fdf0f0}
+.il{font-size:12px;color:var(--text2);margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline}
+.iv{font-size:13px;font-weight:600;color:var(--gold)}
+.iv.error{color:var(--red)}
+input[type=range]{height:4px;-webkit-appearance:none;appearance:none;background:linear-gradient(to right,var(--gold) 0%,var(--gold) var(--pct,0%),var(--bg3) var(--pct,0%));border-radius:4px;padding:0;border:none;cursor:pointer;width:100%;margin-top:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);box-shadow:0 0 0 2px rgba(196,147,63,.3)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border:none;border-radius:50%;background:var(--gold);border:2px solid var(--bg);box-shadow:0 0 0 2px rgba(196,147,63,.3)}
+.ic.error input[type=range]{accent-color:var(--red)}
+.dual-input{display:flex;align-items:center;gap:6px;margin-top:3px}
+.dual-input input[type=range]{flex:1;margin-top:0}
+.dual-input input[type=number]{width:62px;padding:3px 6px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:13px;font-weight:600;text-align:right;font-family:inherit;-moz-appearance:textfield}
+.dual-input input[type=number]::-webkit-inner-spin-button,
+.dual-input input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+.dual-input input[type=number]:focus{outline:none;border-color:var(--gold)}
+@media(max-width:540px){
+  .g-row-2,.g-row-3{grid-template-columns:1fr}
+}
+
+/* ── INPUT TOTAL BAR ── */
+.total-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);font-size:12px;transition:border-color .2s,background .2s}
+.total-bar.ok{border-color:var(--green);background:#f0f7f5}
+.total-bar.over{border-color:var(--red);background:#fdf0f0}
+.total-bar-track{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.total-bar-fill{height:100%;border-radius:3px;transition:width .2s,background .2s}
+.total-bar-label{font-size:12px;font-weight:600;white-space:nowrap}
+.total-bar-label.ok{color:var(--green)}
+.total-bar-label.over{color:var(--red)}
+.total-bar-msg{font-size:11px;color:var(--text3)}
+.total-bar-msg.over{color:var(--red)}
+
+/* ── RESULT BOX ── */
+.result-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:14px}
+.result-main-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.result-num{font-family:'DM Serif Display',serif;font-size:42px;font-weight:400;line-height:1;color:var(--green)}
+.result-num.warn{color:var(--amber)}
+.result-num.danger{color:var(--red)}
+.result-label{font-size:14px;color:var(--text2)}
+.warn-box{background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:var(--radius);padding:8px 12px;margin-top:10px;font-size:12px;color:var(--amber);line-height:1.6;display:none}
+.warn-box.show{display:block}
+.err-box{background:#fdf0f0;border:1px solid var(--red);border-radius:var(--radius);padding:8px 12px;margin-top:0;font-size:12px;color:var(--red);line-height:1.6;display:none;margin-bottom:14px}
+.err-box.show{display:block}
+
+/* ── METRIC CARDS ── */
+.rb{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px}
+.mv-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;transition:background .2s,border-color .2s}
+.mv-card.warn{background:var(--gold-pale);border-color:var(--gold-light)}
+.mv-card.danger{background:#fdf0f0;border-color:var(--red)}
+.mv-label{font-size:11px;color:var(--text2);margin-bottom:3px;line-height:1.4}
+.mv{font-size:15px;font-weight:600;color:var(--text)}
+.mv.warn{color:var(--amber)}
+.mv.danger{color:var(--red)}
+.mv-warn-tag{display:none;font-size:10px;font-weight:600;color:var(--amber);margin-top:3px}
+.mv-warn-tag.show{display:block}
+
+/* ── CHART ── */
+.chart-legend{display:flex;gap:14px;font-size:12px;color:var(--text2);margin-bottom:7px;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:5px}
+.ld{width:14px;height:2px;display:inline-block}
+.ld.dash{border-top:2px dashed var(--red);height:0}
+.chart-wrap{position:relative;width:100%;height:230px}
+
+/* ── NOTE ── */
+.sn{font-size:11px;color:var(--text3);margin-top:12px;line-height:1.7;padding:8px 10px;background:var(--bg2);border-radius:var(--radius)}
+
+/* ── IMPOSSIBLE BADGE ── */
+.badge-imp{display:none;background:#fdf0f0;color:var(--red);font-size:12px;font-weight:600;padding:5px 12px;border-radius:var(--radius);margin-bottom:10px;border:1px solid var(--red)}
+.badge-imp.show{display:inline-block}
+
+@media(max-width:640px){
+  .rb{grid-template-columns:repeat(2,1fr)}
+  .mv{font-size:14px}
+  .result-num{font-size:32px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <a href="https://identifi.co.kr" target="_blank" rel="noopener" class="logo">Identi<span>Fi</span></a>
+    <div>
+      <div class="page-title">조기은퇴 준비 계산기</div>
+      <div class="page-sub">은퇴 준비 자산 기준 FIRE 시뮬레이터</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="fun-notice">
+    <span style="font-size:14px;flex-shrink:0;margin-top:1px">😄</span>
+    <span>이 계산기는 <strong style="color:var(--text)">극단적인 조기 은퇴(FIRE)를 진지하게 고민하는 사회초년생</strong>을 위해 만들어졌습니다. 대부분의 사람에게는 현실적이지 않을 수 있으니, 재미 삼아 숫자를 만져보세요!</span>
+  </div>
+
+  <div class="fun-notice">
+    <span style="font-size:14px;flex-shrink:0;margin-top:1px">💡</span>
+    <span>은퇴 가능 판정은 <strong style="color:var(--text)">투자 수익만으로 생활비를 충당</strong>할 수 있는 시점을 기준으로 합니다. 실제 은퇴 후에는 순자산을 일부 인출해 생활하는 방식이 일반적이므로, 여기서 기간이 길게 나오거나 목표 금액이 크게 보여도 낙담하지 마세요.</span>
+  </div>
+
+  <div class="disclaimer">
+    <span style="font-size:14px;flex-shrink:0;margin-top:1px">⚠️</span>
+    <span><strong style="color:var(--text)">단순화 모델 안내</strong> — 공적연금·퇴직금·세금 및 자산유출입은 포함되지 않은 단순 모델입니다. 실제 재무 의사결정은 CFP와 상담하세요.</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(0)"><span class="tab-icon">🗓️</span>몇 년 후 은퇴할 수 있을까?</button>
+    <button class="tab" onclick="switchTab(1)"><span class="tab-icon">🎯</span>은퇴준비 저축률을 얼마로 해야 할까?</button>
+  </div>
+
+  <!-- ════════════════ TAB 1 ════════════════ -->
+  <div class="panel active" id="panel0">
+
+    <div class="pt">입력 변수</div>
+    <div class="g-row g-row-3">
+      <div class="ic" id="t1_save_ic">
+        <div class="il"><span>은퇴준비 저축률</span><span class="iv" id="t1_save_v">30%</span></div>
+        <input type="range" min="1" max="98" step="1" value="30" id="t1_save" oninput="calcTab1()">
+      </div>
+      <div class="ic" id="t1_spend_ic">
+        <div class="il"><span>소득대비 소비지출률</span><span class="iv" id="t1_spend_v">50%</span></div>
+        <input type="range" min="1" max="98" step="1" value="50" id="t1_spendrate" oninput="calcTab1()">
+      </div>
+      <div class="ic">
+        <div class="il"><span>현재 은퇴준비자산 (연소득 대비)</span><span class="iv" id="t1_init_v">0배</span></div>
+        <div class="dual-input">
+          <input type="range" min="0" max="20" step="0.1" value="0" id="t1_init" oninput="syncInit('t1')">
+          <input type="number" min="0" max="50" step="0.1" value="0" id="t1_init_num" oninput="syncInitNum('t1')">
+        </div>
+      </div>
+    </div>
+    <div class="g-row g-row-3">
+      <div class="ic">
+        <div class="il"><span>소득 상승률 (연)</span><span class="iv" id="t1_inc_v">2.0%</span></div>
+        <input type="range" min="0" max="10" step="0.5" value="2" id="t1_inc" oninput="calcTab1()">
+      </div>
+      <div class="ic">
+        <div class="il"><span>물가 상승률 (연)</span><span class="iv" id="t1_inf_v">3.0%</span></div>
+        <input type="range" min="0" max="10" step="0.5" value="3" id="t1_inf" oninput="calcTab1()">
+      </div>
+      <div class="ic">
+        <div class="il"><span>투자 수익률 (연)</span><span class="iv" id="t1_ret_v">5.0%</span></div>
+        <input type="range" min="1" max="15" step="0.5" value="5" id="t1_ret" oninput="calcTab1()">
+      </div>
+    </div>
+
+    <div class="total-bar" id="t1_totalbar">
+      <div class="total-bar-track">
+        <div class="total-bar-fill" id="t1_barfill"></div>
+      </div>
+      <span class="total-bar-label" id="t1_barlabel"></span>
+      <span class="total-bar-msg" id="t1_barmsg"></span>
+    </div>
+
+    <div class="err-box" id="t1_errbox">
+      저축률과 소비지출률의 합이 100%를 초과합니다. 두 값의 합이 100% 이하가 되도록 조정하세요.
+    </div>
+
+    <div class="result-wrap">
+      <div class="result-main-row">
+        <span class="result-num" id="t1_years">—</span>
+        <span class="result-label" id="t1_desc"></span>
+      </div>
+      <div class="warn-box" id="t1_warnbox">
+        ⚠️ <strong>주의:</strong> 은퇴 후 소비가 현재 소득의 25% 미만입니다. 실제 생활 가능한 소비 수준인지 재검토하세요.
+      </div>
+    </div>
+
+    <div class="rb">
+      <div class="mv-card"><div class="mv-label">은퇴 시 필요 자산</div><div class="mv" id="t1_target">—</div></div>
+      <div class="mv-card" id="t1_spend_card"><div class="mv-label">은퇴 시 연 소비</div><div class="mv" id="t1_spend_out">—</div><div class="mv-warn-tag" id="t1_spend_tag">⚠️ 현재 소득의 25% 미만</div></div>
+      <div class="mv-card"><div class="mv-label">나머지 소득 비중</div><div class="mv" id="t1_rest">—</div></div>
+      <div class="mv-card"><div class="mv-label">실질 수익률</div><div class="mv" id="t1_real">—</div></div>
+    </div>
+
+    <div class="chart-legend">
+      <span class="li"><span class="ld" style="background:#2a7c6f;"></span>실질 자산</span>
+      <span class="li"><span class="ld dash"></span>은퇴 가능 기준선 (필요 자산)</span>
+    </div>
+    <div class="chart-wrap"><canvas id="chart1"></canvas></div>
+
+    <div class="sn">
+      ※ 은퇴 기준: 투자 수익 ≥ 은퇴 시점 연 소비 (소비지출률 기준)<br>
+      ※ 나머지 소득 비중 = 100% − 저축률 − 소비지출률 (다른 재무목표 등에 사용 가능한 비중)<br>
+      ※ 필요 자산 = 은퇴 시점 연 소비 ÷ 실질 수익률 &nbsp;|&nbsp; 실질 수익률 = (1+투자수익률)÷(1+물가상승률)−1<br>
+      ※ 수치는 현재 소득 기준 배수입니다.
+    </div>
+  </div>
+
+  <!-- ════════════════ TAB 2 ════════════════ -->
+  <div class="panel" id="panel1">
+
+    <div class="pt">입력 변수</div>
+    <div class="g-row g-row-3">
+      <div class="ic" id="t2_spend_ic">
+        <div class="il"><span>소득대비 소비지출률</span><span class="iv" id="t2_spend_v">50%</span></div>
+        <input type="range" min="1" max="98" step="1" value="50" id="t2_spendrate" oninput="calcTab2()">
+      </div>
+      <div class="ic">
+        <div class="il"><span>목표 은퇴 시기</span><span class="iv" id="t2_yrs_v">20년 후</span></div>
+        <input type="range" min="1" max="50" step="1" value="20" id="t2_yrs" oninput="calcTab2()">
+      </div>
+      <div class="ic">
+        <div class="il"><span>현재 은퇴준비자산 (연소득 대비)</span><span class="iv" id="t2_init_v">0배</span></div>
+        <div class="dual-input">
+          <input type="range" min="0" max="20" step="0.1" value="0" id="t2_init" oninput="syncInit('t2')">
+          <input type="number" min="0" max="50" step="0.1" value="0" id="t2_init_num" oninput="syncInitNum('t2')">
+        </div>
+      </div>
+    </div>
+    <div class="g-row g-row-3">
+      <div class="ic">
+        <div class="il"><span>소득 상승률 (연)</span><span class="iv" id="t2_inc_v">2.0%</span></div>
+        <input type="range" min="0" max="10" step="0.5" value="2" id="t2_inc" oninput="calcTab2()">
+      </div>
+      <div class="ic">
+        <div class="il"><span>물가 상승률 (연)</span><span class="iv" id="t2_inf_v">3.0%</span></div>
+        <input type="range" min="0" max="10" step="0.5" value="3" id="t2_inf" oninput="calcTab2()">
+      </div>
+      <div class="ic">
+        <div class="il"><span>투자 수익률 (연)</span><span class="iv" id="t2_ret_v">5.0%</span></div>
+        <input type="range" min="1" max="15" step="0.5" value="5" id="t2_ret" oninput="calcTab2()">
+      </div>
+    </div>
+
+    <span class="badge-imp" id="t2_badge">목표 기간 내 은퇴 불가</span>
+
+    <div class="result-wrap">
+      <div class="result-main-row">
+        <span class="result-num" id="t2_rate">—</span>
+        <span class="result-label" id="t2_desc"></span>
+      </div>
+      <div class="warn-box" id="t2_warnbox">
+        ⚠️ <strong>주의:</strong> 저축률은 소득에서 소비를 차감하여 계산됩니다. 은퇴 후 현실 가능한 소비 비중을 고려하세요.
+      </div>
+    </div>
+
+    <div class="rb">
+      <div class="mv-card"><div class="mv-label">은퇴 시 필요 자산</div><div class="mv" id="t2_target">—</div></div>
+      <div class="mv-card" id="t2_spend_card"><div class="mv-label">은퇴 시 연 소비</div><div class="mv" id="t2_spend_out">—</div><div class="mv-warn-tag" id="t2_spend_tag">⚠️ 현재 소득의 25% 미만</div></div>
+      <div class="mv-card"><div class="mv-label">나머지 소득 비중</div><div class="mv" id="t2_rest">—</div></div>
+      <div class="mv-card"><div class="mv-label">실질 수익률</div><div class="mv" id="t2_real">—</div></div>
+    </div>
+
+    <div class="chart-legend">
+      <span class="li"><span class="ld" style="background:#2a7c6f;height:8px;border-radius:2px;width:10px;"></span>목표 기간 내 달성 가능</span>
+      <span class="li"><span class="ld" style="background:rgba(42,124,111,0.2);height:8px;border-radius:2px;width:10px;"></span>목표 기간 초과 / 불가</span>
+      <span class="li"><span class="ld dash" style="border-color:#943030;"></span>목표 기간 기준선</span>
+    </div>
+    <div class="chart-wrap"><canvas id="chart2"></canvas></div>
+
+    <div class="sn">
+      ※ 바 차트: 각 은퇴준비 저축률로 달성까지 걸리는 연수 (소비지출률은 고정).<br>
+      ※ 물가 상승률 &gt; 투자 수익률이면 실질 자산이 감소하여 어떤 저축률로도 은퇴가 불가능할 수 있습니다.
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+let chart1 = null, chart2 = null;
+let t1Timer = null, t2Timer = null;
+
+function switchTab(i) {
+  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
+  document.querySelectorAll('.panel').forEach((p,j) => p.classList.toggle('active', i===j));
+}
+
+/* ── 합산 바 렌더 ── */
+function renderTotalBar(barId, fillId, labelId, msgId, save, spend) {
+  const total = save + spend;
+  const isOver = total > 100;
+  const bar    = document.getElementById(barId);
+  const fill   = document.getElementById(fillId);
+  const label  = document.getElementById(labelId);
+  const msg    = document.getElementById(msgId);
+  bar.className   = 'total-bar ' + (isOver ? 'over' : 'ok');
+  fill.style.width      = Math.min(total, 100) + '%';
+  fill.style.background = isOver ? '#943030' : '#2a7c6f';
+  label.textContent = total + '%';
+  label.className   = 'total-bar-label ' + (isOver ? 'over' : 'ok');
+  const rest = 100 - total;
+  msg.textContent = isOver
+    ? '합산이 100%를 초과합니다'
+    : (rest === 0 ? '소득 전액 사용' : '나머지 ' + rest + '%는 다른 재무목표 등에 사용');
+  msg.className = 'total-bar-msg' + (isOver ? ' over' : '');
+}
+
+/* ── 공통 spend card 상태 ── */
+function setSpendCard(cardId, mvId, tagId, spendPct) {
+  const isLow = spendPct < 25;
+  document.getElementById(mvId).textContent  = '현재 소득의 약 ' + spendPct.toFixed(0) + '%';
+  document.getElementById(mvId).className    = 'mv' + (isLow ? ' warn' : '');
+  document.getElementById(cardId).className  = 'mv-card' + (isLow ? ' warn' : '');
+  document.getElementById(tagId).className   = 'mv-warn-tag' + (isLow ? ' show' : '');
+  return isLow;
+}
+
+function clearSpendCard(cardId, mvId, tagId) {
+  document.getElementById(mvId).textContent  = '—';
+  document.getElementById(mvId).className    = 'mv';
+  document.getElementById(cardId).className  = 'mv-card';
+  document.getElementById(tagId).className   = 'mv-warn-tag';
+}
+
+/* ── 현재 자산 슬라이더 ↔ 숫자 연동 ── */
+function syncInit(tab) {
+  const val = +document.getElementById(tab+'_init').value;
+  document.getElementById(tab+'_init_num').value = val.toFixed(1);
+  if (tab === 't1') calcTab1(); else calcTab2();
+}
+function syncInitNum(tab) {
+  const num = document.getElementById(tab+'_init_num');
+  let val = parseFloat(num.value);
+  if (isNaN(val) || val < 0) val = 0;
+  if (val > 50) val = 50;
+  document.getElementById(tab+'_init').value = Math.min(val, 20);
+  if (tab === 't1') calcTab1(); else calcTab2();
+}
+
+/* ══════════════ TAB 1 ══════════════ */
+function calcTab1() {
+  const saveRate  = +document.getElementById('t1_save').value;
+  const spendRate = +document.getElementById('t1_spendrate').value;
+  const initMult  = Math.max(0, parseFloat(document.getElementById('t1_init_num').value) || 0);
+  const retRate   = +document.getElementById('t1_ret').value / 100;
+  const incRate   = +document.getElementById('t1_inc').value / 100;
+  const infRate   = +document.getElementById('t1_inf').value / 100;
+
+  document.getElementById('t1_save_v').textContent  = saveRate + '%';
+  document.getElementById('t1_spend_v').textContent = spendRate + '%';
+  document.getElementById('t1_init_v').textContent  = Number.isInteger(initMult) ? initMult + '배' : initMult.toFixed(1) + '배';
+  document.getElementById('t1_ret_v').textContent   = (retRate*100).toFixed(1) + '%';
+  document.getElementById('t1_inc_v').textContent   = (incRate*100).toFixed(1) + '%';
+  document.getElementById('t1_inf_v').textContent   = (infRate*100).toFixed(1) + '%';
+
+  const total  = saveRate + spendRate;
+  const isOver = total > 100;
+
+  renderTotalBar('t1_totalbar','t1_barfill','t1_barlabel','t1_barmsg', saveRate, spendRate);
+
+  document.getElementById('t1_save_ic').className  = 'ic' + (isOver ? ' error' : '');
+  document.getElementById('t1_spend_ic').className = 'ic' + (isOver ? ' error' : '');
+  document.getElementById('t1_save_v').className   = 'iv' + (isOver ? ' error' : '');
+  document.getElementById('t1_spend_v').className  = 'iv' + (isOver ? ' error' : '');
+  document.getElementById('t1_errbox').className   = 'err-box' + (isOver ? ' show' : '');
+
+  if (isOver) {
+    document.getElementById('t1_years').textContent = '—';
+    document.getElementById('t1_years').className   = 'result-num';
+    document.getElementById('t1_desc').textContent  = '입력값을 조정해 주세요';
+    document.getElementById('t1_target').textContent = '—';
+    document.getElementById('t1_rest').textContent   = '—';
+    document.getElementById('t1_real').textContent   = '—';
+    document.getElementById('t1_warnbox').className  = 'warn-box';
+    clearSpendCard('t1_spend_card','t1_spend_out','t1_spend_tag');
+    if (chart1) { chart1.destroy(); chart1 = null; }
+    return;
+  }
+
+  clearTimeout(t1Timer);
+  t1Timer = setTimeout(() => {
+    fetch('/api/fire-calc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tab: 1, saveRate: saveRate/100, spendRate: spendRate/100, retRate, incRate, infRate, initMult })
+    })
+    .then(r => r.json())
+    .then(d => renderTab1(d, saveRate, spendRate))
+    .catch(() => {});
+  }, 80);
+}
+
+function renderTab1(d, saveRate, spendRate) {
+  const yearsEl = document.getElementById('t1_years');
+  const rest = 100 - saveRate - spendRate;
+  document.getElementById('t1_rest').textContent = rest + '%';
+  document.getElementById('t1_real').textContent = (d.rr*100).toFixed(2) + '%';
+
+  if (d.rr <= 0) {
+    yearsEl.textContent = '은퇴 불가';
+    yearsEl.className   = 'result-num danger';
+    document.getElementById('t1_desc').textContent   = '물가 상승률이 투자 수익률보다 높습니다';
+    document.getElementById('t1_target').textContent = '—';
+    document.getElementById('t1_warnbox').className  = 'warn-box';
+    clearSpendCard('t1_spend_card','t1_spend_out','t1_spend_tag');
+    if (chart1) { chart1.destroy(); chart1 = null; }
+    return;
+  }
+
+  if (d.retireYear) {
+    yearsEl.textContent = d.retireYear + '년 후';
+    yearsEl.className   = 'result-num';
+    document.getElementById('t1_desc').textContent = '이 시점부터 투자 수익만으로 생활 가능';
+  } else {
+    yearsEl.textContent = '100년 초과';
+    yearsEl.className   = 'result-num danger';
+    document.getElementById('t1_desc').textContent = '은퇴준비 저축률을 높이거나 투자 수익률을 높여야 합니다';
+  }
+
+  document.getElementById('t1_target').textContent = d.neededVal.toFixed(1) + '배 (현재 소득)';
+
+  const isLow = setSpendCard('t1_spend_card','t1_spend_out','t1_spend_tag', d.spendPct);
+  if (isLow) {
+    if (d.retireYear) yearsEl.className = 'result-num warn';
+    document.getElementById('t1_warnbox').className = 'warn-box show';
+  } else {
+    document.getElementById('t1_warnbox').className = 'warn-box';
+  }
+
+  if (chart1) { chart1.destroy(); chart1 = null; }
+  chart1 = new Chart(document.getElementById('chart1'), {
+    type: 'line',
+    data: {
+      labels: d.chartLabels,
+      datasets: [
+        { label:'실질 자산', data:d.chartWData, borderColor:'#2a7c6f', backgroundColor:'rgba(42,124,111,0.07)', pointRadius:0, tension:0.3, fill:true, borderWidth:2 },
+        { label:'필요 자산', data:d.chartNData, borderColor:'#943030', borderDash:[5,3], pointRadius:0, tension:0.3, fill:false, borderWidth:1.5 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ maxTicksLimit:12, font:{ size:11 } }, grid:{ color:'rgba(128,128,128,0.1)' } },
+        y:{ ticks:{ font:{ size:11 }, callback: v => v.toFixed(0)+'배' }, grid:{ color:'rgba(128,128,128,0.1)' } }
+      }
+    }
+  });
+}
+
+/* ══════════════ TAB 2 ══════════════ */
+function calcTab2() {
+  const spendRate = +document.getElementById('t2_spendrate').value;
+  const targetYrs = +document.getElementById('t2_yrs').value;
+  const initMult  = Math.max(0, parseFloat(document.getElementById('t2_init_num').value) || 0);
+  const retRate   = +document.getElementById('t2_ret').value / 100;
+  const incRate   = +document.getElementById('t2_inc').value / 100;
+  const infRate   = +document.getElementById('t2_inf').value / 100;
+
+  document.getElementById('t2_spend_v').textContent = spendRate + '%';
+  document.getElementById('t2_yrs_v').textContent   = targetYrs + '년 후';
+  document.getElementById('t2_init_v').textContent  = Number.isInteger(initMult) ? initMult + '배' : initMult.toFixed(1) + '배';
+  document.getElementById('t2_ret_v').textContent   = (retRate*100).toFixed(1) + '%';
+  document.getElementById('t2_inc_v').textContent   = (incRate*100).toFixed(1) + '%';
+  document.getElementById('t2_inf_v').textContent   = (infRate*100).toFixed(1) + '%';
+
+  clearTimeout(t2Timer);
+  t2Timer = setTimeout(() => {
+    fetch('/api/fire-calc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tab: 2, spendRate: spendRate/100, targetYrs, retRate, incRate, infRate, initMult })
+    })
+    .then(r => r.json())
+    .then(d => renderTab2(d, spendRate, targetYrs))
+    .catch(() => {});
+  }, 80);
+}
+
+function renderTab2(d, spendRate, targetYrs) {
+  const rateEl  = document.getElementById('t2_rate');
+  const badge   = document.getElementById('t2_badge');
+  const warnBox = document.getElementById('t2_warnbox');
+
+  document.getElementById('t2_real').textContent = (d.rr*100).toFixed(2) + '%';
+
+  if (d.rr <= 0) {
+    badge.className = 'badge-imp show';
+    rateEl.textContent = '은퇴 불가'; rateEl.className = 'result-num danger';
+    document.getElementById('t2_desc').textContent   = '물가 상승률이 투자 수익률보다 높아 실질 자산이 감소합니다';
+    document.getElementById('t2_target').textContent = '—';
+    document.getElementById('t2_rest').textContent   = '—';
+    warnBox.className = 'warn-box';
+    clearSpendCard('t2_spend_card','t2_spend_out','t2_spend_tag');
+    if (chart2) { chart2.destroy(); chart2 = null; }
+    return;
+  }
+
+  if (d.impossible) {
+    badge.className = 'badge-imp show';
+    rateEl.textContent = '불가'; rateEl.className = 'result-num danger';
+    const msg = spendRate >= 100
+      ? '소비지출률이 100%입니다. 저축 여력이 없습니다.'
+      : '최대 저축률(' + d.maxSavePct + '%)로도 ' + targetYrs + '년 내 달성 불가. 기간을 늘리거나 수익률을 높여 보세요.';
+    document.getElementById('t2_desc').textContent   = msg;
+    document.getElementById('t2_target').textContent = '—';
+    document.getElementById('t2_rest').textContent   = '—';
+    warnBox.className = 'warn-box';
+    clearSpendCard('t2_spend_card','t2_spend_out','t2_spend_tag');
+    drawTab2Chart(d.retireYears, targetYrs);
+    return;
+  }
+
+  badge.className = 'badge-imp';
+  document.getElementById('t2_rest').textContent   = d.restPct + '%';
+  document.getElementById('t2_target').textContent = d.needed.toFixed(1) + '배 (현재 소득)';
+
+  const isShort  = targetYrs <= 7;
+  const isLow    = setSpendCard('t2_spend_card','t2_spend_out','t2_spend_tag', d.spendPct);
+  const needsWarn = isShort || isLow;
+
+  rateEl.textContent = (d.found*100).toFixed(1) + '%';
+  rateEl.className   = 'result-num' + (needsWarn ? ' warn' : '');
+  document.getElementById('t2_desc').textContent = targetYrs + '년 후 은퇴를 위한 최소 은퇴준비 저축률';
+  warnBox.className = needsWarn ? 'warn-box show' : 'warn-box';
+
+  drawTab2Chart(d.retireYears, targetYrs);
+}
+
+function drawTab2Chart(retireYears, targetYrs) {
+  const saveSteps  = [10, 20, 30, 40, 50, 60, 70, 80];
+  const MAX        = 100;
+  const barColors  = retireYears.map(y => (y !== null && y <= targetYrs) ? '#2a7c6f' : 'rgba(42,124,111,0.22)');
+
+  if (chart2) { chart2.destroy(); chart2 = null; }
+  chart2 = new Chart(document.getElementById('chart2'), {
+    type: 'bar',
+    data: {
+      labels: saveSteps.map(s => s + '%'),
+      datasets: [{ label:'은퇴까지 소요 연수', data:retireYears.map(v => v !== null ? v : MAX+5), backgroundColor:barColors, borderRadius:4, borderSkipped:false }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{ display:false },
+        tooltip:{ callbacks:{
+          title: items => '은퇴준비 저축률 ' + items[0].label,
+          label: item => { const raw = retireYears[item.dataIndex]; return raw !== null ? '은퇴 가능 시점: '+raw+'년 후' : MAX+'년 내 은퇴 불가'; }
+        }}
+      },
+      scales:{
+        x:{ ticks:{ font:{size:11} }, title:{ display:true, text:'은퇴준비 저축률', font:{size:11} }, grid:{ color:'rgba(128,128,128,0.1)' } },
+        y:{ min:0, max:MAX+10, ticks:{ font:{size:11}, stepSize:10, callback: v => v+'년' }, title:{ display:true, text:'은퇴까지 소요 기간', font:{size:11} }, grid:{ color:'rgba(128,128,128,0.1)' } }
+      }
+    },
+    plugins:[{
+      id:'targetLine',
+      afterDraw(chart){
+        const {ctx,chartArea,scales} = chart;
+        const yPos = scales.y.getPixelForValue(targetYrs);
+        if (yPos < chartArea.top || yPos > chartArea.bottom) return;
+        ctx.save(); ctx.setLineDash([5,3]); ctx.strokeStyle='#943030'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.moveTo(chartArea.left,yPos); ctx.lineTo(chartArea.right,yPos); ctx.stroke(); ctx.restore();
+        ctx.save(); ctx.fillStyle='#943030'; ctx.font='11px sans-serif';
+        ctx.fillText('목표 '+targetYrs+'년', chartArea.right-56, yPos-5); ctx.restore();
+      }
+    }]
+  });
+}
+
+calcTab1();
+calcTab2();
+(function(){function _rp(e){var v=parseFloat(e.value),mn=parseFloat(e.min)||0,mx=parseFloat(e.max)||100;if(mx!==mn)e.style.setProperty('--pct',((v-mn)/(mx-mn)*100).toFixed(1)+'%');}document.querySelectorAll('input[type=range]').forEach(_rp);document.addEventListener('input',function(e){if(e.target.type==='range')_rp(e.target);});})();
+</script>
+</body>
+</html>

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1a1814">
+<title>재무계산기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1a1814; --ink-2:#3d3a35; --ink-3:#7a776f; --ink-4:#b5b2a9;
+  --paper:#faf8f4; --paper-2:#f2efe9; --paper-3:#e8e4db;
+  --gold:#c4933f; --gold-light:#f0d99a; --gold-pale:#fdf5e0;
+  --teal:#2a7c6f; --amber:#b86e1a; --red:#943030; --blue:#2b5ea7;
+  --ok-bg:#f0faf5; --ok-b:#7fd0a0; --warn-bg:#fdf5e0; --bad-bg:#fdf0f0; --bad-b:#dfa0a0;
+  --r:4px; --r2:2px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6;min-height:100vh}
+.hd{background:var(--paper);padding:0 32px;border-bottom:1px solid var(--paper-3)}
+.hd-inner{max-width:1200px;margin:0 auto;display:flex;align-items:baseline;justify-content:space-between;padding:1.5rem 0}
+.brand{display:flex;align-items:baseline;gap:8px}
+.brand-name{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;color:var(--ink)}
+.brand-name span{color:var(--gold);font-style:italic}
+.brand-sub{font-size:11px;color:var(--ink-4);font-weight:400}
+.brand-tag{font-size:11px;font-weight:500;color:var(--ink-3);background:var(--paper-2);border:1px solid var(--paper-3);border-radius:2px;padding:2px 10px;margin-left:2px;letter-spacing:.04em}
+.nav{background:var(--paper-2);position:sticky;top:0;z-index:100;border-bottom:1px solid var(--paper-3)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;padding:0 20px;overflow-x:auto;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.ntab{background:none;border:none;color:var(--ink-3);padding:12px 16px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:6px;letter-spacing:.04em}
+.ntab:hover{color:var(--ink)}.ntab.on{color:var(--ink);border-bottom-color:var(--gold)}
+.main{max-width:1200px;margin:0 auto;padding:28px 20px}
+.pane{display:none}.pane.on{display:block}
+.calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+@media(max-width:768px){.calc-layout{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--r);padding:24px 28px;margin-bottom:20px}
+.ch{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--paper-3)}
+.ch-icon{width:30px;height:30px;border-radius:var(--r);background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ch-text h3{font-family:'Noto Serif KR',serif;font-size:15px;font-weight:500;color:var(--ink)}.ch-text p{font-size:11px;color:var(--ink-4);margin-top:1px}
+.f{margin-bottom:14px}
+.f label{display:block;font-size:11px;font-weight:500;color:var(--ink-3);margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
+.f .hint{font-size:11px;color:var(--ink-4);margin-top:3px}
+.f input,.f select{width:100%;border:1px solid var(--paper-3);border-radius:var(--r2);padding:9px 12px;font-size:13px;font-family:inherit;color:var(--ink);background:var(--paper);transition:border .15s}
+.f input:focus,.f select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(196,147,63,.12)}
+.f input[type=number]{text-align:right}.f input.ro{background:var(--paper-2);color:var(--ink-3);cursor:default}
+.input-unit{position:relative}.input-unit input{padding-right:36px}.input-unit .unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ink-4);pointer-events:none}
+.btn-calc{width:100%;padding:12px;background:var(--ink);color:var(--gold-light);border:none;border-radius:var(--r2);font-size:14px;font-family:inherit;font-weight:500;cursor:pointer;transition:all .15s;letter-spacing:.04em;margin-top:4px}
+.btn-calc:hover{background:var(--ink-2)}.btn-reset{width:100%;padding:9px;background:var(--paper);color:var(--ink-3);border:1px solid var(--paper-3);border-radius:var(--r2);font-size:12px;font-family:inherit;cursor:pointer;transition:all .15s;margin-top:8px}.btn-reset:hover{background:var(--paper-2)}
+.result-panel{background:var(--paper);border:1px solid var(--paper-3);border-radius:var(--r);overflow:hidden}
+.result-header{background:var(--ink);padding:20px 24px;color:#fff}
+.result-header h3{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;color:var(--gold-light)}.result-header p{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;letter-spacing:.06em;text-transform:uppercase}
+.result-body{padding:20px 24px}.result-empty{text-align:center;padding:48px 24px;color:var(--ink-4)}.result-empty .icon{font-size:36px;margin-bottom:12px;opacity:.4}.result-empty p{font-size:12px}
+.kpi-main{background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:var(--r);padding:20px 24px;margin-bottom:16px;text-align:center}
+.kpi-main-label{font-size:11px;color:var(--amber);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.kpi-main-value{font-family:'DM Serif Display',serif;font-size:36px;color:var(--ink);line-height:1.1}.kpi-main-sub{font-size:11px;color:var(--ink-4);margin-top:4px}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.kpi-item{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--r2);padding:14px 16px}
+.kpi-item-label{font-size:10px;color:var(--ink-4);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.kpi-item-value{font-family:'DM Serif Display',serif;font-size:20px;color:var(--ink)}.kpi-item-sub{font-size:10px;color:var(--ink-4);margin-top:2px}
+.kpi-item.accent{background:var(--ink);border-color:var(--ink)}.kpi-item.accent .kpi-item-label{color:rgba(255,255,255,.5)}.kpi-item.accent .kpi-item-value{color:var(--gold-light)}.kpi-item.accent .kpi-item-sub{color:rgba(255,255,255,.4)}
+.amort-wrap{overflow-x:auto;margin-top:16px}.amort-table{width:100%;border-collapse:collapse;font-size:12px}
+.amort-table th{background:var(--paper-2);font-size:10px;font-weight:500;color:var(--ink-3);padding:7px 10px;text-align:right;border-bottom:1px solid var(--paper-3);letter-spacing:.06em;text-transform:uppercase}.amort-table th:first-child{text-align:center}
+.amort-table td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--paper-3);font-variant-numeric:tabular-nums;color:var(--ink-2)}.amort-table td:first-child{text-align:center;color:var(--ink-4);font-size:11px}
+.amort-table tr:last-child td{font-weight:600;background:var(--paper-2);color:var(--ink)}.amort-table tr:hover td{background:var(--paper-2)}.amort-table tr.highlight td{background:var(--gold-pale);font-weight:600;color:var(--ink)}
+.chart-bar-section{margin-top:16px}.chart-bar-section h4{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.bar-row{margin-bottom:10px}.bar-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--ink-2)}.bar-bg{background:var(--paper-3);border-radius:2px;height:6px}.bar-fill{height:6px;border-radius:2px;transition:width .6s}.bar-principal{background:var(--teal)}.bar-interest{background:var(--amber)}
+.info-box{background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--r2);padding:12px 16px;font-size:12px;color:var(--ink-3);margin-top:12px;line-height:1.7}.info-box strong{color:var(--ink-2)}
+.f input[type=range]{padding:0;height:auto;border:none;background:none;cursor:pointer;accent-color:var(--gold)}
+.slider-row{display:flex;align-items:center;gap:10px}.slider-row input[type=number]{width:110px;flex-shrink:0}.slider-row input[type=range]{flex:1}
+.toggle-group{display:flex;border:1px solid var(--paper-3);border-radius:var(--r2);overflow:hidden;margin-top:2px}
+.tgl{flex:1;padding:8px 10px;border:none;background:var(--paper);color:var(--ink-3);font-size:12px;font-family:inherit;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}.tgl:not(:last-child){border-right:1px solid var(--paper-3)}.tgl.on{background:var(--ink);color:var(--gold-light)}.tgl.on + .tgl{border-left-color:transparent}
+@media(max-width:600px){.hd{padding:0 14px}.hd-inner{padding:1rem 0;flex-wrap:wrap;gap:4px}.brand-name{font-size:18px}.main{padding:14px 10px}.card{padding:14px 14px;margin-bottom:14px}.kpi-grid{grid-template-columns:1fr}.kpi-main-value{font-size:28px}}
+</style>
+</head>
+<body>
+<header class="hd">
+  <div class="hd-inner">
+    <div class="brand"><a href="https://IdentiFi.co.kr" style="text-decoration:none"><div class="brand-name">Identi<span>Fi</span></div></a></div>
+    <div style="display:flex;align-items:baseline;gap:8px"><div class="brand-sub">재무계산기</div><div class="brand-tag">일반인용</div></div>
+  </div>
+</header>
+<nav class="nav">
+  <div class="nav-inner">
+    <button class="ntab on" onclick="showPane('goal',this)">🎯 목표저축</button>
+    <button class="ntab" onclick="showPane('savings',this)">📈 적금·예금</button>
+    <button class="ntab" onclick="showPane('invest',this)">📊 투자수익</button>
+    <button class="ntab" onclick="showPane('irr',this)">📉 수익률 계산</button>
+    <button class="ntab" onclick="showPane('retire',this)">🏖️ 은퇴자금</button>
+    <button class="ntab" onclick="showPane('loan',this)">💰 대출·상환</button>
+    <button class="ntab" onclick="showPane('mortgage',this)">🏠 주택담보대출</button>
+  </div>
+</nav>
+<main class="main">
+
+<!-- 대출 -->
+<div id="pane-loan" class="pane">
+  <div class="calc-layout">
+    <div><div class="card">
+      <div class="ch"><div class="ch-icon">💰</div><div class="ch-text"><h3>대출·상환 계산기</h3><p>원리금균등 · 원금균등 · 만기일시 비교</p></div></div>
+      <div class="f"><label>대출금액</label><div class="input-unit"><input type="number" id="loan-amount" value="30000" min="0" step="100" oninput="calcLoan()"><span class="unit">만원</span></div></div>
+      <div class="f"><label>연 이자율 <span id="loan-rate-disp" style="color:var(--gold);font-size:12px">4.5%</span></label><div class="slider-row"><input type="range" id="loan-rate-range" min="1" max="20" step="0.1" value="4.5" oninput="document.getElementById('loan-rate').value=this.value;document.getElementById('loan-rate-disp').textContent=this.value+'%';calcLoan()"><input type="number" id="loan-rate" value="4.5" min="0.1" max="30" step="0.1" style="width:90px" oninput="document.getElementById('loan-rate-range').value=this.value;document.getElementById('loan-rate-disp').textContent=this.value+'%';calcLoan()"><span style="font-size:12px;color:var(--ink-4)">%</span></div></div>
+      <div class="f"><label>대출기간</label><div class="input-unit"><input type="number" id="loan-period" value="12" min="1" max="360" oninput="calcLoan()"><span class="unit">개월</span></div><div class="hint">예: 1년=12, 5년=60, 10년=120</div></div>
+      <div class="f"><label>상환방식</label><select id="loan-method" onchange="calcLoan()"><option value="equal">원리금균등 (매달 같은 금액)</option><option value="principal">원금균등 (매달 원금 동일)</option><option value="bullet">만기일시상환 (만기에 한번에)</option></select><div class="hint" id="loan-method-hint">매월 동일한 금액을 납부합니다.</div></div>
+      <button class="btn-calc" onclick="calcLoan()">계산하기</button><button class="btn-reset" onclick="resetLoan()">초기화</button>
+    </div></div>
+    <div><div class="result-panel" id="loan-result"><div class="result-header"><h3>상환 결과</h3><p>대출 상환 분석</p></div><div class="result-body"><div class="result-empty"><div class="icon">💰</div><p>왼쪽에서 대출 조건을 입력하면<br>상환 결과가 여기에 표시됩니다.</p></div></div></div></div>
+  </div>
+</div>
+
+<!-- 적금 -->
+<div id="pane-savings" class="pane">
+  <div class="calc-layout">
+    <div><div class="card">
+      <div class="ch"><div class="ch-icon">📈</div><div class="ch-text"><h3>적금·예금 계산기</h3><p>만기 수령액과 세후 이자 계산</p></div></div>
+      <div class="f"><label>상품 유형</label><select id="savings-type" onchange="updateSavingsUI();calcSavings()"><option value="installment">정기적금 (매달 납입)</option><option value="deposit">정기예금 (목돈 예치)</option></select></div>
+      <div class="f" id="savings-monthly-wrap"><label>월 납입액</label><div class="input-unit"><input type="number" id="savings-monthly" value="50" min="1" oninput="calcSavings()"><span class="unit">만원</span></div></div>
+      <div class="f" id="savings-lump-wrap" style="display:none"><label>예치 금액</label><div class="input-unit"><input type="number" id="savings-lump" value="1000" min="1" oninput="calcSavings()"><span class="unit">만원</span></div></div>
+      <div class="f"><label>연 이자율 <span id="savings-rate-disp" style="color:var(--gold);font-size:12px">3.5%</span></label><div class="slider-row"><input type="range" id="savings-rate-range" min="0.1" max="15" step="0.1" value="3.5" oninput="document.getElementById('savings-rate').value=this.value;document.getElementById('savings-rate-disp').textContent=this.value+'%';calcSavings()"><input type="number" id="savings-rate" value="3.5" min="0.1" max="30" step="0.1" style="width:90px" oninput="document.getElementById('savings-rate-range').value=this.value;document.getElementById('savings-rate-disp').textContent=this.value+'%';calcSavings()"><span style="font-size:12px;color:var(--ink-4)">%</span></div></div>
+      <div class="f"><label>기간</label><div class="input-unit"><input type="number" id="savings-period" value="12" min="1" max="360" oninput="calcSavings()"><span class="unit">개월</span></div></div>
+      <div class="f"><label>이자과세 유형</label><select id="savings-tax" onchange="calcSavings()"><option value="0.154">일반과세 (15.4%)</option><option value="0.099">세금우대 (9.9%)</option><option value="0">비과세</option></select></div>
+      <div class="f"><label>이자 지급 방식</label><select id="savings-compound" onchange="calcSavings()"><option value="monthly">월복리</option><option value="annually">연복리</option><option value="simple">단리</option></select></div>
+      <button class="btn-calc" onclick="calcSavings()">계산하기</button><button class="btn-reset" onclick="resetSavings()">초기화</button>
+    </div></div>
+    <div><div class="result-panel" id="savings-result"><div class="result-header"><h3>적금·예금 결과</h3><p>만기 수령액 및 세후 이자</p></div><div class="result-body"><div class="result-empty"><div class="icon">📈</div><p>왼쪽에서 조건을 입력하면<br>결과가 여기에 표시됩니다.</p></div></div></div></div>
+  </div>
+</div>
+
+<!-- 투자 -->
+<div id="pane-invest" class="pane">
+  <div class="calc-layout">
+    <div><div class="card">
+      <div class="ch"><div class="ch-icon">📊</div><div class="ch-text"><h3>투자 수익 계산기</h3><p>정액·증액 · 월간·연간 복리 시뮬레이션</p></div></div>
+      <div class="f"><label>투자 방식</label><div class="toggle-group"><button class="tgl on" id="inv-type-fixed" onclick="setInvType('fixed')">정액 투자</button><button class="tgl" id="inv-type-escalate" onclick="setInvType('escalate')">증액 투자</button></div></div>
+      <div class="f"><label>납입 단위</label><div class="toggle-group"><button class="tgl on" id="inv-unit-month" onclick="setInvUnit('month')">월 납입</button><button class="tgl" id="inv-unit-year" onclick="setInvUnit('year')">연 납입</button></div></div>
+      <div class="f"><label>초기 투자금</label><div class="input-unit"><input type="number" id="inv-initial" value="1000" min="0" oninput="calcInvest()"><span class="unit">만원</span></div></div>
+      <div class="f"><label id="inv-contrib-label">월 추가 투자</label><div class="input-unit"><input type="number" id="inv-contrib" value="50" min="0" oninput="calcInvest()"><span class="unit" id="inv-contrib-unit">만원/월</span></div></div>
+      <div class="f"><label>연 수익률 <span id="inv-rate-disp" style="color:var(--gold);font-size:12px">7%</span></label><div class="slider-row"><input type="range" id="inv-rate-range" min="1" max="30" step="0.5" value="7" oninput="document.getElementById('inv-rate').value=this.value;document.getElementById('inv-rate-disp').textContent=this.value+'%';calcInvest()"><input type="number" id="inv-rate" value="7" min="0.1" max="50" step="0.5" style="width:90px" oninput="document.getElementById('inv-rate-range').value=this.value;document.getElementById('inv-rate-disp').textContent=this.value+'%';calcInvest()"><span style="font-size:12px;color:var(--ink-4)">%</span></div></div>
+      <div class="f"><label>투자 기간</label><div class="input-unit"><input type="number" id="inv-years" value="20" min="1" max="50" oninput="calcInvest()"><span class="unit">년</span></div></div>
+      <div id="inv-esc-fields" style="display:none">
+        <div class="f"><label>증액 방식</label><div class="toggle-group"><button class="tgl on" id="inv-esc-rate-btn" onclick="setInvEscType('rate')">정률 (%)</button><button class="tgl" id="inv-esc-amount-btn" onclick="setInvEscType('amount')">정액 (만원)</button></div></div>
+        <div class="f" id="inv-esc-rate-field"><label>연간 증액률</label><div class="input-unit"><input type="number" id="inv-esc-rate" value="5" min="0" max="50" step="0.5" oninput="calcInvest()"><span class="unit">%/년</span></div><div class="hint">매년 납입액을 해당 비율만큼 늘립니다.</div></div>
+        <div class="f" id="inv-esc-amount-field" style="display:none"><label>연간 증액액</label><div class="input-unit"><input type="number" id="inv-esc-amount" value="10" min="0" oninput="calcInvest()"><span class="unit" id="inv-esc-amount-unit">만원/년</span></div><div class="hint">매년 납입액을 해당 금액만큼 늘립니다.</div></div>
+      </div>
+      <div class="f"><label>수익률 변동폭 (리스크 시나리오)</label><select id="inv-risk" onchange="calcInvest()"><option value="0">없음 (고정 수익률)</option><option value="low">낮음 (±3%)</option><option value="mid">보통 (±7%)</option><option value="high">높음 (±15%)</option></select></div>
+      <button class="btn-calc" onclick="calcInvest()">계산하기</button><button class="btn-reset" onclick="resetInvest()">초기화</button>
+    </div></div>
+    <div><div class="result-panel" id="invest-result"><div class="result-header"><h3>투자 성장 결과</h3><p>복리 효과 시뮬레이션</p></div><div class="result-body"><div class="result-empty"><div class="icon">📊</div><p>왼쪽에서 조건을 입력하면<br>결과가 여기에 표시됩니다.</p></div></div></div></div>
+  </div>
+</div>
+
+<!-- IRR -->
+<div id="pane-irr" class="pane">
+  <div class="calc-layout">
+    <div><div class="card">
+      <div class="ch"><div class="ch-icon">📉</div><div class="ch-text"><h3>수익률 계산기 (IRR)</h3><p>보험·임대·투자의 실질 연 수익률 역산</p></div></div>
+      <div style="margin-bottom:14px"><div style="font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">빠른 예시</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button onclick="irrExample('insurance')" style="padding:5px 12px;border:1px solid var(--paper-3);border-radius:var(--r2);background:var(--paper-2);color:var(--ink-3);font-size:11px;font-family:inherit;cursor:pointer">💰 월 저축</button><button onclick="irrExample('rental')" style="padding:5px 12px;border:1px solid var(--paper-3);border-radius:var(--r2);background:var(--paper-2);color:var(--ink-3);font-size:11px;font-family:inherit;cursor:pointer">🏠 임대수익</button><button onclick="irrExample('invest')" style="padding:5px 12px;border:1px solid var(--paper-3);border-radius:var(--r2);background:var(--paper-2);color:var(--ink-3);font-size:11px;font-family:inherit;cursor:pointer">📈 일시투자</button></div></div>
+      <div class="f"><label>기간 단위</label><div class="toggle-group"><button class="tgl on" id="irr-unit-month" onclick="setIrrUnit('month')">월 단위</button><button class="tgl" id="irr-unit-year" onclick="setIrrUnit('year')">연 단위</button></div></div>
+      <div class="f"><label>① 초기 일시금 <span style="font-size:10px;color:var(--ink-4)">(지출 · 없으면 0)</span></label><div class="input-unit"><input type="number" id="irr-initial" value="0" min="0" oninput="calcIrr()"><span class="unit">만원</span></div><div class="hint">부동산 매입가, 일시납 보험료, 초기 투자금 등</div></div>
+      <div class="f"><label>② 정기 지출액 <span style="font-size:10px;color:var(--ink-4)">(납입 · 없으면 0)</span></label><div class="input-unit"><input type="number" id="irr-out" value="30" min="0" oninput="calcIrr()"><span class="unit" id="irr-out-unit">만원/월</span></div><div class="hint">보험료, 월세 납부액 등 내가 내는 돈</div></div>
+      <div class="f"><label>③ 정기 수입액 <span style="font-size:10px;color:var(--ink-4)">(수령 · 없으면 0)</span></label><div class="input-unit"><input type="number" id="irr-in" value="0" min="0" oninput="calcIrr()"><span class="unit" id="irr-in-unit">만원/월</span></div><div class="hint">임대료, 배당금 등 내가 받는 돈</div></div>
+      <div class="f"><label>② ③ 기간</label><div class="input-unit"><input type="number" id="irr-period" value="20" min="0" oninput="calcIrr()"><span class="unit">년</span></div><div class="hint">정기 지출·수입이 없으면 0</div></div>
+      <div class="f"><label>④ 추가 예치 기간 <span style="font-size:10px;color:var(--ink-4)">(거치 · 없으면 0)</span></label><div class="input-unit"><input type="number" id="irr-hold" value="0" min="0" oninput="calcIrr()"><span class="unit">년</span></div></div>
+      <div class="f"><label>⑤ 최종 수령액 <span style="font-size:10px;color:var(--ink-4)">(없으면 0)</span></label><div class="input-unit"><input type="number" id="irr-fv" value="12000" min="0" oninput="calcIrr()"><span class="unit">만원</span></div><div class="hint">보험금, 부동산 매도가, 만기 수령금 등</div></div>
+      <button class="btn-calc" onclick="calcIrr()">계산하기</button><button class="btn-reset" onclick="resetIrr()">초기화</button>
+      <div class="info-box" style="margin-top:16px"><strong>IRR이란?</strong> 모든 지출의 현재가치 = 모든 수입의 현재가치가 되는 연 수익률.<br>"이 투자가 연 몇 % 예금과 동급인가"를 알려줍니다.</div>
+    </div></div>
+    <div><div class="result-panel" id="irr-result"><div class="result-header"><h3>수익률 분석</h3><p>실질 연 수익률 및 벤치마크 비교</p></div><div class="result-body"><div class="result-empty"><div class="icon">📉</div><p>왼쪽에서 조건을 입력하면<br>수익률이 여기에 표시됩니다.</p></div></div></div></div>
+  </div>
+</div>
+
+<!-- 은퇴 -->
+<div id="pane-retire" class="pane">
+  <div class="calc-layout">
+    <div><div class="card">
+      <div class="ch"><div class="ch-icon">🏖️</div><div class="ch-text"><h3>은퇴 자금 계산기</h3><p>필요 은퇴자금 및 월 저축 목표액 산출</p></div></div>
+      <div class="f"><label>현재 나이</label><div class="input-unit"><input type="number" id="ret-age" value="35" min="20" max="70" oninput="calcRetire()"><span class="unit">세</span></div></div>
+      <div class="f"><label>은퇴 희망 나이</label><div class="input-unit"><input type="number" id="ret-retire-age" value="60" min="40" max="80" oninput="calcRetire()"><span class="unit">세</span></div></div>
+      <div class="f"><label>기대 수명</label><div class="input-unit"><input type="number" id="ret-life" value="85" min="60" max="100" oninput="calcRetire()"><span class="unit">세</span></div></div>
+      <div class="f"><label>은퇴 후 월 생활비</label><div class="input-unit"><input type="number" id="ret-monthly" value="300" min="1" oninput="calcRetire()"><span class="unit">만원</span></div></div>
+      <div class="f"><label>현재 보유 자산</label><div class="input-unit"><input type="number" id="ret-current" value="5000" min="0" oninput="calcRetire()"><span class="unit">만원</span></div></div>
+      <div class="f"><label>예상 연 수익률 (운용)</label><div class="input-unit"><input type="number" id="ret-return" value="5" min="0.1" max="20" step="0.1" oninput="calcRetire()"><span class="unit">%</span></div></div>
+      <div class="f"><label>예상 물가상승률</label><div class="input-unit"><input type="number" id="ret-inflation" value="2.5" min="0" max="10" step="0.1" oninput="calcRetire()"><span class="unit">%</span></div></div>
+      <button class="btn-calc" onclick="calcRetire()">계산하기</button><button class="btn-reset" onclick="resetRetire()">초기화</button>
+    </div></div>
+    <div><div class="result-panel" id="retire-result"><div class="result-header"><h3>은퇴 자금 분석</h3><p>필요 노후자금 및 저축 목표</p></div><div class="result-body"><div class="result-empty"><div class="icon">🏖️</div><p>왼쪽에서 조건을 입력하면<br>결과가 여기에 표시됩니다.</p></div></div></div></div>
+  </div>
+</div>
+
+<!-- 목표 저축 -->
+<div id="pane-goal" class="pane on">
+  <div class="calc-layout">
+    <div><div class="card">
+      <div class="ch"><div class="ch-icon">🎯</div><div class="ch-text"><h3>목표 저축 계산기</h3><p>정액·증액 저축 달성 분석</p></div></div>
+      <div class="f"><label>저축 유형</label><div class="toggle-group"><button class="tgl on" id="goal-type-fixed" onclick="setGoalType('fixed')">정액저축</button><button class="tgl" id="goal-type-escalate" onclick="setGoalType('escalate')">증액저축</button></div></div>
+      <div class="f"><label>기간 단위</label><div class="toggle-group"><button class="tgl on" id="goal-unit-month" onclick="setGoalUnit('month')">월 단위</button><button class="tgl" id="goal-unit-year" onclick="setGoalUnit('year')">연 단위</button></div></div>
+      <div class="f"><label>목표 금액</label><div class="input-unit"><input type="number" id="goal-target" value="5000" min="1" oninput="calcGoal()"><span class="unit">만원</span></div></div>
+      <div class="f"><label>현재 보유 금액</label><div class="input-unit"><input type="number" id="goal-current" value="0" min="0" oninput="calcGoal()"><span class="unit">만원</span></div></div>
+      <div class="f"><label>목표 달성 기간</label><div class="input-unit"><input type="number" id="goal-period" value="60" min="1" oninput="calcGoal()"><span class="unit" id="goal-period-unit">개월</span></div><div class="hint" id="goal-period-hint">예: 1년=12, 5년=60, 10년=120</div></div>
+      <div class="f"><label>연 이자율 (적립 수익률)</label><div class="input-unit"><input type="number" id="goal-rate" value="4" min="0" max="30" step="0.1" oninput="calcGoal()"><span class="unit">%</span></div></div>
+      <div id="goal-fixed-fields">
+        <div class="f"><label id="goal-budget-label">월 최대 저축 가능액 (예산)</label><div class="input-unit"><input type="number" id="goal-budget" value="100" min="0" oninput="calcGoal()"><span class="unit" id="goal-budget-unit">만원/월</span></div><div class="hint">예산 대비 달성 여부를 함께 표시합니다.</div></div>
+      </div>
+      <div id="goal-esc-fields" style="display:none">
+        <div class="f"><label>증액 방식</label><div class="toggle-group"><button class="tgl on" id="goal-esc-rate-btn" onclick="setGoalEscType('rate')">정률 (%)</button><button class="tgl" id="goal-esc-amount-btn" onclick="setGoalEscType('amount')">정액 (만원)</button></div></div>
+        <div class="f" id="goal-esc-rate-field"><label>연간 증액률</label><div class="input-unit"><input type="number" id="goal-esc-rate" value="5" min="0" max="50" step="0.5" oninput="calcGoal()"><span class="unit">%/년</span></div><div class="hint">매년 저축액을 해당 비율만큼 늘립니다.</div></div>
+        <div class="f" id="goal-esc-amount-field" style="display:none"><label>연간 증액액</label><div class="input-unit"><input type="number" id="goal-esc-amount" value="10" min="0" oninput="calcGoal()"><span class="unit">만원/년</span></div></div>
+      </div>
+      <button class="btn-calc" onclick="calcGoal()">계산하기</button><button class="btn-reset" onclick="resetGoal()">초기화</button>
+    </div></div>
+    <div><div class="result-panel" id="goal-result"><div class="result-header"><h3>목표 저축 결과</h3><p>달성을 위한 저축 계획</p></div><div class="result-body"><div class="result-empty"><div class="icon">🎯</div><p>왼쪽에서 조건을 입력하면<br>결과가 여기에 표시됩니다.</p></div></div></div></div>
+  </div>
+</div>
+
+<!-- 주택담보대출 -->
+<div id="pane-mortgage" class="pane">
+  <div class="calc-layout">
+    <div><div class="card">
+      <div class="ch"><div class="ch-icon">🏠</div><div class="ch-text"><h3>주택담보대출 계산기</h3><p>LTV·DTI·DSR 적합성 및 상환 분석</p></div></div>
+      <div class="f"><label>주택 가격</label><div class="input-unit"><input type="number" id="mg-price" value="60000" min="1" oninput="calcMortgage()"><span class="unit">만원</span></div></div>
+      <div class="f"><label>희망 대출 금액</label><div class="input-unit"><input type="number" id="mg-loan" value="30000" min="1" oninput="calcMortgage()"><span class="unit">만원</span></div></div>
+      <div class="f"><label>연 이자율</label><div class="input-unit"><input type="number" id="mg-rate" value="4.2" min="0.1" max="20" step="0.1" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+      <div class="f"><label>대출 기간</label><div class="input-unit"><input type="number" id="mg-period" value="360" min="12" max="600" oninput="calcMortgage()"><span class="unit">개월</span></div><div class="hint">예: 30년=360개월, 20년=240개월</div></div>
+      <div class="f"><label>연 소득</label><div class="input-unit"><input type="number" id="mg-income" value="6000" min="1" oninput="calcMortgage()"><span class="unit">만원</span></div><div class="hint">DTI / DSR 계산에 사용됩니다.</div></div>
+      <div class="f"><label>기존 연간 원리금 합계</label><div class="input-unit"><input type="number" id="mg-existing" value="0" min="0" oninput="calcMortgage()"><span class="unit">만원</span></div><div class="hint">다른 대출의 연간 상환액 (DSR 계산용)</div></div>
+      <button class="btn-calc" onclick="calcMortgage()">계산하기</button><button class="btn-reset" onclick="resetMortgage()">초기화</button>
+      <div class="info-box" style="margin-top:16px"><strong>규제 기준 (참고용)</strong><br>· LTV: 투기지역 40%, 조정지역 50%, 일반 70%<br>· DTI: 투기지역 40%, 조정지역 50%<br>· DSR: 총부채 원리금 상환비율 40%(은행) / 50%(비은행)<br><span style="font-size:11px;color:var(--red)">※ 실제 적용 기준은 금융기관과 확인하세요.</span></div>
+    </div></div>
+    <div><div class="result-panel" id="mortgage-result"><div class="result-header"><h3>주택담보대출 분석</h3><p>LTV · DTI · DSR 적합성 검토</p></div><div class="result-body"><div class="result-empty"><div class="icon">🏠</div><p>왼쪽에서 조건을 입력하면<br>결과가 여기에 표시됩니다.</p></div></div></div></div>
+  </div>
+</div>
+
+</main>
+<script>
+const fmt = n => Math.round(n).toLocaleString('ko-KR');
+const fmtM = n => (n/10000)>=1 ? (n/10000).toFixed(1)+'억' : fmt(n)+'만';
+const wan = n => fmt(n)+'만원';
+
+function showPane(id, btn) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('on'));
+  document.getElementById('pane-'+id).classList.add('on');
+  if (btn) btn.classList.add('on');
+}
+
+function setResult(id, html) {
+  document.querySelector('#'+id+' .result-body').innerHTML = html;
+}
+
+function api(calc, params) {
+  return fetch('/api/finance-calc', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ calc, ...params })
+  }).then(r => r.json());
+}
+
+// ── 대출 상환
+function calcLoan() {
+  const hints = { equal:'매월 동일한 금액을 납부합니다.', principal:'원금은 매달 동일, 이자는 줄어듭니다.', bullet:'매월 이자만 납부하고 만기에 원금을 상환합니다.' };
+  const method = document.getElementById('loan-method').value;
+  document.getElementById('loan-method-hint').textContent = hints[method];
+  const amount = parseFloat(document.getElementById('loan-amount').value)||0;
+  const rate   = parseFloat(document.getElementById('loan-rate').value)||0;
+  const period = parseInt(document.getElementById('loan-period').value)||1;
+  if (!amount || !rate || !period) return;
+  api('loan', { amount, rate, period, method }).then(d => {
+    if (d.error) return;
+    const rowHtml = d.allRows.map(row => `<tr>
+      <td>${row.i}회차</td><td>${fmt(Math.round(row.pmt/10000))}만</td>
+      <td style="color:var(--teal)">${fmt(Math.round(row.principal/10000))}만</td>
+      <td style="color:var(--amber)">${fmt(Math.round(row.interest/10000))}만</td>
+      <td>${fmt(Math.round(row.balance/10000))}만</td></tr>`).join('');
+    setResult('loan-result', `
+      <div class="kpi-main"><div class="kpi-main-label">월 납부액 (첫 회)</div><div class="kpi-main-value">${wan(Math.round(d.firstPayment/10000))}</div><div class="kpi-main-sub">${method==='bullet'?'만기 시 '+wan(Math.round(d.lastPayment/10000))+' 납부':method==='principal'?'마지막 회차 '+wan(Math.round(d.lastPayment/10000)):'매월 동일'}</div></div>
+      <div class="kpi-grid">
+        <div class="kpi-item"><div class="kpi-item-label">대출 원금</div><div class="kpi-item-value">${fmt(d.principal/10000)}만</div></div>
+        <div class="kpi-item accent"><div class="kpi-item-label">총 이자</div><div class="kpi-item-value">${fmt(Math.round(d.totalInterest/10000))}만</div><div class="kpi-item-sub">이자 비율 ${d.interestRatio}%</div></div>
+        <div class="kpi-item"><div class="kpi-item-label">총 납부액</div><div class="kpi-item-value">${fmt(Math.round(d.totalPay/10000))}만</div></div>
+        <div class="kpi-item"><div class="kpi-item-label">대출 기간</div><div class="kpi-item-value">${d.period}개월</div><div class="kpi-item-sub">${(d.period/12).toFixed(1)}년</div></div>
+      </div>
+      <div class="chart-bar-section"><h4>원금 vs 이자 비율</h4>
+        <div class="bar-row"><div class="bar-top"><span>원금</span><span>${d.principalPct}%</span></div><div class="bar-bg"><div class="bar-fill bar-principal" style="width:${d.principalPct}%"></div></div></div>
+        <div class="bar-row"><div class="bar-top"><span>이자</span><span>${d.interestPct}%</span></div><div class="bar-bg"><div class="bar-fill bar-interest" style="width:${d.interestPct}%"></div></div></div>
+      </div>
+      <div style="margin-top:16px">
+        <button onclick="toggleLoanTable(this)" style="width:100%;padding:10px;background:var(--paper-2);border:1px solid var(--paper-3);border-radius:var(--r2);font-size:12px;color:var(--ink-3);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between">
+          <span>회차별 상환 일정 전체보기 (${d.period}회차)</span><span class="loan-toggle-icon">▼</span>
+        </button>
+        <div class="loan-table-wrap" style="display:none;overflow-x:auto;max-height:360px;overflow-y:auto;border:1px solid var(--paper-3);border-top:none;border-radius:0 0 var(--r2) var(--r2)">
+          <table class="amort-table"><thead style="position:sticky;top:0;z-index:1"><tr><th>회차</th><th>납부액</th><th>원금</th><th>이자</th><th>잔액</th></tr></thead><tbody>${rowHtml}</tbody></table>
+        </div>
+      </div>`);
+  }).catch(() => {});
+}
+function toggleLoanTable(btn) {
+  const wrap = btn.nextElementSibling, icon = btn.querySelector('.loan-toggle-icon'), isOpen = wrap.style.display !== 'none';
+  wrap.style.display = isOpen ? 'none' : 'block'; icon.textContent = isOpen ? '▼' : '▲';
+  btn.querySelector('span').textContent = isOpen ? `회차별 상환 일정 전체보기 (${wrap.querySelectorAll('tbody tr').length}회차)` : '회차별 상환 일정 닫기';
+}
+function resetLoan() {
+  document.getElementById('loan-amount').value=30000; document.getElementById('loan-rate').value=4.5;
+  document.getElementById('loan-rate-range').value=4.5; document.getElementById('loan-rate-disp').textContent='4.5%';
+  document.getElementById('loan-period').value=12; document.getElementById('loan-method').value='equal';
+  setResult('loan-result','<div class="result-empty"><div class="icon">💰</div><p>왼쪽에서 대출 조건을 입력하면<br>상환 결과가 여기에 표시됩니다.</p></div>');
+}
+
+// ── 적금·예금
+function updateSavingsUI() {
+  const t = document.getElementById('savings-type').value;
+  document.getElementById('savings-monthly-wrap').style.display = t==='installment' ? '' : 'none';
+  document.getElementById('savings-lump-wrap').style.display = t==='deposit' ? '' : 'none';
+}
+function calcSavings() {
+  const type = document.getElementById('savings-type').value;
+  const rate  = parseFloat(document.getElementById('savings-rate').value)||0;
+  const period = parseInt(document.getElementById('savings-period').value)||1;
+  const taxRate = parseFloat(document.getElementById('savings-tax').value);
+  const compound = document.getElementById('savings-compound').value;
+  const monthly = parseFloat(document.getElementById('savings-monthly').value)||0;
+  const lump    = parseFloat(document.getElementById('savings-lump').value)||0;
+  api('savings', { type, rate, period, taxRate, compound, monthly, lump }).then(d => {
+    if (!d) return;
+    const taxLabel = taxRate===0?'비과세':taxRate===0.099?'세금우대 9.9%':'일반과세 15.4%';
+    const compoundLabel = ['단리','월복리','연복리'][['simple','monthly','annually'].indexOf(compound)];
+    setResult('savings-result', `
+      <div class="kpi-main"><div class="kpi-main-label">세후 만기 수령액</div><div class="kpi-main-value">${wan(Math.round(d.netMaturity/10000))}</div><div class="kpi-main-sub">세전 ${wan(Math.round(d.maturity/10000))}</div></div>
+      <div class="kpi-grid">
+        <div class="kpi-item"><div class="kpi-item-label">납입 원금</div><div class="kpi-item-value">${fmt(Math.round(d.principal/10000))}만</div></div>
+        <div class="kpi-item accent"><div class="kpi-item-label">세후 이자</div><div class="kpi-item-value">${fmt(Math.round(d.netInterest/10000))}만</div><div class="kpi-item-sub">세전 ${fmt(Math.round(d.grossInterest/10000))}만</div></div>
+        <div class="kpi-item"><div class="kpi-item-label">세금</div><div class="kpi-item-value">${fmt(Math.round(d.taxAmount/10000))}만</div><div class="kpi-item-sub">이자과세 ${(taxRate*100).toFixed(1)}%</div></div>
+        <div class="kpi-item"><div class="kpi-item-label">실효 연이율</div><div class="kpi-item-value">${d.effectiveRate}%</div><div class="kpi-item-sub">세후 기준</div></div>
+      </div>
+      <div class="chart-bar-section"><h4>원금 vs 이자</h4>
+        <div class="bar-row"><div class="bar-top"><span>원금</span><span>${(d.principal/d.netMaturity*100).toFixed(1)}%</span></div><div class="bar-bg"><div class="bar-fill bar-principal" style="width:${Math.min(100,d.principal/d.netMaturity*100).toFixed(1)}%"></div></div></div>
+        <div class="bar-row"><div class="bar-top"><span>세후 이자</span><span>${(d.netInterest/d.netMaturity*100).toFixed(1)}%</span></div><div class="bar-bg"><div class="bar-fill bar-interest" style="width:${Math.min(100,d.netInterest/d.netMaturity*100).toFixed(1)}%"></div></div></div>
+      </div>
+      <div class="info-box">기간 <strong>${period}개월</strong> (${(period/12).toFixed(1)}년) · ${compoundLabel} · ${taxLabel}</div>`);
+  }).catch(() => {});
+}
+function resetSavings() {
+  document.getElementById('savings-type').value='installment'; document.getElementById('savings-monthly').value=50;
+  document.getElementById('savings-rate').value=3.5; document.getElementById('savings-rate-range').value=3.5;
+  document.getElementById('savings-rate-disp').textContent='3.5%'; document.getElementById('savings-period').value=12;
+  document.getElementById('savings-tax').value=0.154; document.getElementById('savings-compound').value='monthly';
+  updateSavingsUI();
+  setResult('savings-result','<div class="result-empty"><div class="icon">📈</div><p>왼쪽에서 조건을 입력하면<br>결과가 여기에 표시됩니다.</p></div>');
+}
+
+// ── 투자 수익
+let invUnit='month', invType='fixed', invEscType='rate';
+function setInvUnit(u) { invUnit=u; document.getElementById('inv-unit-month').classList.toggle('on',u==='month'); document.getElementById('inv-unit-year').classList.toggle('on',u==='year'); const isM=u==='month'; document.getElementById('inv-contrib-label').textContent=isM?'월 추가 투자':'연 추가 투자'; document.getElementById('inv-contrib-unit').textContent=isM?'만원/월':'만원/년'; document.getElementById('inv-esc-amount-unit').textContent=isM?'만원/년':'만원/년'; calcInvest(); }
+function setInvType(t) { invType=t; document.getElementById('inv-type-fixed').classList.toggle('on',t==='fixed'); document.getElementById('inv-type-escalate').classList.toggle('on',t==='escalate'); document.getElementById('inv-esc-fields').style.display=t==='escalate'?'':'none'; calcInvest(); }
+function setInvEscType(t) { invEscType=t; document.getElementById('inv-esc-rate-btn').classList.toggle('on',t==='rate'); document.getElementById('inv-esc-amount-btn').classList.toggle('on',t==='amount'); document.getElementById('inv-esc-rate-field').style.display=t==='rate'?'':'none'; document.getElementById('inv-esc-amount-field').style.display=t==='amount'?'':'none'; calcInvest(); }
+function calcInvest() {
+  const initial = parseFloat(document.getElementById('inv-initial').value)||0;
+  const contrib = parseFloat(document.getElementById('inv-contrib').value)||0;
+  const rate    = parseFloat(document.getElementById('inv-rate').value)||0;
+  const years   = parseInt(document.getElementById('inv-years').value)||1;
+  const risk    = document.getElementById('inv-risk').value;
+  const escRate = parseFloat(document.getElementById('inv-esc-rate').value)||0;
+  const escAmount = parseFloat(document.getElementById('inv-esc-amount').value)||0;
+  api('invest', { initial, contrib, rate, years, risk, unit:invUnit, type:invType, escType:invEscType, escRate, escAmount }).then(d => {
+    if (!d) return;
+    const riskMap = {low:0.03, mid:0.07, high:0.15};
+    const escDesc = d.isEscalate ? (d.escType==='rate' ? ` · 연 ${d.escR}% 증액` : ` · 연 ${fmt(escAmount)}만원 증액`) : '';
+    const modeDesc = `${d.isMonthly?'월납':'연납'} · ${d.isEscalate?'증액':'정액'}${escDesc}`;
+    let prevY = 0;
+    const milestoneHtml = d.milestones.map(m => {
+      const gap = m.y > prevY+1 ? `<tr><td colspan="4" style="text-align:center;color:var(--ink-4);font-size:10px;padding:3px">···</td></tr>` : '';
+      prevY = m.y;
+      const label = d.isMonthly ? `${fmt(Math.round(m.thisYrContrib/10000))}만/월` : `${fmt(Math.round(m.thisYrContrib/10000))}만/년`;
+      return gap + `<tr ${m.y===years?'class="highlight"':''}><td>${m.y}년</td><td>${label}</td><td>${fmt(Math.round(m.totalInvested/10000))}만</td><td>${fmt(Math.round(m.balance/10000))}만</td></tr>`;
+    }).join('');
+    setResult('invest-result', `
+      <div class="kpi-main"><div class="kpi-main-label">${years}년 후 최종 자산</div><div class="kpi-main-value">${fmt(Math.round(d.balance/10000))}만원</div><div class="kpi-main-sub">총 투자원금 ${fmt(Math.round(d.totalInvested/10000))}만원 대비 +${d.gainPct}%</div></div>
+      <div class="kpi-grid">
+        <div class="kpi-item"><div class="kpi-item-label">총 투자금</div><div class="kpi-item-value">${fmt(Math.round(d.totalInvested/10000))}만</div><div class="kpi-item-sub">초기+적립</div></div>
+        <div class="kpi-item accent"><div class="kpi-item-label">투자 수익</div><div class="kpi-item-value">${fmt(Math.round(d.gain/10000))}만</div><div class="kpi-item-sub">+${d.gainPct}% 복리</div></div>
+        ${risk!=='0'?`<div class="kpi-item" style="border-color:var(--teal)"><div class="kpi-item-label">낙관 시나리오</div><div class="kpi-item-value" style="color:var(--teal)">${fmt(Math.round(d.bestBal/10000))}만</div><div class="kpi-item-sub">+${d.riskSpread*100}%p 수익률</div></div><div class="kpi-item" style="border-color:var(--red)"><div class="kpi-item-label">보수 시나리오</div><div class="kpi-item-value" style="color:var(--red)">${fmt(Math.round(d.worstBal/10000))}만</div><div class="kpi-item-sub">-${d.riskSpread*100}%p 수익률</div></div>`:''}
+      </div>
+      <div class="chart-bar-section"><h4>원금 vs 수익</h4>
+        <div class="bar-row"><div class="bar-top"><span>투자 원금</span><span>${(d.totalInvested/d.balance*100).toFixed(1)}%</span></div><div class="bar-bg"><div class="bar-fill bar-principal" style="width:${Math.min(100,d.totalInvested/d.balance*100).toFixed(1)}%"></div></div></div>
+        <div class="bar-row"><div class="bar-top"><span>복리 수익</span><span>${(d.gain/d.balance*100).toFixed(1)}%</span></div><div class="bar-bg"><div class="bar-fill bar-interest" style="width:${Math.min(100,d.gain/d.balance*100).toFixed(1)}%"></div></div></div>
+      </div>
+      <div class="amort-wrap"><table class="amort-table"><thead><tr><th>시점</th><th>${d.isMonthly?'해당 연도 월납입':'해당 연도 납입'}</th><th>누적 투자금</th><th>자산</th></tr></thead><tbody>${milestoneHtml}</tbody></table></div>
+      <div class="info-box">${modeDesc}</div>`);
+  }).catch(() => {});
+}
+function resetInvest() {
+  invUnit='month'; invType='fixed'; invEscType='rate';
+  ['inv-unit-month','inv-type-fixed','inv-esc-rate-btn'].forEach(id => document.getElementById(id).classList.add('on'));
+  ['inv-unit-year','inv-type-escalate','inv-esc-amount-btn'].forEach(id => document.getElementById(id).classList.remove('on'));
+  document.getElementById('inv-esc-fields').style.display='none'; document.getElementById('inv-esc-rate-field').style.display=''; document.getElementById('inv-esc-amount-field').style.display='none';
+  document.getElementById('inv-contrib-label').textContent='월 추가 투자'; document.getElementById('inv-contrib-unit').textContent='만원/월';
+  document.getElementById('inv-initial').value=1000; document.getElementById('inv-contrib').value=50;
+  document.getElementById('inv-rate').value=7; document.getElementById('inv-rate-range').value=7; document.getElementById('inv-rate-disp').textContent='7%';
+  document.getElementById('inv-years').value=20; document.getElementById('inv-risk').value='0';
+  setResult('invest-result','<div class="result-empty"><div class="icon">📊</div><p>왼쪽에서 조건을 입력하면<br>결과가 여기에 표시됩니다.</p></div>');
+}
+
+// ── IRR
+let irrUnit='month';
+function setIrrUnit(u) { irrUnit=u; document.getElementById('irr-unit-month').classList.toggle('on',u==='month'); document.getElementById('irr-unit-year').classList.toggle('on',u==='year'); const label=u==='month'?'만원/월':'만원/년'; document.getElementById('irr-out-unit').textContent=label; document.getElementById('irr-in-unit').textContent=label; calcIrr(); }
+function irrExample(type) {
+  const ex={insurance:{unit:'month',initial:0,out:30,in_:0,period:7,hold:3,fv:3220},rental:{unit:'month',initial:30000,out:0,in_:100,period:10,hold:0,fv:40000},invest:{unit:'year',initial:1000,out:0,in_:0,period:0,hold:10,fv:2500}}[type];
+  if(!ex) return; setIrrUnit(ex.unit);
+  document.getElementById('irr-initial').value=ex.initial; document.getElementById('irr-out').value=ex.out; document.getElementById('irr-in').value=ex.in_;
+  document.getElementById('irr-period').value=ex.period; document.getElementById('irr-hold').value=ex.hold; document.getElementById('irr-fv').value=ex.fv; calcIrr();
+}
+function calcIrr() {
+  const initial=parseFloat(document.getElementById('irr-initial').value)||0;
+  const out=parseFloat(document.getElementById('irr-out').value)||0;
+  const inAmt=parseFloat(document.getElementById('irr-in').value)||0;
+  const period=parseFloat(document.getElementById('irr-period').value)||0;
+  const hold=parseFloat(document.getElementById('irr-hold').value)||0;
+  const fv=parseFloat(document.getElementById('irr-fv').value)||0;
+  api('irr', { initial, out, in:inAmt, period, hold, fv, unit:irrUnit }).then(d => {
+    if (d.error==='missing_flows') { setResult('irr-result','<div class="result-empty"><div class="icon">⚠️</div><p>지출(①②)과 수입(③⑤)이<br>모두 있어야 IRR을 계산할 수 있습니다.</p></div>'); return; }
+    if (d.error==='no_irr') { setResult('irr-result','<div class="result-empty"><div class="icon">⚠️</div><p>수익률을 계산할 수 없습니다.<br>지출과 수입의 구성을 확인해주세요.</p></div>'); return; }
+    const annualIrr=d.annualIrr;
+    const color=annualIrr>=0.05?'var(--teal)':annualIrr>=0.02?'var(--amber)':'var(--red)';
+    const status=annualIrr>=0.05?'우수':annualIrr>=0.03?'보통':annualIrr>=0.01?'낮음':'손실';
+    const benchRows=d.benchmarks.map(b=>`<tr><td>${b.label}</td><td style="color:${b.better?'var(--teal)':'var(--red)'};font-weight:500">${b.better?'▲ 유리':'▼ 불리'}</td><td style="color:${b.better?'var(--teal)':'var(--red)'}">${b.better?'+':''}${fmt(Math.round(b.npv/10000))}만</td></tr>`).join('');
+    const parts=[];
+    if(initial>0) parts.push(`초기 ${fmt(initial)}만`);
+    if(out>0) parts.push(`${irrUnit==='month'?'월':'연'}지출 ${fmt(out)}만 × ${period}년`);
+    if(inAmt>0) parts.push(`${irrUnit==='month'?'월':'연'}수입 ${fmt(inAmt)}만 × ${period}년`);
+    if(hold>0) parts.push(`거치 ${hold}년`);
+    if(fv>0) parts.push(`최종 ${fmt(fv)}만`);
+    setResult('irr-result',`
+      <div class="kpi-main" style="background:${annualIrr>=0.03?'var(--gold-pale)':'var(--bad-bg)'};border-color:${annualIrr>=0.03?'var(--gold-light)':'#dfa0a0'}">
+        <div class="kpi-main-label" style="color:${color}">연 수익률 (IRR)</div>
+        <div class="kpi-main-value" style="font-size:48px;color:${color}">${d.irrPct}%</div>
+        <div class="kpi-main-sub">${status} · 실질수익률(물가 2.5% 차감) ${d.realIrr}%</div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-item"><div class="kpi-item-label">총 지출</div><div class="kpi-item-value">${fmt(Math.round(d.totalOut/10000))}만</div><div class="kpi-item-sub">①+②</div></div>
+        <div class="kpi-item accent"><div class="kpi-item-label">총 수입</div><div class="kpi-item-value" style="color:var(--gold-light)">${fmt(Math.round(d.totalIn/10000))}만</div><div class="kpi-item-sub" style="color:rgba(255,255,255,.4)">③+⑤</div></div>
+        <div class="kpi-item" style="border-color:${d.netGain>=0?'var(--teal)':'var(--red)'}"><div class="kpi-item-label">순손익 (명목)</div><div class="kpi-item-value" style="color:${d.netGain>=0?'var(--teal)':'var(--red)'}">${d.netGain>=0?'+':''}${fmt(Math.round(d.netGain/10000))}만</div></div>
+        <div class="kpi-item"><div class="kpi-item-label">총 기간</div><div class="kpi-item-value">${d.totalYears}년</div></div>
+      </div>
+      <div class="chart-bar-section"><h4>벤치마크 대비 (현재가치 기준 NPV 차이)</h4>
+        <table class="amort-table" style="margin-top:0"><thead><tr><th style="text-align:left">기준 수익률</th><th>판정</th><th>현재가치 차이</th></tr></thead><tbody>${benchRows}</tbody></table>
+      </div>
+      <div class="info-box">${parts.join(' · ')}</div>`);
+  }).catch(() => {});
+}
+function resetIrr() {
+  irrUnit='month'; document.getElementById('irr-unit-month').classList.add('on'); document.getElementById('irr-unit-year').classList.remove('on');
+  document.getElementById('irr-out-unit').textContent='만원/월'; document.getElementById('irr-in-unit').textContent='만원/월';
+  document.getElementById('irr-initial').value=0; document.getElementById('irr-out').value=30; document.getElementById('irr-in').value=0;
+  document.getElementById('irr-period').value=20; document.getElementById('irr-hold').value=0; document.getElementById('irr-fv').value=12000;
+  setResult('irr-result','<div class="result-empty"><div class="icon">📉</div><p>왼쪽에서 조건을 입력하면<br>수익률이 여기에 표시됩니다.</p></div>');
+}
+
+// ── 은퇴 자금
+function calcRetire() {
+  const age=parseInt(document.getElementById('ret-age').value)||35;
+  const retireAge=parseInt(document.getElementById('ret-retire-age').value)||60;
+  const lifeAge=parseInt(document.getElementById('ret-life').value)||85;
+  const monthlyExpense=parseFloat(document.getElementById('ret-monthly').value)||0;
+  const currentAsset=parseFloat(document.getElementById('ret-current').value)||0;
+  const returnRate=parseFloat(document.getElementById('ret-return').value)||5;
+  const inflation=parseFloat(document.getElementById('ret-inflation').value)||2.5;
+  api('retire', { age, retireAge, lifeAge, monthlyExpense, currentAsset, returnRate, inflation }).then(d => {
+    if (!d) return;
+    const statusColor=d.gap<=0?'var(--teal)':d.gap<d.neededAtRetire*0.5?'var(--amber)':'var(--red)';
+    const statusText=d.gap<=0?'목표 충족':d.gap<d.neededAtRetire*0.5?'일부 부족':'자금 부족';
+    setResult('retire-result',`
+      <div class="kpi-main"><div class="kpi-main-label">필요 은퇴 자금 (은퇴 시점)</div><div class="kpi-main-value">${fmt(Math.round(d.neededAtRetire/10000))}만원</div><div class="kpi-main-sub">은퇴 후 월 생활비 ${fmt(Math.round(d.inflatedMonthly/10000))}만원 기준 (물가 반영)</div></div>
+      <div class="kpi-grid">
+        <div class="kpi-item"><div class="kpi-item-label">은퇴까지</div><div class="kpi-item-value">${d.yearsToRetire}년</div><div class="kpi-item-sub">${age}세 → ${retireAge}세</div></div>
+        <div class="kpi-item"><div class="kpi-item-label">은퇴 후 기간</div><div class="kpi-item-value">${d.retireDuration}년</div><div class="kpi-item-sub">${retireAge}세 → ${lifeAge}세</div></div>
+        <div class="kpi-item"><div class="kpi-item-label">현자산 성장</div><div class="kpi-item-value">${fmt(Math.round(d.grownAsset/10000))}만</div><div class="kpi-item-sub">은퇴 시점 기준</div></div>
+        <div class="kpi-item accent"><div class="kpi-item-label" style="color:rgba(255,255,255,.5)">상태</div><div class="kpi-item-value" style="color:${d.gap<=0?'#7ff0d0':'var(--gold-light)'}">${statusText}</div><div class="kpi-item-sub" style="color:rgba(255,255,255,.4)">부족액 ${fmt(Math.round(d.gap/10000))}만</div></div>
+      </div>
+      ${d.gap>0?`<div class="kpi-main" style="background:var(--paper-2);border-color:var(--paper-3)"><div class="kpi-main-label" style="color:var(--ink-3)">추가 필요 월 저축액</div><div class="kpi-main-value" style="font-size:28px">${wan(Math.round(d.monthlySave/10000))}</div><div class="kpi-main-sub">은퇴까지 ${d.yearsToRetire}년간 매월 저축 시 목표 달성</div></div>`:`<div class="info-box" style="color:var(--teal);border-color:var(--ok-b);background:var(--ok-bg)">✅ 현재 자산만으로 은퇴 자금이 충족됩니다. 여유분: ${fmt(Math.round((d.grownAsset-d.neededAtRetire)/10000))}만원</div>`}
+      <div class="chart-bar-section"><h4>자금 현황</h4>
+        <div class="bar-row"><div class="bar-top"><span>현자산 성장</span><span>${(Math.min(1,d.grownAsset/d.neededAtRetire)*100).toFixed(0)}%</span></div><div class="bar-bg"><div class="bar-fill bar-principal" style="width:${Math.min(100,d.grownAsset/d.neededAtRetire*100).toFixed(1)}%"></div></div></div>
+        ${d.gap>0?`<div class="bar-row"><div class="bar-top"><span>부족분</span><span>${(d.gap/d.neededAtRetire*100).toFixed(0)}%</span></div><div class="bar-bg"><div class="bar-fill bar-interest" style="width:${Math.min(100,d.gap/d.neededAtRetire*100).toFixed(1)}%"></div></div></div>`:''}
+      </div>
+      <div class="info-box">물가상승률 <strong>${inflation}%</strong> 반영 · 운용수익률 <strong>${returnRate}%</strong> 가정</div>`);
+  }).catch(() => {});
+}
+function resetRetire() {
+  ['ret-age','ret-retire-age','ret-life','ret-monthly','ret-current','ret-return','ret-inflation'].forEach((id,i)=>{ document.getElementById(id).value=[35,60,85,300,5000,5,2.5][i]; });
+  setResult('retire-result','<div class="result-empty"><div class="icon">🏖️</div><p>왼쪽에서 조건을 입력하면<br>결과가 여기에 표시됩니다.</p></div>');
+}
+
+// ── 목표 저축
+let goalType='fixed', goalUnit='month', goalEscType='rate';
+function setGoalType(t) { goalType=t; document.getElementById('goal-type-fixed').classList.toggle('on',t==='fixed'); document.getElementById('goal-type-escalate').classList.toggle('on',t==='escalate'); document.getElementById('goal-fixed-fields').style.display=t==='fixed'?'':'none'; document.getElementById('goal-esc-fields').style.display=t==='escalate'?'':'none'; calcGoal(); }
+function setGoalUnit(u) { goalUnit=u; document.getElementById('goal-unit-month').classList.toggle('on',u==='month'); document.getElementById('goal-unit-year').classList.toggle('on',u==='year'); const isMonth=u==='month'; document.getElementById('goal-period-unit').textContent=isMonth?'개월':'년'; document.getElementById('goal-period-hint').textContent=isMonth?'예: 1년=12, 5년=60, 10년=120':'예: 5년, 10년, 30년'; document.getElementById('goal-budget-label').textContent=isMonth?'월 최대 저축 가능액 (예산)':'연 최대 저축 가능액 (예산)'; document.getElementById('goal-budget-unit').textContent=isMonth?'만원/월':'만원/년'; document.getElementById('goal-period').value=isMonth?60:5; calcGoal(); }
+function setGoalEscType(t) { goalEscType=t; document.getElementById('goal-esc-rate-btn').classList.toggle('on',t==='rate'); document.getElementById('goal-esc-amount-btn').classList.toggle('on',t==='amount'); document.getElementById('goal-esc-rate-field').style.display=t==='rate'?'':'none'; document.getElementById('goal-esc-amount-field').style.display=t==='amount'?'':'none'; calcGoal(); }
+function calcGoal() {
+  const target=parseFloat(document.getElementById('goal-target').value)||0;
+  const current=parseFloat(document.getElementById('goal-current').value)||0;
+  const period=parseInt(document.getElementById('goal-period').value)||1;
+  const rate=parseFloat(document.getElementById('goal-rate').value)||0;
+  const budget=parseFloat(document.getElementById('goal-budget').value)||0;
+  const escRate=parseFloat(document.getElementById('goal-esc-rate').value)||0;
+  const escAmount=parseFloat(document.getElementById('goal-esc-amount').value)||0;
+  api('goal', { target, current, period, rate, goalType, goalUnit, goalEscType, budget, escRate, escAmount }).then(d => {
+    if (!d || d.error) return;
+    if (d.type==='fixed-month') {
+      const pmt=d.pmt; const rows=d.milestones.map(m=>`<tr ${m.isLast?'class="highlight"':''}><td>${m.m}개월</td><td>${fmt(Math.round(pmt/10000))}만/월</td><td>${fmt(Math.round(m.fv/10000))}만</td><td>${Math.min(100,m.fv/d.targetWon*100).toFixed(0)}%</td></tr>`).join('');
+      setResult('goal-result', goalFixedHtml({ mainLabel:'필요 월 저축액', mainValue:wan(Math.round(pmt/10000)), mainSub:`${d.nMonths}개월 내 ${wan(Math.round(d.targetWon/10000))} 달성 목표`, target:d.targetWon, current:d.currentWon, budget:d.budgetWon, budgetLabel:'만원/월', canAfford:d.canAfford, achievable:d.achievable, rows, cols:['기간','월 저축액','누적 자산','달성률'] }));
+    } else if (d.type==='fixed-year') {
+      const pmt=d.pmt; const rows=d.milestones.map(m=>`<tr ${m.isLast?'class="highlight"':''}><td>${m.y}년</td><td>${fmt(Math.round(pmt/10000))}만/년</td><td>${fmt(Math.round(m.fv/10000))}만</td><td>${Math.min(100,m.fv/d.targetWon*100).toFixed(0)}%</td></tr>`).join('');
+      setResult('goal-result', goalFixedHtml({ mainLabel:'필요 연 저축액', mainValue:wan(Math.round(pmt/10000)), mainSub:`${d.nYr}년 내 ${wan(Math.round(d.targetWon/10000))} 달성 · 월환산 ${wan(Math.round(pmt/12/10000))}`, target:d.targetWon, current:d.currentWon, budget:d.budgetWon, budgetLabel:'만원/년', canAfford:d.canAfford, achievable:d.achievable, rows, cols:['기간','연 저축액','누적 자산','달성률'] }));
+    } else if (d.type==='esc-month') {
+      const escDesc=d.goalEscType==='rate'?`연 ${d.escRate}% 씩 증액`:`연 ${fmt(d.escAmount)}만원씩 증액`;
+      let prevY=0; const rows=d.milestones.map(m => { const gap=m.gap?`<tr><td colspan="4" style="text-align:center;color:var(--ink-4);font-size:10px;padding:3px">···</td></tr>`:''; prevY=m.y; return gap+`<tr ${m.isLast?'class="highlight"':''}><td>${m.y}년차</td><td>${fmt(Math.round(m.thisMonthly/10000))}만/월</td><td>${fmt(Math.round(m.annualTotal/10000))}만</td><td>${fmt(Math.round(m.fvY/10000))}만</td></tr>`; }).join('');
+      setResult('goal-result', goalEscHtml({ mainLabel:'필요 초기 월 저축액', mainValue:wan(Math.round(d.pmt1/10000)), mainSub:`${d.n}개월 후 ${wan(Math.round(d.targetWon/10000))} 달성 · ${escDesc}`, target:d.targetWon, current:d.currentWon, lastLabel:'최종 월 저축액', lastValue:fmt(Math.round(d.lastPmt/10000))+'만', lastSub:d.nYr+'년차', escDesc, rows, cols:['연도','해당 월 저축','연간 납입','누적 자산'] }));
+    } else if (d.type==='esc-year') {
+      const escDesc=d.goalEscType==='rate'?`연 ${d.escRate}% 씩 증액`:`연 ${fmt(d.escAmount)}만원씩 증액`;
+      let prevY=0; const rows=d.milestones.map(m => { const gap=m.gap?`<tr><td colspan="4" style="text-align:center;color:var(--ink-4);font-size:10px;padding:3px">···</td></tr>`:''; prevY=m.y; return gap+`<tr ${m.isLast?'class="highlight"':''}><td>${m.y}년</td><td>${fmt(Math.round(m.pmtY/10000))}만/년</td><td>${fmt(Math.round(m.fvY/10000))}만</td><td>${m.pct}%</td></tr>`; }).join('');
+      setResult('goal-result', goalEscHtml({ mainLabel:'필요 초기 연 저축액', mainValue:wan(Math.round(d.pmt1/10000)), mainSub:`${d.n}년 후 ${wan(Math.round(d.targetWon/10000))} 달성 · ${escDesc} · 월환산 ${wan(Math.round(d.pmt1/12/10000))}`, target:d.targetWon, current:d.currentWon, lastLabel:'최종 연 저축액', lastValue:fmt(Math.round(d.lastPmt/10000))+'만', lastSub:d.n+'년차', escDesc, rows, cols:['연도','연 저축액','누적 자산','달성률'] }));
+    }
+  }).catch(() => {});
+}
+function goalFixedHtml({mainLabel,mainValue,mainSub,target,current,budget,budgetLabel,canAfford,achievable,rows,cols}) {
+  return `<div class="kpi-main"><div class="kpi-main-label">${mainLabel}</div><div class="kpi-main-value">${mainValue}</div><div class="kpi-main-sub">${mainSub}</div></div>
+    <div class="kpi-grid">
+      <div class="kpi-item"><div class="kpi-item-label">목표 금액</div><div class="kpi-item-value">${fmt(Math.round(target/10000))}만</div></div>
+      <div class="kpi-item"><div class="kpi-item-label">현재 보유</div><div class="kpi-item-value">${fmt(Math.round(current/10000))}만</div></div>
+      <div class="kpi-item ${canAfford?'':'accent'}"><div class="kpi-item-label" ${canAfford?'':'style="color:rgba(255,255,255,.5)"'}>예산 대비</div><div class="kpi-item-value" style="color:${canAfford?'var(--teal)':'var(--gold-light)'}">${canAfford?'달성 가능':'예산 초과'}</div><div class="kpi-item-sub" ${canAfford?'':'style="color:rgba(255,255,255,.4)"'}>예산 ${fmt(Math.round(budget/10000))}${budgetLabel}</div></div>
+      <div class="kpi-item"><div class="kpi-item-label">예산으로 달성</div><div class="kpi-item-value" style="font-size:${achievable?'14px':'20px'}">${achievable||'—'}</div></div>
+    </div>
+    <div class="chart-bar-section"><h4>현재 달성률</h4><div class="bar-row"><div class="bar-top"><span>현재 보유</span><span>${(current/target*100).toFixed(0)}%</span></div><div class="bar-bg"><div class="bar-fill bar-principal" style="width:${Math.min(100,current/target*100).toFixed(1)}%"></div></div></div></div>
+    <div class="amort-wrap"><table class="amort-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function goalEscHtml({mainLabel,mainValue,mainSub,target,current,lastLabel,lastValue,lastSub,escDesc,rows,cols}) {
+  return `<div class="kpi-main"><div class="kpi-main-label">${mainLabel}</div><div class="kpi-main-value">${mainValue}</div><div class="kpi-main-sub">${mainSub}</div></div>
+    <div class="kpi-grid">
+      <div class="kpi-item"><div class="kpi-item-label">목표 금액</div><div class="kpi-item-value">${fmt(Math.round(target/10000))}만</div></div>
+      <div class="kpi-item"><div class="kpi-item-label">현재 보유</div><div class="kpi-item-value">${fmt(Math.round(current/10000))}만</div></div>
+      <div class="kpi-item accent"><div class="kpi-item-label" style="color:rgba(255,255,255,.5)">${lastLabel}</div><div class="kpi-item-value" style="color:var(--gold-light)">${lastValue}</div><div class="kpi-item-sub" style="color:rgba(255,255,255,.4)">${lastSub}</div></div>
+      <div class="kpi-item"><div class="kpi-item-label">증액 방식</div><div class="kpi-item-value" style="font-size:13px">${escDesc}</div></div>
+    </div>
+    <div class="amort-wrap"><table class="amort-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function resetGoal() {
+  goalType='fixed'; goalUnit='month'; goalEscType='rate';
+  ['goal-type-fixed','goal-unit-month','goal-esc-rate-btn'].forEach(id=>document.getElementById(id).classList.add('on'));
+  ['goal-type-escalate','goal-unit-year','goal-esc-amount-btn'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  document.getElementById('goal-fixed-fields').style.display=''; document.getElementById('goal-esc-fields').style.display='none';
+  document.getElementById('goal-esc-rate-field').style.display=''; document.getElementById('goal-esc-amount-field').style.display='none';
+  document.getElementById('goal-period-unit').textContent='개월'; document.getElementById('goal-period-hint').textContent='예: 1년=12, 5년=60, 10년=120';
+  document.getElementById('goal-target').value=5000; document.getElementById('goal-current').value=0;
+  document.getElementById('goal-period').value=60; document.getElementById('goal-rate').value=4; document.getElementById('goal-budget').value=100;
+  setResult('goal-result','<div class="result-empty"><div class="icon">🎯</div><p>왼쪽에서 조건을 입력하면<br>결과가 여기에 표시됩니다.</p></div>');
+}
+
+// ── 주택담보대출
+function calcMortgage() {
+  const price=parseFloat(document.getElementById('mg-price').value)||0;
+  const loan=parseFloat(document.getElementById('mg-loan').value)||0;
+  const rate=parseFloat(document.getElementById('mg-rate').value)||0;
+  const period=parseInt(document.getElementById('mg-period').value)||360;
+  const income=parseFloat(document.getElementById('mg-income').value)||1;
+  const existing=parseFloat(document.getElementById('mg-existing').value)||0;
+  api('mortgage', { price, loan, rate, period, income, existing }).then(d => {
+    if (!d) return;
+    const colors={ok:'var(--teal)',warn:'var(--amber)',bad:'var(--red)'};
+    const bgColors={ok:'var(--ok-bg)',warn:'var(--warn-bg)',bad:'var(--bad-bg)'};
+    setResult('mortgage-result',`
+      <div class="kpi-main"><div class="kpi-main-label">월 상환액 (원리금균등)</div><div class="kpi-main-value">${wan(Math.round(d.pmt/10000))}</div><div class="kpi-main-sub">대출 ${fmt(loan)}만원 · ${(period/12).toFixed(0)}년 · 연 ${rate}%</div></div>
+      <div class="kpi-grid">
+        <div class="kpi-item" style="border-color:${colors[d.ltvStatus.c]};background:${bgColors[d.ltvStatus.c]}"><div class="kpi-item-label">LTV (담보인정비율)</div><div class="kpi-item-value" style="color:${colors[d.ltvStatus.c]}">${d.ltv}%</div><div class="kpi-item-sub" style="color:${colors[d.ltvStatus.c]}">${d.ltvStatus.t}</div></div>
+        <div class="kpi-item" style="border-color:${colors[d.dsrStatus.c]};background:${bgColors[d.dsrStatus.c]}"><div class="kpi-item-label">DSR (총부채원리금비율)</div><div class="kpi-item-value" style="color:${colors[d.dsrStatus.c]}">${d.dsr}%</div><div class="kpi-item-sub" style="color:${colors[d.dsrStatus.c]}">${d.dsrStatus.t}</div></div>
+        <div class="kpi-item accent"><div class="kpi-item-label">총 납부 이자</div><div class="kpi-item-value">${fmt(Math.round(d.totalInterest/10000))}만</div><div class="kpi-item-sub">원금의 ${(d.totalInterest/d.loanWon*100).toFixed(0)}%</div></div>
+        <div class="kpi-item"><div class="kpi-item-label">총 납부액</div><div class="kpi-item-value">${fmt(Math.round(d.totalPay/10000))}만</div><div class="kpi-item-sub">${(period/12).toFixed(0)}년 합계</div></div>
+      </div>`);
+  }).catch(() => {});
+}
+function resetMortgage() {
+  document.getElementById('mg-price').value=60000; document.getElementById('mg-loan').value=30000;
+  document.getElementById('mg-rate').value=4.2; document.getElementById('mg-period').value=360;
+  document.getElementById('mg-income').value=6000; document.getElementById('mg-existing').value=0;
+  setResult('mortgage-result','<div class="result-empty"><div class="icon">🏠</div><p>왼쪽에서 조건을 입력하면<br>결과가 여기에 표시됩니다.</p></div>');
+}
+</script>
+</body>
+</html>

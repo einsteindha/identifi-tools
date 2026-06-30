@@ -444,7 +444,7 @@ async function doRunBacktest(){
     Array.from(uniqueAssets).forEach(id=>{
       const d = assetDataMap[id];
       if(!d || d.error) warnings.push(`${ASSET_DEF[id]?.name||id}: 데이터 로드 실패 — 제외됨`);
-      else if(d.proxyNote) warnings.push(`${ASSET_DEF[id].name}: ${d.proxyNote}`);
+      else if(d.proxyNote && (d.etfFirstYear != null ? d.etfFirstYear > s.startYear : true)) warnings.push(`${ASSET_DEF[id].name}: ${d.proxyNote}`);
     });
     updateStep(stepIdx-1, 'done');
 
