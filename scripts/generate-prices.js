@@ -6,7 +6,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const ECOS_API_KEY = process.env.ECOS_API_KEY || 'RSVPYYLHM2SX5A2N181J';
+const ECOS_API_KEY = process.env.ECOS_API_KEY;
+if (!ECOS_API_KEY) { console.error('ECOS_API_KEY 환경변수가 필요합니다.'); process.exit(1); }
 const START_YEAR = 1993;
 const END_YEAR = new Date().getFullYear();
 const OUT_PATH = path.join(__dirname, '../public/asset-allocation-backtest/prices.json');

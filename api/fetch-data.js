@@ -1,4 +1,4 @@
-const ECOS_API_KEY = process.env.ECOS_API_KEY || 'RSVPYYLHM2SX5A2N181J';
+const ECOS_API_KEY = process.env.ECOS_API_KEY;
 
 const ASSET_DEF = {
   KOSPI_ALL:   {ticker:'^KS11',     cur:'KRW'},
