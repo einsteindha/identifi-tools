@@ -1111,6 +1111,7 @@ function loadData(){
   try{
     const d = JSON.parse(raw);
     if(d.settings) Object.assign(state.settings, d.settings);
+    if(state.settings.endYear < CY) state.settings.endYear = CY;
     if(d.portfolios) state.portfolios = d.portfolios.map(p=>({...p}));
     if(d.rows) state.rows = d.rows.map(r=>({...r, weights:[...r.weights]}));
     alert('불러오기 완료. 포트폴리오 설정을 열어 확인 후 실행하세요.');
