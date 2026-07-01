@@ -344,6 +344,7 @@ module.exports = async (req, res) => {
       // 몬테카를로: 동반 시나리오
       const _mcRaw=mc(assetNow,wAccum,ytr,wA,ret,vol,periodA,inherit,inflowArrA,runs,retAccum,volAccum);
       const probA=Math.round(_mcRaw*100);
+      const failA=runs-Math.round(_mcRaw*runs);
       const fanA=mcPaths(assetNow,wAccum,ytr,wA,ret,vol,mePeriod,inflowArrA,runs,retAccum,volAccum);
       let seqProb=null,seqFullWithAccum=null,seqEndVal=null,medEndVal=null;
       if(seqActive){
@@ -356,7 +357,7 @@ module.exports = async (req, res) => {
       // 몬테카를로: 독거 시나리오
       let wS=null,assetAtDeath=null,soloBufAmt=null,rateS=null;
       let chainedResult=null,fanS90=null,fanS50=null,fanS10=null;
-      let wSPV=null,neededS=null,gapS=null,probS=null,condProbS=null,monS=null;
+      let wSPV=null,neededS=null,gapS=null,probS=null,failS=null,condProbS=null,monS=null;
       if(hasSp&&soloPeriod>0){
         const dY=Math.min(soloDeathY,periodA),dYIdx=ytr+dY;
         assetAtDeath=fanA.p50[dYIdx]??0;
@@ -384,6 +385,7 @@ module.exports = async (req, res) => {
         neededS=wSPV+inherit*Math.pow(1+netRet/100,-soloPeriod)+soloBufAmt;
         gapS=assetAtDeath-neededS;
         probS=Math.round(chainedResult.probTotal*100);
+        failS=runs-Math.round(chainedResult.probTotal*runs);
         condProbS=Math.round(chainedResult.condProb*100);
         monS=Math.round(soloInvestable*(rateS/100)/12+soloPensionTotal);
       }
@@ -395,9 +397,9 @@ module.exports = async (req, res) => {
         initBuf,maxBuf,maxBufStartAge,bufRows,bufAmt,
         investable,rateA,netRet,wAPV,inflowPV,neededA,gapA,
         totalEvtFV,totalInflowFV,
-        probA,fanA,seqProb,seqFullWithAccum,seqEndVal,medEndVal,
+        probA,failA,fanA,seqProb,seqFullWithAccum,seqEndVal,medEndVal,
         wS,assetAtDeath,soloBufAmt,rateS,chainedResult,fanS90,fanS50,fanS10,
-        wSPV,neededS,gapS,probS,condProbS,monS,
+        wSPV,neededS,gapS,probS,failS,condProbS,monS,
       });
     }
 

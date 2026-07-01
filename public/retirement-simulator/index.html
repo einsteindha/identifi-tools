@@ -1787,9 +1787,9 @@ async function update(){
     assetAtRet,wAccum,wA,inflowArrA,
     initBuf,maxBuf,maxBufStartAge,bufRows,bufAmt,investable,
     rateA,neededA,gapA,
-    probA,fanA,seqProb,seqFullWithAccum,seqEndVal,medEndVal,
+    probA,failA,fanA,seqProb,seqFullWithAccum,seqEndVal,medEndVal,
     assetAtDeath,soloBufAmt,rateS,fanS90,fanS50,fanS10,
-    neededS,gapS,probS,condProbS,monS,
+    neededS,gapS,probS,failS,condProbS,monS,
   }=result;
   const ytr=retAge-age;
 
@@ -1892,7 +1892,6 @@ async function update(){
   $('note-a').textContent=`▲ ${retAge+mePstartY}세 본인 공적연금 개시`+(hasSp?` · ● ${spAgeAtRetire+spPstartY}세 배우자 공적연금 개시(배우자 나이 기준)`:'')+inflowNote+(ytr>0?` · 황금점선: 본인 은퇴(${retAge}세)`:'')+  (hasSp&&spRet!==retAge?` · 초록점선: 배우자 은퇴(${spRet}세)`+(spExtra>0?' · 음영: 배우자 잔여적립기':''):'') ;
   const taxNote='<div style="font-size:11px;color:var(--text3);margin-top:8px">⚠️ 세금 미반영: 연금소득세·금융소득세 등은 계산에 포함되지 않습니다. 실제 수령액은 세후 기준으로 별도 확인하세요.</div>';
   const runs=10000;
-  const failA=Math.round(runs*(1-probA/100));
   const probNote=`<div style="font-size:12px;color:var(--text2);margin-top:5px">10,000가지 시장 시나리오 중 <b>${runs-failA}번</b> 성공, <b style="color:var(--red,#D85A30)">${failA}번</b>은 자산 고갈.</div>`;
   let msgA='',clsA='';
   if(probA>=90&&rateA<=4){
@@ -2001,7 +2000,6 @@ async function update(){
     labS, cS, '#7c5cbf', inheritCurveS
   );
   $('note-s').textContent=`잔여 ${fmtW(assetAtDeath)} | ${soloName} 홀로 ${soloPeriod}년 | 공적연금 월 ${soloPenAmt}만원`;
-  const failS=Math.round(runs*(1-probS/100));
   const probNoteS=`<div style="font-size:12px;color:var(--text2);margin-top:5px">10,000가지 시장 시나리오 중 <b>${runs-failS}번</b> 성공, <b style="color:var(--red,#D85A30)">${failS}번</b>은 자산 고갈.</div>`;
   // probS  = 처음부터 끝까지 전구간(적립+동반+독거) 성공률
   // condProbS = 동반기를 버텼다는 전제 하에 독거기도 버틸 확률 = probS/probA
