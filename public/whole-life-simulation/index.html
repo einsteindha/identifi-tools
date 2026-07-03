@@ -349,9 +349,9 @@ function seedDefaults(){
   const age=getCurrentAge();
   realAssets.push({id:++seqReal,name:'주택',value:30000,growthRate:2,buyAge:null,sellAge:null});
   incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:age,endAge:60,growth:2});
-  stages.push({id:++seqStage,label:'활동기',startAge:age,endAge:65,monthlyAmount:300});
-  stages.push({id:++seqStage,label:'회상기',startAge:65,endAge:85,monthlyAmount:250});
-  stages.push({id:++seqStage,label:'간병기',startAge:85,endAge:130,monthlyAmount:200});
+  stages.push({id:++seqStage,label:'적립기 - 경제활동기',startAge:age,endAge:65,monthlyAmount:300});
+  stages.push({id:++seqStage,label:'인출기 - 활동기',startAge:65,endAge:85,monthlyAmount:250});
+  stages.push({id:++seqStage,label:'인출기 - 간병기',startAge:85,endAge:130,monthlyAmount:200});
   renderRealAssets();renderDebts();renderIncomes();renderStages();renderEvts();
 }
 seedDefaults();
