@@ -83,14 +83,21 @@ function buildRealAssetsSchedule(realAssets, ages, currentAge){
   return{realArr,cashAdj};
 }
 
+// 구간이 startAge~endAge(둘 다 입력 UI상 "포함" 의미)인지 판정.
+// 인접 구간이 경계 나이를 공유(예: ~65세 / 65세~)해도 이중 계산되지 않도록 종료 나이는 배타적으로 처리하되,
+// 전체 시뮬레이션의 마지막 나이(lastAge)에서는 끝 경계를 포함해 마지막 해가 누락되지 않게 한다.
+function inStageRange(age, startAge, endAge, lastAge){
+  return age>=startAge && (age<endAge || (age===lastAge && age<=endAge));
+}
+
 // 정기수입 - 생활비단계 - 일시유입출 = 나이별 순현금흐름 (물가/성장률 반영, 만원)
 function buildCashflowArray(ages, currentAge, incomes, stages, events, inflationPct){
-  const n=ages.length, arr=new Array(n).fill(0), infl=inflationPct/100;
+  const n=ages.length, arr=new Array(n).fill(0), infl=inflationPct/100, lastAge=ages[n-1];
   for(const inc of (incomes||[])){
     const growth=(inc.growth||0)/100;
     for(let i=0;i<n;i++){
       const age=ages[i];
-      if(age>=inc.startAge && age<=inc.endAge){
+      if(inStageRange(age, inc.startAge, inc.endAge, lastAge)){
         arr[i]+=(inc.annualAmount||0)*Math.pow(1+growth, age-inc.startAge);
       }
     }
@@ -98,7 +105,7 @@ function buildCashflowArray(ages, currentAge, incomes, stages, events, inflation
   for(const st of (stages||[])){
     for(let i=0;i<n;i++){
       const age=ages[i];
-      if(age>=st.startAge && age<=st.endAge){
+      if(inStageRange(age, st.startAge, st.endAge, lastAge)){
         arr[i]-=(st.monthlyAmount||0)*12*Math.pow(1+infl, Math.max(0,age-currentAge));
       }
     }
@@ -112,11 +119,11 @@ function buildCashflowArray(ages, currentAge, incomes, stages, events, inflation
 
 // 지출·자산유출 (막대그래프용, 항상 양수, 만원): 생활비 단계 + 유출성 일시 이벤트(음수 금액)만 포함, 유입 이벤트는 제외
 function buildExpenseArray(ages, currentAge, stages, events, inflationPct){
-  const n=ages.length, arr=new Array(n).fill(0), infl=inflationPct/100;
+  const n=ages.length, arr=new Array(n).fill(0), infl=inflationPct/100, lastAge=ages[n-1];
   for(const st of (stages||[])){
     for(let i=0;i<n;i++){
       const age=ages[i];
-      if(age>=st.startAge && age<=st.endAge){
+      if(inStageRange(age, st.startAge, st.endAge, lastAge)){
         arr[i]+=(st.monthlyAmount||0)*12*Math.pow(1+infl, Math.max(0,age-currentAge));
       }
     }
