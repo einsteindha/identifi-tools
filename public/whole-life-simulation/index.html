@@ -118,9 +118,10 @@ input:focus,select:focus{border-color:var(--accent)}
 
   <div class="section">
     <div class="section-title">기본 정보</div>
-    <label>현재 나이</label>
-    <input type="number" id="in-age" value="35" min="0" max="129" oninput="_pv()">
-    <div class="section-hint">시뮬레이션은 현재 나이부터 130세까지 진행됩니다 (기대수명 입력 없음).</div>
+    <label>생년월일</label>
+    <input type="date" id="in-birth" oninput="updateAgeDisplay()">
+    <div class="section-hint" id="age-display">현재 만 —세</div>
+    <div class="section-hint">현재 나이는 생년월일 기준 만 나이로 자동 계산되며, 시뮬레이션은 현재 나이부터 130세까지 진행됩니다 (기대수명 입력 없음).</div>
   </div>
 
   <div class="section">
@@ -217,6 +218,24 @@ function sr(el,vid,dec){$(vid).textContent=(+el.value).toFixed(dec)+'%';_rp(el);
 function _rp(e){var v=parseFloat(e.value),mn=parseFloat(e.min)||0,mx=parseFloat(e.max)||100;if(mx!==mn)e.style.setProperty('--pct',((v-mn)/(mx-mn)*100).toFixed(1)+'%');}
 function _pv(){}
 
+function getCurrentAge(){
+  const v=$('in-birth').value;
+  if(!v) return 35;
+  const b=new Date(v), t=new Date();
+  let age=t.getFullYear()-b.getFullYear();
+  const m=t.getMonth()-b.getMonth();
+  if(m<0 || (m===0 && t.getDate()<b.getDate())) age--;
+  return Math.max(0, age);
+}
+function updateAgeDisplay(){
+  $('age-display').textContent='현재 만 '+getCurrentAge()+'세';
+}
+function defaultBirthDate(){
+  const t=new Date();
+  const y=t.getFullYear()-35;
+  return y+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+}
+
 // ── 상태 ─────────────────────────────────────────────
 let revals=[], debts=[], incomes=[], stages=[], events=[];
 let seqReval=0, seqDebt=0, seqInc=0, seqStage=0, seqEvt=0;
@@ -240,7 +259,7 @@ function renderRevals(){
 }
 
 // 부채
-function addDebt(){debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,startAge:+$('in-age').value||35});renderDebts();}
+function addDebt(){debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,startAge:getCurrentAge()});renderDebts();}
 function removeDebt(id){debts=debts.filter(x=>x.id!==id);renderDebts();}
 function debtU(id,f,v){const x=debts.find(d=>d.id===id);if(x)x[f]=v;}
 function renderDebts(){
@@ -266,7 +285,7 @@ function renderDebts(){
 }
 
 // 정기 수입
-function addIncome(){incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:+$('in-age').value||35,endAge:60,growth:2});renderIncomes();}
+function addIncome(){incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:getCurrentAge(),endAge:60,growth:2});renderIncomes();}
 function removeIncome(id){incomes=incomes.filter(x=>x.id!==id);renderIncomes();}
 function incU(id,f,v){const x=incomes.find(i=>i.id===id);if(x)x[f]=v;}
 function renderIncomes(){
@@ -327,7 +346,9 @@ function renderEvts(){
 
 // ── 초기값 ───────────────────────────────────────────
 function seedDefaults(){
-  const age=+$('in-age').value||35;
+  $('in-birth').value=defaultBirthDate();
+  updateAgeDisplay();
+  const age=getCurrentAge();
   incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:age,endAge:60,growth:2});
   stages.push({id:++seqStage,label:'활동기',startAge:age,endAge:65,monthlyAmount:300});
   stages.push({id:++seqStage,label:'회상기',startAge:65,endAge:85,monthlyAmount:250});
@@ -340,7 +361,7 @@ seedDefaults();
 // ── 실행 ─────────────────────────────────────────────
 function collectPayload(){
   return{
-    currentAge:+$('in-age').value||35,
+    currentAge:getCurrentAge(),
     realAsset:{current:+$('in-real').value||0, revals:revals.map(r=>({age:r.age,value:r.value}))},
     finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
     debts:debts.map(d=>({principal:d.principal,rate:d.rate,method:d.method,years:d.years,startAge:d.startAge})),
@@ -427,7 +448,7 @@ function renderResults(d){
 // ── 저장/불러오기 (localStorage) ─────────────────────
 function saveState(){
   const state={
-    age:$('in-age').value, real:$('in-real').value, fin:$('in-fin').value,
+    birth:$('in-birth').value, real:$('in-real').value, fin:$('in-fin').value,
     ret:$('in-ret').value, vol:$('in-vol').value, infl:$('in-infl').value,
     revals, debts, incomes, stages, events
   };
@@ -438,7 +459,7 @@ function loadState(){
   const raw=localStorage.getItem('lifeFundSimState');
   if(!raw){alert('저장된 데이터가 없습니다.');return;}
   const s=JSON.parse(raw);
-  $('in-age').value=s.age;$('in-real').value=s.real;$('in-fin').value=s.fin;
+  $('in-birth').value=s.birth;updateAgeDisplay();$('in-real').value=s.real;$('in-fin').value=s.fin;
   $('in-ret').value=s.ret;sr($('in-ret'),'in-ret-v',1);
   $('in-vol').value=s.vol;sr($('in-vol'),'in-vol-v',1);
   $('in-infl').value=s.infl;sr($('in-infl'),'in-infl-v',1);
