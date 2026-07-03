@@ -118,10 +118,15 @@ input:focus,select:focus{border-color:var(--accent)}
 
   <div class="section">
     <div class="section-title">기본 정보</div>
-    <label>생년월일</label>
-    <input type="date" id="in-birth" oninput="updateAgeDisplay()">
+    <label>생년월</label>
+    <div style="display:flex;align-items:center;gap:4px">
+      <input type="number" id="in-birth-y" min="1930" max="2026" step="1" oninput="updateAgeDisplay()" style="width:70px">
+      <span style="font-size:11px;color:var(--text3)">년</span>
+      <input type="number" id="in-birth-m" min="1" max="12" step="1" oninput="updateAgeDisplay()" style="width:50px">
+      <span style="font-size:11px;color:var(--text3)">월</span>
+    </div>
     <div class="section-hint" id="age-display">현재 만 —세</div>
-    <div class="section-hint">현재 나이는 생년월일 기준 만 나이로 자동 계산되며, 시뮬레이션은 현재 나이부터 130세까지 진행됩니다 (기대수명 입력 없음).</div>
+    <div class="section-hint">현재 나이는 생년월 기준 만 나이로 자동 계산되며, 시뮬레이션은 현재 나이부터 130세까지 진행됩니다 (기대수명 입력 없음).</div>
   </div>
 
   <div class="section">
@@ -213,22 +218,26 @@ function sr(el,vid,dec){$(vid).textContent=(+el.value).toFixed(dec)+'%';_rp(el);
 function _rp(e){var v=parseFloat(e.value),mn=parseFloat(e.min)||0,mx=parseFloat(e.max)||100;if(mx!==mn)e.style.setProperty('--pct',((v-mn)/(mx-mn)*100).toFixed(1)+'%');}
 function _pv(){}
 
+// 생년월(y,m) 기준, 대상 연월(ty,tm)에서의 만 나이
+function ageAtYM(by,bm,ty,tm){
+  let age=ty-by;
+  if(tm<bm) age--;
+  return age;
+}
+function getBirthYM(){
+  return{y:+$('in-birth-y').value||1991, m:+$('in-birth-m').value||1};
+}
 function getCurrentAge(){
-  const v=$('in-birth').value;
-  if(!v) return 35;
-  const b=new Date(v), t=new Date();
-  let age=t.getFullYear()-b.getFullYear();
-  const m=t.getMonth()-b.getMonth();
-  if(m<0 || (m===0 && t.getDate()<b.getDate())) age--;
-  return Math.max(0, age);
+  const b=getBirthYM(), t=new Date();
+  return Math.max(0, ageAtYM(b.y,b.m,t.getFullYear(),t.getMonth()+1));
 }
 function updateAgeDisplay(){
   $('age-display').textContent='현재 만 '+getCurrentAge()+'세';
 }
-function defaultBirthDate(){
+function setDefaultBirth(){
   const t=new Date();
-  const y=t.getFullYear()-35;
-  return y+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  $('in-birth-y').value=t.getFullYear()-35;
+  $('in-birth-m').value=t.getMonth()+1;
 }
 
 // ── 상태 ─────────────────────────────────────────────
@@ -257,7 +266,7 @@ function renderRealAssets(){
 }
 
 // 부채
-function addDebt(){debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,originAge:getCurrentAge()});renderDebts();}
+function addDebt(){const t=new Date();debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,originY:t.getFullYear(),originM:t.getMonth()+1});renderDebts();}
 function removeDebt(id){debts=debts.filter(x=>x.id!==id);renderDebts();}
 function debtU(id,f,v){const x=debts.find(d=>d.id===id);if(x)x[f]=v;}
 function renderDebts(){
@@ -275,7 +284,14 @@ function renderDebts(){
         <option value="bullet" ${d.method==='bullet'?'selected':''}>만기일시</option>
       </select></div>
       <div><div class="flow-label">상환 기간 (년)</div><input class="flow-input" type="number" value="${d.years}" oninput="debtU(${d.id},'years',+this.value)"></div>
-      <div style="grid-column:1/-1"><div class="flow-label">대출실행 시점 (나이, 과거도 입력 가능 — 이미 상환 중인 대출의 현재 잔액을 정확히 계산합니다)</div><input class="flow-input" type="number" value="${d.originAge}" oninput="debtU(${d.id},'originAge',+this.value)"></div>
+      <div style="grid-column:1/-1"><div class="flow-label">대출실행일 (과거도 입력 가능 — 이미 상환 중인 대출의 현재 잔액을 정확히 계산합니다)</div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <input class="flow-input" type="number" value="${d.originY}" style="width:70px" oninput="debtU(${d.id},'originY',+this.value)">
+          <span style="font-size:10px;color:var(--text3)">년</span>
+          <input class="flow-input" type="number" value="${d.originM}" min="1" max="12" style="width:50px" oninput="debtU(${d.id},'originM',+this.value)">
+          <span style="font-size:10px;color:var(--text3)">월</span>
+        </div>
+      </div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeDebt(${d.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
@@ -344,7 +360,7 @@ function renderEvts(){
 
 // ── 초기값 ───────────────────────────────────────────
 function seedDefaults(){
-  $('in-birth').value=defaultBirthDate();
+  setDefaultBirth();
   updateAgeDisplay();
   const age=getCurrentAge();
   realAssets.push({id:++seqReal,name:'주택',value:30000,growthRate:2,buyAge:null,sellAge:null});
@@ -363,7 +379,7 @@ function collectPayload(){
     currentAge:getCurrentAge(),
     realAssets:realAssets.map(r=>({value:r.value,growthRate:r.growthRate,buyAge:r.buyAge,sellAge:r.sellAge})),
     finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
-    debts:debts.map(d=>({principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:d.originAge})),
+    debts:debts.map(d=>{const b=getBirthYM();return{principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:ageAtYM(b.y,b.m,d.originY,d.originM)};}),
     incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.endAge,growth:i.growth})),
     stages:stages.map(s=>({startAge:s.startAge,endAge:s.endAge,monthlyAmount:s.monthlyAmount})),
     events:events.map(e=>({age:e.age,amount:e.amount})),
@@ -439,7 +455,7 @@ function renderResults(d){
 // ── 저장/불러오기 (localStorage) ─────────────────────
 function saveState(){
   const state={
-    birth:$('in-birth').value, fin:$('in-fin').value,
+    birthY:$('in-birth-y').value, birthM:$('in-birth-m').value, fin:$('in-fin').value,
     ret:$('in-ret').value, vol:$('in-vol').value, infl:$('in-infl').value,
     realAssets, debts, incomes, stages, events
   };
@@ -450,7 +466,7 @@ function loadState(){
   const raw=localStorage.getItem('lifeFundSimState');
   if(!raw){alert('저장된 데이터가 없습니다.');return;}
   const s=JSON.parse(raw);
-  $('in-birth').value=s.birth;updateAgeDisplay();$('in-fin').value=s.fin;
+  $('in-birth-y').value=s.birthY;$('in-birth-m').value=s.birthM;updateAgeDisplay();$('in-fin').value=s.fin;
   $('in-ret').value=s.ret;sr($('in-ret'),'in-ret-v',1);
   $('in-vol').value=s.vol;sr($('in-vol'),'in-vol-v',1);
   $('in-infl').value=s.infl;sr($('in-infl'),'in-infl-v',1);
