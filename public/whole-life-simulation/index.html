@@ -125,7 +125,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <div class="hdr-actions">
     <button class="hdr-btn" onclick="saveState()">💾 저장</button>
     <button class="hdr-btn" onclick="loadState()">📂 불러오기</button>
-    <button class="hdr-btn" onclick="doPrint()">📄 PDF 저장</button>
+    <button class="hdr-btn" onclick="_mPrint(doPrint)">📄 PDF 저장</button>
     <span class="header-badge">상담용 참고자료</span>
   </div>
 </div>
@@ -630,6 +630,17 @@ function loadState(){
 }
 
 // ── PDF 저장 (브라우저 인쇄 → PDF로 저장) ─────────────────────
+function _mPrint(fn){
+  if(window.matchMedia('(max-width:768px)').matches){
+    const t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:14px 22px;border-radius:10px;font-size:14px;z-index:9999;text-align:center;max-width:280px;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+    t.innerHTML='📄 PDF 저장은<br><b>PC 웹 브라우저</b>에서 이용해 주세요.';
+    document.body.appendChild(t);
+    setTimeout(function(){t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(function(){t.remove();},400);},3000);
+    return;
+  }
+  fn();
+}
 function doPrint(){
   if(chartNet) try{chartNet.resize();}catch(e){}
   if(chartMc) try{chartMc.resize();}catch(e){}
