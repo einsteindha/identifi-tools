@@ -117,7 +117,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <div class="section">
     <div class="section-title">기본 정보</div>
     <label>생년월일</label>
-    <input type="date" id="in-birth" oninput="updateAgeDisplay()">
+    <input type="date" id="in-birth" oninput="updateAgeDisplay();renderRealAssets();renderIncomes();renderStages();renderInflows();renderOutflows();">
     <div class="section-hint" id="age-display">현재 만 —세</div>
     <div class="section-hint">현재 나이는 생년월일 기준 만 나이로 자동 계산되며, 시뮬레이션은 현재 나이부터 130세까지 진행됩니다 (기대수명 입력 없음).</div>
   </div>
@@ -264,6 +264,7 @@ function realAssetU(id,f,v){const x=realAssets.find(r=>r.id===id);if(x)x[f]=v;}
 function renderRealAssets(){
   const list=$('real-asset-list');list.innerHTML='';
   if(!realAssets.length){list.innerHTML='<div class="empty-hint">실물자산 없음</div>';return;}
+  const minAge=getCurrentAge();
   realAssets.forEach(r=>{
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
@@ -272,8 +273,8 @@ function renderRealAssets(){
       <div style="grid-column:1/-1"><div class="flow-label">상승률 (연)</div>
         <div class="range-row"><input type="range" min="-5" max="10" step="0.5" value="${r.growthRate}" oninput="realAssetU(${r.id},'growthRate',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(1)+'%';_rp(this)"><span class="range-val">${(+r.growthRate).toFixed(1)}%</span></div>
       </div>
-      <div><div class="flow-label">매수 시점 (나이, 비우면 현재 보유)</div><input class="flow-input" type="number" value="${r.buyAge==null?'':r.buyAge}" oninput="realAssetU(${r.id},'buyAge',this.value===''?null:+this.value)"></div>
-      <div><div class="flow-label">매도 시점 (나이, 비우면 매도 없음)</div><input class="flow-input" type="number" value="${r.sellAge==null?'':r.sellAge}" oninput="realAssetU(${r.id},'sellAge',this.value===''?null:+this.value)"></div>
+      <div><div class="flow-label">매수 시점 (나이, 비우면 현재 보유)</div><input class="flow-input" type="number" min="${minAge}" value="${r.buyAge==null?'':r.buyAge}" oninput="realAssetU(${r.id},'buyAge',this.value===''?null:Math.max(${minAge},+this.value))"></div>
+      <div><div class="flow-label">매도 시점 (나이, 비우면 매도 없음)</div><input class="flow-input" type="number" min="${minAge}" value="${r.sellAge==null?'':r.sellAge}" oninput="realAssetU(${r.id},'sellAge',this.value===''?null:Math.max(${minAge},+this.value))"></div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeRealAsset(${r.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
@@ -317,14 +318,15 @@ function incU(id,f,v){const x=incomes.find(i=>i.id===id);if(x)x[f]=v;}
 function renderIncomes(){
   const list=$('income-list');list.innerHTML='';
   if(!incomes.length){list.innerHTML='<div class="empty-hint">정기 수입 없음</div>';return;}
+  const minAge=getCurrentAge();
   incomes.forEach(e=>{
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">수입 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="incU(${e.id},'label',this.value)"></div>
       <div><div class="flow-label">연간 금액 (만원)</div><input class="flow-input" type="number" value="${e.annualAmount}" step="100" oninput="incU(${e.id},'annualAmount',+this.value)"></div>
       <div><div class="flow-label">성장률 (연, %)</div><input class="flow-input" type="number" value="${e.growth}" step="0.5" oninput="incU(${e.id},'growth',+this.value)"></div>
-      <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" value="${e.startAge}" oninput="incU(${e.id},'startAge',+this.value)"></div>
-      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" value="${e.endAge}" oninput="incU(${e.id},'endAge',+this.value)"></div>
+      <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.startAge}" oninput="incU(${e.id},'startAge',Math.max(${minAge},+this.value))"></div>
+      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.endAge}" oninput="incU(${e.id},'endAge',Math.max(${minAge},+this.value))"></div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeIncome(${e.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
@@ -393,11 +395,12 @@ function inflowU(id,f,v){const x=inflows.find(e=>e.id===id);if(x)x[f]=v;}
 function renderInflows(){
   const list=$('inflow-list');list.innerHTML='';
   if(!inflows.length){list.innerHTML='<div class="empty-hint">일시 유입 없음</div>';return;}
+  const minAge=getCurrentAge();
   inflows.forEach(e=>{
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr 1fr auto">
       <div><div class="flow-label">이벤트 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="inflowU(${e.id},'label',this.value)"></div>
-      <div><div class="flow-label">나이</div><input class="flow-input" type="number" value="${e.age}" oninput="inflowU(${e.id},'age',+this.value)"></div>
+      <div><div class="flow-label">나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.age}" oninput="inflowU(${e.id},'age',Math.max(${minAge},+this.value))"></div>
       <div><div class="flow-label">금액 (만원)</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="inflowU(${e.id},'amount',Math.abs(+this.value))"></div>
       <button class="del-btn" onclick="removeInflow(${e.id})">×</button>
     </div>`;
@@ -412,11 +415,12 @@ function outflowU(id,f,v){const x=outflows.find(e=>e.id===id);if(x)x[f]=v;}
 function renderOutflows(){
   const list=$('outflow-list');list.innerHTML='';
   if(!outflows.length){list.innerHTML='<div class="empty-hint">일시 유출 없음</div>';return;}
+  const minAge=getCurrentAge();
   outflows.forEach(e=>{
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr 1fr auto">
       <div><div class="flow-label">이벤트 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="outflowU(${e.id},'label',this.value)"></div>
-      <div><div class="flow-label">나이</div><input class="flow-input" type="number" value="${e.age}" oninput="outflowU(${e.id},'age',+this.value)"></div>
+      <div><div class="flow-label">나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.age}" oninput="outflowU(${e.id},'age',Math.max(${minAge},+this.value))"></div>
       <div><div class="flow-label">금액 (만원)</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="outflowU(${e.id},'amount',Math.abs(+this.value))"></div>
       <button class="del-btn" onclick="removeOutflow(${e.id})">×</button>
     </div>`;
