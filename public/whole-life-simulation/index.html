@@ -73,7 +73,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 .empty-hint{font-size:11.5px;color:var(--text3);padding:6px 0}
 .kr-money{font-size:10.5px;color:var(--accent);margin-top:3px;font-family:'DM Mono',monospace}
 
-.dash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
 .dash-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 13px}
 .dash-label{font-size:10px;font-weight:600;color:var(--text3);margin-bottom:3px}
 .dash-value{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;line-height:1.2}
@@ -192,6 +192,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <div class="dash-grid">
     <div class="dash-card"><div class="dash-label">금융자산 적자 전환 시점 (중앙값)</div><div class="dash-value" id="kpi-deplete">—</div></div>
     <div class="dash-card"><div class="dash-label">부채 완제 시점</div><div class="dash-value" id="kpi-debtpay">—</div></div>
+    <div class="dash-card"><div class="dash-label">순자산 고갈 시점 (중앙값)</div><div class="dash-value" id="kpi-nw-deplete">—</div></div>
   </div>
 
   <div class="chart-wrap">
@@ -524,6 +525,7 @@ function renderResults(d){
 
   $('kpi-deplete').textContent=d.depletionAge?d.depletionAge+'세':'적자 없음';
   $('kpi-debtpay').textContent=d.debtPayoffAge?d.debtPayoffAge+'세':(debts.length?'미완제':'부채 없음');
+  $('kpi-nw-deplete').textContent=d.netWorthDepletionAge?d.netWorthDepletionAge+'세':'고갈 없음';
 
   const labels=d.ages.map(a=>a+'세');
 

@@ -184,9 +184,11 @@ function monteCarlo(finStart, expReturnPct, volPct, ages, netFlowArr, realArr, d
   }
   let depletionAge=null;
   for(let i=0;i<n;i++){if(fp50[i]<=0){depletionAge=ages[i];break;}}
+  let netWorthDepletionAge=null;
+  for(let i=0;i<n;i++){if(p50[i]<=0){netWorthDepletionAge=ages[i];break;}}
   let successCount=0;
   for(const nw of nwPaths) if(nw[n-1]>=0) successCount++;
-  return{p10,p50,p90,fp10,fp50,fp90,depletionAge,successRate:successCount/runs*100};
+  return{p10,p50,p90,fp10,fp50,fp90,depletionAge,netWorthDepletionAge,successRate:successCount/runs*100};
 }
 
 module.exports=async(req,res)=>{
@@ -238,7 +240,7 @@ module.exports=async(req,res)=>{
     return res.status(200).json({
       ages, real:realArr, debtBalance:debtBalanceArr, finDet:finPathDet, netWorthDet, expense:expenseArr,
       p10:mc.p10, p50:mc.p50, p90:mc.p90, finP10:mc.fp10, finP50:mc.fp50, finP90:mc.fp90,
-      depletionAge:mc.depletionAge, debtPayoffAge, successRate:mc.successRate
+      depletionAge:mc.depletionAge, netWorthDepletionAge:mc.netWorthDepletionAge, debtPayoffAge, successRate:mc.successRate
     });
   }catch(e){
     return res.status(500).json({error:e.message});
