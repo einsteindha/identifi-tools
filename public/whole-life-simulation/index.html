@@ -267,8 +267,8 @@ let realAssets=[], debts=[], incomes=[], stages=[], inflows=[], outflows=[];
 let seqReal=0, seqDebt=0, seqInc=0, seqStage=0, seqInflow=0, seqOutflow=0;
 
 // 실물자산
-function addRealAsset(){realAssets.push({id:++seqReal,name:'실물자산',value:30000,growthRate:2,buyAge:null,sellAge:null});renderRealAssets();}
-function removeRealAsset(id){realAssets=realAssets.filter(x=>x.id!==id);renderRealAssets();}
+function addRealAsset(){realAssets.push({id:++seqReal,name:'실물자산',value:30000,growthRate:2,buyAge:null,sellAge:null});renderRealAssets();renderDebts();}
+function removeRealAsset(id){realAssets=realAssets.filter(x=>x.id!==id);debts.forEach(d=>{if(d.linkAssetId===id)d.linkAssetId=null;});renderRealAssets();renderDebts();}
 function realAssetU(id,f,v){const x=realAssets.find(r=>r.id===id);if(x)x[f]=v;}
 function renderRealAssets(){
   const list=$('real-asset-list');list.innerHTML='';
@@ -293,7 +293,7 @@ function renderRealAssets(){
 }
 
 // 부채
-function addDebt(){const t=new Date();debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,originYM:t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')});renderDebts();}
+function addDebt(){const t=new Date();debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,originYM:t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0'),linkAssetId:null});renderDebts();}
 function removeDebt(id){debts=debts.filter(x=>x.id!==id);renderDebts();}
 function debtU(id,f,v){const x=debts.find(d=>d.id===id);if(x)x[f]=v;}
 function renderDebts(){
@@ -313,6 +313,12 @@ function renderDebts(){
       <div><div class="flow-label">상환 기간 (년)</div><input class="flow-input" type="number" value="${d.years}" oninput="debtU(${d.id},'years',+this.value)"></div>
       <div style="grid-column:1/-1"><div class="flow-label">대출실행일 (과거도 입력 가능 — 이미 상환 중인 대출의 현재 잔액을 정확히 계산합니다)</div>
         <input class="flow-input" type="month" value="${d.originYM}" oninput="debtU(${d.id},'originYM',this.value)">
+      </div>
+      <div style="grid-column:1/-1"><div class="flow-label">담보 실물자산 (선택 시, 해당 자산 매도할 때 매각대금에서 대출잔액이 자동 상환됩니다)</div>
+        <select class="flow-input" onchange="debtU(${d.id},'linkAssetId',this.value===''?null:+this.value)">
+          <option value="">없음 (담보 없음)</option>
+          ${realAssets.map(r=>`<option value="${r.id}" ${d.linkAssetId===r.id?'selected':''}>${r.name}</option>`).join('')}
+        </select>
       </div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeDebt(${d.id})">× 삭제</button>
     </div>`;
@@ -461,9 +467,9 @@ runSim();
 function collectPayload(){
   return{
     currentAge:getCurrentAge(),
-    realAssets:realAssets.map(r=>({value:r.value,growthRate:r.growthRate,buyAge:r.buyAge,sellAge:r.sellAge})),
+    realAssets:realAssets.map(r=>({id:r.id,value:r.value,growthRate:r.growthRate,buyAge:r.buyAge,sellAge:r.sellAge})),
     finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
-    debts:debts.map(d=>{const b=getBirthYM();const[oy,om]=(d.originYM||'').split('-').map(Number);return{principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:ageAtYM(b.y,b.m,oy||b.y,om||1)};}),
+    debts:debts.map(d=>{const b=getBirthYM();const[oy,om]=(d.originYM||'').split('-').map(Number);return{principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:ageAtYM(b.y,b.m,oy||b.y,om||1),linkAssetId:d.linkAssetId||null};}),
     incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.endAge,growth:i.growth})),
     stages:computeStageRanges().map(r=>({startAge:r.startAge,endAge:r.endAge,monthlyAmount:r.monthlyAmount})),
     events:[...inflows.map(e=>({startAge:e.startAge,endAge:Math.max(e.startAge,e.endAge),amount:Math.abs(e.amount)})), ...outflows.map(e=>({startAge:e.startAge,endAge:Math.max(e.startAge,e.endAge),amount:-Math.abs(e.amount)}))],

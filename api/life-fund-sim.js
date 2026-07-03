@@ -43,12 +43,19 @@ function debtScheduleForOne(d, ages){
   });
 }
 
-function buildDebtSchedule(debts, ages){
+// 부채별 나이별 스케줄을 개별 배열로 반환 (담보 실물자산 매각 시 개별 대출을 조기상환 처리하기 위해 합산 전 유지)
+function buildDebtSchedules(debts, ages){
   const n=ages.length;
-  const balance=new Array(n).fill(0), payment=new Array(n).fill(0);
-  for(const d of (debts||[])){
+  return (debts||[]).map(d=>{
     const sched=debtScheduleForOne(d, ages);
-    for(let i=0;i<n;i++){balance[i]+=sched[i].bal;payment[i]+=sched[i].payment;}
+    return{balance:sched.map(s=>s.bal), payment:sched.map(s=>s.payment)};
+  });
+}
+
+function sumDebtSchedules(schedules, n){
+  const balance=new Array(n).fill(0), payment=new Array(n).fill(0);
+  for(const s of schedules){
+    for(let i=0;i<n;i++){balance[i]+=s.balance[i];payment[i]+=s.payment[i];}
   }
   return{balance,payment};
 }
@@ -57,10 +64,12 @@ function buildDebtSchedule(debts, ages){
 // 금융자산에서 매수금액 차감, sellAge(매도시점)가 있으면 그 시점 가치만큼 금융자산으로 편입.
 // buyAge를 비워두면(null) "현재 이미 보유 중"으로 간주해 currentAge 시점 값 = value로 시작한다.
 // 반환: realArr(실물자산 총액, 나이별) + cashAdj(매수/매도로 인한 금융자산 증감, 나이별)
+//      + sellInfo(id별 매각 시점 인덱스·매각가 — 담보대출 연동 상환 계산용)
 function buildRealAssetsSchedule(realAssets, ages, currentAge){
   const n=ages.length;
   const realArr=new Array(n).fill(0);
   const cashAdj=new Array(n).fill(0);
+  const sellInfo={};
   for(const item of (realAssets||[])){
     const rate=(item.growthRate||0)/100;
     const buyAge=(item.buyAge!=null && item.buyAge>currentAge) ? item.buyAge : currentAge;
@@ -74,13 +83,30 @@ function buildRealAssetsSchedule(realAssets, ages, currentAge){
       if(sold) continue;
       if(sellAge!=null && age===sellAge){
         cashAdj[i]+=cur;
+        if(item.id!=null) sellInfo[item.id]={ageIdx:i, saleValue:cur};
         sold=true;
         continue;
       }
       realArr[i]+=cur;
     }
   }
-  return{realArr,cashAdj};
+  return{realArr,cashAdj,sellInfo};
+}
+
+// 담보 실물자산이 매각되면 그 시점 대출잔액을 매각대금에서 선상환 처리:
+// - 매각 순수익(cashAdj)에서 잔여 대출잔액만큼 차감
+// - 해당 대출은 매각 시점부터 잔액·납입액 0으로 조기 종료
+function applyCollateralPayoffs(debts, debtScheds, sellInfo, realCashAdj, n){
+  (debts||[]).forEach((d,di)=>{
+    if(d.linkAssetId==null) return;
+    const info=sellInfo[d.linkAssetId];
+    if(!info) return;
+    const sched=debtScheds[di];
+    const payoff=sched.balance[info.ageIdx];
+    if(payoff<=0) return;
+    realCashAdj[info.ageIdx]-=payoff;
+    for(let i=info.ageIdx;i<n;i++){ sched.balance[i]=0; sched.payment[i]=0; }
+  });
 }
 
 // 구간이 startAge~endAge(둘 다 입력 UI상 "포함" 의미)인지 판정.
@@ -212,8 +238,10 @@ module.exports=async(req,res)=>{
     const debts=body.debts||[];
     const runs=Math.min(20000, body.runs||10000);
 
-    const{realArr,cashAdj:realCashAdj}=buildRealAssetsSchedule(realAssets, ages, currentAge);
-    const{balance:debtBalanceArr,payment:debtPaymentArr}=buildDebtSchedule(debts, ages);
+    const{realArr,cashAdj:realCashAdj,sellInfo}=buildRealAssetsSchedule(realAssets, ages, currentAge);
+    const debtScheds=buildDebtSchedules(debts, ages);
+    applyCollateralPayoffs(debts, debtScheds, sellInfo, realCashAdj, ages.length);
+    const{balance:debtBalanceArr,payment:debtPaymentArr}=sumDebtSchedules(debtScheds, ages.length);
     const flowArr=buildCashflowArray(ages, currentAge, body.incomes||[], body.stages||[], body.events||[], body.inflation||0);
     const netFlowArr=flowArr.map((v,i)=>v-debtPaymentArr[i]+realCashAdj[i]);
     const expenseArr=buildExpenseArray(ages, currentAge, body.stages||[], body.events||[], body.inflation||0);
