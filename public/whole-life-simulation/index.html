@@ -153,7 +153,8 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 
   <div class="section">
     <div class="section-title">인생 단계별 생활비</div>
-    <div class="section-hint">물가상승률이 자동 반영됩니다.</div>
+    <div class="section-hint">물가상승률이 자동 반영됩니다. 각 단계의 기간은 슬라이더로 조절하며, 전체 기간(현재 나이~130세)에서 순서대로 이어 붙습니다 — 마지막 단계는 남은 기간을 자동으로 채웁니다.</div>
+    <div id="stage-timeline" style="display:flex;height:18px;border-radius:3px;overflow:hidden;margin-bottom:10px;border:1px solid var(--border2)"></div>
     <div class="flow-list" id="stage-list"></div>
     <button class="add-btn" onclick="addStage()">＋ 단계 추가</button>
   </div>
@@ -276,7 +277,8 @@ function renderRealAssets(){
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeRealAsset(${r.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
-    _rp(row.querySelector('input[type=range]'));
+    const rangeEl=row.querySelector('input[type=range]');
+    if(rangeEl) _rp(rangeEl);
   });
 }
 
@@ -329,23 +331,58 @@ function renderIncomes(){
   });
 }
 
-// 인생 단계별 생활비
-function addStage(){stages.push({id:++seqStage,label:'새 단계',startAge:60,endAge:80,monthlyAmount:250});renderStages();}
+// 인생 단계별 생활비 — 절대 나이 대신 "기간(년)"을 저장, 현재 나이부터 순서대로 이어붙여 시작/종료 나이를 계산한다.
+// 마지막 단계는 남은 기간을 자동으로 모두 사용(끝은 항상 130세).
+const STAGE_COLORS=['#c4933f','#2a7c6f','#7c5cbf','#b86e1a','#943030','#4a7fb5'];
+function computeStageRanges(){
+  const currentAge=getCurrentAge();
+  let cursor=currentAge;
+  return stages.map((s,i)=>{
+    const isLast=i===stages.length-1;
+    const remainBudget=Math.max(0,130-cursor);
+    const reserveForRest=isLast?0:(stages.length-1-i);
+    const maxDur=Math.max(0, remainBudget-reserveForRest);
+    const dur=isLast?remainBudget:Math.min(Math.max(0,s.duration||0), maxDur);
+    const startAge=cursor, endAge=cursor+dur;
+    cursor=endAge;
+    return{id:s.id,label:s.label,monthlyAmount:s.monthlyAmount,duration:dur,maxDur,startAge,endAge,isLast};
+  });
+}
+
+function addStage(){stages.push({id:++seqStage,label:'새 단계',duration:10,monthlyAmount:250});renderStages();}
 function removeStage(id){stages=stages.filter(x=>x.id!==id);renderStages();}
 function stageU(id,f,v){const x=stages.find(s=>s.id===id);if(x)x[f]=v;}
 function renderStages(){
   const list=$('stage-list');list.innerHTML='';
+  const timeline=$('stage-timeline');timeline.innerHTML='';
   if(!stages.length){list.innerHTML='<div class="empty-hint">생활비 단계 없음</div>';return;}
-  stages.forEach(s=>{
-    const row=document.createElement('div');row.className='flow-item';
+  const ranges=computeStageRanges();
+  const totalYears=Math.max(1,130-getCurrentAge());
+
+  ranges.forEach((r,i)=>{
+    const seg=document.createElement('div');
+    seg.title=`${r.label}: ${r.startAge}세–${r.endAge}세 (${r.duration}년)`;
+    seg.style.cssText=`flex:0 0 ${(r.duration/totalYears*100).toFixed(2)}%;background:${STAGE_COLORS[i%STAGE_COLORS.length]};min-width:${r.duration>0?'2px':'0'}`;
+    timeline.appendChild(seg);
+  });
+
+  ranges.forEach((r,i)=>{
+    const s=stages.find(x=>x.id===r.id);
+    const row=document.createElement('div');row.className='flow-item';row.style.borderLeft=`3px solid ${STAGE_COLORS[i%STAGE_COLORS.length]}`;
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">단계 이름</div><input class="flow-input" type="text" value="${s.label}" oninput="stageU(${s.id},'label',this.value)"></div>
-      <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" value="${s.startAge}" oninput="stageU(${s.id},'startAge',+this.value)"></div>
-      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" value="${s.endAge}" oninput="stageU(${s.id},'endAge',+this.value)"></div>
+      <div style="grid-column:1/-1">
+        <div class="flow-label">${r.startAge}세 — ${r.endAge}세 (${r.duration}년)</div>
+        ${r.isLast
+          ? `<div class="empty-hint" style="padding:2px 0">마지막 단계 — 남은 기간을 모두 사용 (130세까지)</div>`
+          : `<div class="range-row"><input type="range" min="0" max="${r.maxDur}" step="1" value="${r.duration}" oninput="this.nextElementSibling.textContent=this.value+'년'" onchange="stageU(${s.id},'duration',+this.value);renderStages();"><span class="range-val">${r.duration}년</span></div>`}
+      </div>
       <div style="grid-column:1/-1"><div class="flow-label">월 생활비 (만원)</div><input class="flow-input" type="number" value="${s.monthlyAmount}" step="10" oninput="stageU(${s.id},'monthlyAmount',+this.value)"></div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeStage(${s.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
+    const rangeEl=row.querySelector('input[type=range]');
+    if(rangeEl) _rp(rangeEl);
   });
 }
 
@@ -394,9 +431,9 @@ function seedDefaults(){
   const age=getCurrentAge();
   realAssets.push({id:++seqReal,name:'주택',value:30000,growthRate:2,buyAge:null,sellAge:null});
   incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:age,endAge:60,growth:2});
-  stages.push({id:++seqStage,label:'적립기 - 경제활동기',startAge:age,endAge:65,monthlyAmount:300});
-  stages.push({id:++seqStage,label:'인출기 - 활동기',startAge:65,endAge:85,monthlyAmount:250});
-  stages.push({id:++seqStage,label:'인출기 - 간병기',startAge:85,endAge:130,monthlyAmount:200});
+  stages.push({id:++seqStage,label:'적립기 - 경제활동기',duration:Math.max(0,65-age),monthlyAmount:300});
+  stages.push({id:++seqStage,label:'인출기 - 활동기',duration:20,monthlyAmount:250});
+  stages.push({id:++seqStage,label:'인출기 - 간병기',duration:9999,monthlyAmount:200});
   renderRealAssets();renderDebts();renderIncomes();renderStages();renderInflows();renderOutflows();
 }
 seedDefaults();
@@ -411,7 +448,7 @@ function collectPayload(){
     finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
     debts:debts.map(d=>{const b=getBirthYM();const[oy,om]=(d.originYM||'').split('-').map(Number);return{principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:ageAtYM(b.y,b.m,oy||b.y,om||1)};}),
     incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.endAge,growth:i.growth})),
-    stages:stages.map(s=>({startAge:s.startAge,endAge:s.endAge,monthlyAmount:s.monthlyAmount})),
+    stages:computeStageRanges().map(r=>({startAge:r.startAge,endAge:r.endAge,monthlyAmount:r.monthlyAmount})),
     events:[...inflows.map(e=>({age:e.age,amount:Math.abs(e.amount)})), ...outflows.map(e=>({age:e.age,amount:-Math.abs(e.amount)}))],
     inflation:+$('in-infl').value||0,
     runs:10000
