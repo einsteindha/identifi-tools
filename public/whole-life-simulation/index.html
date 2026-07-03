@@ -521,7 +521,7 @@ function renderResults(d){
       {type:'line',label:'총자산',data:totalAsset.map(v=>v/10000),yAxisID:'y',borderColor:'#7c5cbf',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25,order:1},
       {type:'line',label:'금융자산',data:d.finDet.map(v=>v/10000),yAxisID:'y',borderColor:'#2a7c6f',backgroundColor:'rgba(42,124,111,.08)',borderWidth:2,pointRadius:0,fill:true,tension:.25,order:2},
       {type:'line',label:'실물자산',data:d.real.map(v=>v/10000),yAxisID:'y',borderColor:'#c4933f',backgroundColor:'transparent',borderWidth:2,pointRadius:0,fill:false,tension:.25,order:2},
-      {type:'line',label:'부채',data:d.debtBalance.map(v=>v/10000),yAxisID:'y',borderColor:'#943030',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,tension:.25,order:2},
+      {type:'line',label:'부채',data:d.debtBalance.map(v=>-v/10000),yAxisID:'y',borderColor:'#943030',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,tension:.25,order:2},
       {type:'line',label:'순자산',data:d.netWorthDet.map(v=>v/10000),yAxisID:'y',borderColor:'#1a1814',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25,order:0}
     ]},
     options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.1,animation:{duration:0},interaction:{mode:'index',intersect:false},
@@ -555,7 +555,7 @@ function renderResults(d){
     const total=d.real[i]+d.finP50[i];
     const nw=d.p50[i];
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${age}세</td><td>${fmtMan(d.real[i])}</td><td class="${d.finP50[i]<0?'t-neg':''}">${fmtMan(d.finP50[i])}</td><td class="${total<0?'t-neg':''}">${fmtMan(total)}</td><td>${fmtMan(d.debtBalance[i])}</td><td class="${nw<0?'t-neg':''}">${fmtMan(nw)}</td>`;
+    tr.innerHTML=`<td>${age}세</td><td>${fmtMan(d.real[i])}</td><td class="${d.finP50[i]<0?'t-neg':''}">${fmtMan(d.finP50[i])}</td><td class="${total<0?'t-neg':''}">${fmtMan(total)}</td><td class="${d.debtBalance[i]>0?'t-neg':''}">${fmtMan(-d.debtBalance[i])}</td><td class="${nw<0?'t-neg':''}">${fmtMan(nw)}</td>`;
     tbody.appendChild(tr);
   });
 }
