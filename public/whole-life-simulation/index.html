@@ -126,13 +126,9 @@ input:focus,select:focus{border-color:var(--accent)}
 
   <div class="section">
     <div class="section-title">실물자산</div>
-    <label>실물자산 (부동산 등) 현재 가치</label>
-    <div class="input-unit"><input type="number" id="in-real" value="30000" step="100" oninput="_pv()"><span class="unit">만원</span></div>
-    <label>부동산 가격 상승률 (연)</label>
-    <div class="range-row"><input type="range" id="in-real-ret" min="-5" max="10" step="0.5" value="2" oninput="sr(this,'in-real-ret-v',1)"><span class="range-val" id="in-real-ret-v">2.0%</span></div>
-    <div class="section-hint">매도·매수 이벤트는 없으며, 매년 위 상승률로 복리 증가합니다. 필요시 아래에서 특정 연도의 값을 직접 재설정할 수 있습니다 (예: 매도·상속 등으로 가치가 크게 바뀌는 시점).</div>
-    <div class="flow-list" id="reval-list"></div>
-    <button class="add-btn" onclick="addReval()">＋ 실물자산 값 재설정 포인트 추가</button>
+    <div class="section-hint">부동산 등 실물자산은 여러 건 추가할 수 있습니다. 매수 시점을 입력하면 그 나이에 금융자산에서 매수 금액만큼 차감되고, 매도 시점을 입력하면 그 나이에 (상승률 반영된) 가치만큼 금융자산으로 편입됩니다. 매수·매도 시점을 비워두면 각각 "현재 보유 중" · "매도 계획 없음"으로 처리됩니다.</div>
+    <div class="flow-list" id="real-asset-list"></div>
+    <button class="add-btn" onclick="addRealAsset()">＋ 실물자산 추가</button>
   </div>
 
   <div class="section">
@@ -242,29 +238,32 @@ function defaultBirthDate(){
 }
 
 // ── 상태 ─────────────────────────────────────────────
-let revals=[], debts=[], incomes=[], stages=[], events=[];
-let seqReval=0, seqDebt=0, seqInc=0, seqStage=0, seqEvt=0;
+let realAssets=[], debts=[], incomes=[], stages=[], events=[];
+let seqReal=0, seqDebt=0, seqInc=0, seqStage=0, seqEvt=0;
 
-// 실물자산 재설정 포인트
-function addReval(){revals.push({id:++seqReval,age:60,value:40000});renderRevals();}
-function removeReval(id){revals=revals.filter(x=>x.id!==id);renderRevals();}
-function revU(id,f,v){const x=revals.find(r=>r.id===id);if(x)x[f]=v;}
-function renderRevals(){
-  const list=$('reval-list');list.innerHTML='';
-  if(!revals.length){list.innerHTML='<div class="empty-hint">재설정 포인트 없음 (현재 값 그대로 유지)</div>';return;}
-  revals.forEach(r=>{
+// 실물자산
+function addRealAsset(){realAssets.push({id:++seqReal,name:'실물자산',value:30000,growthRate:2,buyAge:null,sellAge:null});renderRealAssets();}
+function removeRealAsset(id){realAssets=realAssets.filter(x=>x.id!==id);renderRealAssets();}
+function realAssetU(id,f,v){const x=realAssets.find(r=>r.id===id);if(x)x[f]=v;}
+function renderRealAssets(){
+  const list=$('real-asset-list');list.innerHTML='';
+  if(!realAssets.length){list.innerHTML='<div class="empty-hint">실물자산 없음</div>';return;}
+  realAssets.forEach(r=>{
     const row=document.createElement('div');row.className='flow-item';
-    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr auto">
-      <div><div class="flow-label">나이</div><input class="flow-input" type="number" value="${r.age}" oninput="revU(${r.id},'age',+this.value)"></div>
-      <div><div class="flow-label">재설정 값 (만원)</div><input class="flow-input" type="number" value="${r.value}" step="100" oninput="revU(${r.id},'value',+this.value)"></div>
-      <button class="del-btn" onclick="removeReval(${r.id})">×</button>
+    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
+      <div style="grid-column:1/-1"><div class="flow-label">이름</div><input class="flow-input" type="text" value="${r.name}" oninput="realAssetU(${r.id},'name',this.value)"></div>
+      <div><div class="flow-label">가치 (만원)</div><input class="flow-input" type="number" value="${r.value}" step="100" oninput="realAssetU(${r.id},'value',+this.value)"></div>
+      <div><div class="flow-label">상승률 (연, %)</div><input class="flow-input" type="number" value="${r.growthRate}" step="0.5" oninput="realAssetU(${r.id},'growthRate',+this.value)"></div>
+      <div><div class="flow-label">매수 시점 (나이, 비우면 현재 보유)</div><input class="flow-input" type="number" value="${r.buyAge==null?'':r.buyAge}" oninput="realAssetU(${r.id},'buyAge',this.value===''?null:+this.value)"></div>
+      <div><div class="flow-label">매도 시점 (나이, 비우면 매도 없음)</div><input class="flow-input" type="number" value="${r.sellAge==null?'':r.sellAge}" oninput="realAssetU(${r.id},'sellAge',this.value===''?null:+this.value)"></div>
+      <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeRealAsset(${r.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
   });
 }
 
 // 부채
-function addDebt(){debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,startAge:getCurrentAge()});renderDebts();}
+function addDebt(){debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,originAge:getCurrentAge()});renderDebts();}
 function removeDebt(id){debts=debts.filter(x=>x.id!==id);renderDebts();}
 function debtU(id,f,v){const x=debts.find(d=>d.id===id);if(x)x[f]=v;}
 function renderDebts(){
@@ -282,7 +281,7 @@ function renderDebts(){
         <option value="bullet" ${d.method==='bullet'?'selected':''}>만기일시</option>
       </select></div>
       <div><div class="flow-label">상환 기간 (년)</div><input class="flow-input" type="number" value="${d.years}" oninput="debtU(${d.id},'years',+this.value)"></div>
-      <div style="grid-column:1/-1"><div class="flow-label">상환 시작 나이</div><input class="flow-input" type="number" value="${d.startAge}" oninput="debtU(${d.id},'startAge',+this.value)"></div>
+      <div style="grid-column:1/-1"><div class="flow-label">대출실행 시점 (나이, 과거도 입력 가능 — 이미 상환 중인 대출의 현재 잔액을 정확히 계산합니다)</div><input class="flow-input" type="number" value="${d.originAge}" oninput="debtU(${d.id},'originAge',+this.value)"></div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeDebt(${d.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
@@ -354,22 +353,23 @@ function seedDefaults(){
   $('in-birth').value=defaultBirthDate();
   updateAgeDisplay();
   const age=getCurrentAge();
+  realAssets.push({id:++seqReal,name:'주택',value:30000,growthRate:2,buyAge:null,sellAge:null});
   incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:age,endAge:60,growth:2});
   stages.push({id:++seqStage,label:'활동기',startAge:age,endAge:65,monthlyAmount:300});
   stages.push({id:++seqStage,label:'회상기',startAge:65,endAge:85,monthlyAmount:250});
   stages.push({id:++seqStage,label:'간병기',startAge:85,endAge:130,monthlyAmount:200});
-  renderRevals();renderDebts();renderIncomes();renderStages();renderEvts();
+  renderRealAssets();renderDebts();renderIncomes();renderStages();renderEvts();
 }
 seedDefaults();
-['in-real-ret','in-ret','in-vol','in-infl'].forEach(id=>_rp($(id)));
+['in-ret','in-vol','in-infl'].forEach(id=>_rp($(id)));
 
 // ── 실행 ─────────────────────────────────────────────
 function collectPayload(){
   return{
     currentAge:getCurrentAge(),
-    realAsset:{current:+$('in-real').value||0, growthRate:+$('in-real-ret').value||0, revals:revals.map(r=>({age:r.age,value:r.value}))},
+    realAssets:realAssets.map(r=>({value:r.value,growthRate:r.growthRate,buyAge:r.buyAge,sellAge:r.sellAge})),
     finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
-    debts:debts.map(d=>({principal:d.principal,rate:d.rate,method:d.method,years:d.years,startAge:d.startAge})),
+    debts:debts.map(d=>({principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:d.originAge})),
     incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.endAge,growth:i.growth})),
     stages:stages.map(s=>({startAge:s.startAge,endAge:s.endAge,monthlyAmount:s.monthlyAmount})),
     events:events.map(e=>({age:e.age,amount:e.amount})),
@@ -453,9 +453,9 @@ function renderResults(d){
 // ── 저장/불러오기 (localStorage) ─────────────────────
 function saveState(){
   const state={
-    birth:$('in-birth').value, real:$('in-real').value, realRet:$('in-real-ret').value, fin:$('in-fin').value,
+    birth:$('in-birth').value, fin:$('in-fin').value,
     ret:$('in-ret').value, vol:$('in-vol').value, infl:$('in-infl').value,
-    revals, debts, incomes, stages, events
+    realAssets, debts, incomes, stages, events
   };
   localStorage.setItem('lifeFundSimState', JSON.stringify(state));
   alert('저장되었습니다.');
@@ -464,18 +464,17 @@ function loadState(){
   const raw=localStorage.getItem('lifeFundSimState');
   if(!raw){alert('저장된 데이터가 없습니다.');return;}
   const s=JSON.parse(raw);
-  $('in-birth').value=s.birth;updateAgeDisplay();$('in-real').value=s.real;$('in-fin').value=s.fin;
-  $('in-real-ret').value=s.realRet||0;sr($('in-real-ret'),'in-real-ret-v',1);
+  $('in-birth').value=s.birth;updateAgeDisplay();$('in-fin').value=s.fin;
   $('in-ret').value=s.ret;sr($('in-ret'),'in-ret-v',1);
   $('in-vol').value=s.vol;sr($('in-vol'),'in-vol-v',1);
   $('in-infl').value=s.infl;sr($('in-infl'),'in-infl-v',1);
-  revals=s.revals||[];debts=s.debts||[];incomes=s.incomes||[];stages=s.stages||[];events=s.events||[];
-  seqReval=Math.max(0,...revals.map(x=>x.id||0));
+  realAssets=s.realAssets||[];debts=s.debts||[];incomes=s.incomes||[];stages=s.stages||[];events=s.events||[];
+  seqReal=Math.max(0,...realAssets.map(x=>x.id||0));
   seqDebt=Math.max(0,...debts.map(x=>x.id||0));
   seqInc=Math.max(0,...incomes.map(x=>x.id||0));
   seqStage=Math.max(0,...stages.map(x=>x.id||0));
   seqEvt=Math.max(0,...events.map(x=>x.id||0));
-  renderRevals();renderDebts();renderIncomes();renderStages();renderEvts();
+  renderRealAssets();renderDebts();renderIncomes();renderStages();renderEvts();
 }
 </script>
 </body>

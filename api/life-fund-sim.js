@@ -6,8 +6,10 @@ function randNorm(){
 }
 
 // 부채 1건의 나이별 {bal,payment} 스케줄 (원리금균등/원금균등/만기일시)
+// originAge(대출실행 시점)는 currentAge보다 과거일 수 있음 — 이 경우 이미 진행된 상환분이 반영된
+// 시뮬레이션 시작 시점(currentAge)의 정확한 잔액부터 계산된다.
 function debtScheduleForOne(d, ages){
-  const principal=d.principal||0, rate=(d.rate||0)/100, years=Math.max(1,d.years||1), startAge=d.startAge||0;
+  const principal=d.principal||0, rate=(d.rate||0)/100, years=Math.max(1,d.years||1), originAge=d.originAge||0;
   const method=d.method||'equal_payment';
   const perYear=[];
   let bal=principal;
@@ -34,8 +36,8 @@ function debtScheduleForOne(d, ages){
     }
   }
   return ages.map(age=>{
-    if(age<startAge) return{bal:principal,payment:0};
-    const y=age-startAge;
+    if(age<originAge) return{bal:principal,payment:0};
+    const y=age-originAge;
     if(y>=years) return{bal:0,payment:0};
     return perYear[y];
   });
@@ -51,18 +53,34 @@ function buildDebtSchedule(debts, ages){
   return{balance,payment};
 }
 
-// 실물자산: 매년 growthRate로 복리 증가, 재설정 포인트(age,value) 도달 시 그 값으로 재설정 후 계속 증가
-function buildRealAssetArray(ages, realAsset){
-  const rate=((realAsset&&realAsset.growthRate)||0)/100;
-  const revals=((realAsset&&realAsset.revals)||[]).slice().sort((a,b)=>a.age-b.age);
-  let cur=(realAsset&&realAsset.current)||0, ri=0;
-  const n=ages.length, arr=new Array(n);
-  for(let i=0;i<n;i++){
-    if(i>0) cur=cur*(1+rate);
-    while(ri<revals.length && revals[ri].age<=ages[i]){cur=revals[ri].value;ri++;}
-    arr[i]=cur;
+// 실물자산 여러 건: 매년 growthRate로 복리 증가. buyAge(매수시점)가 currentAge 이후이면 그 시점에
+// 금융자산에서 매수금액 차감, sellAge(매도시점)가 있으면 그 시점 가치만큼 금융자산으로 편입.
+// buyAge를 비워두면(null) "현재 이미 보유 중"으로 간주해 currentAge 시점 값 = value로 시작한다.
+// 반환: realArr(실물자산 총액, 나이별) + cashAdj(매수/매도로 인한 금융자산 증감, 나이별)
+function buildRealAssetsSchedule(realAssets, ages, currentAge){
+  const n=ages.length;
+  const realArr=new Array(n).fill(0);
+  const cashAdj=new Array(n).fill(0);
+  for(const item of (realAssets||[])){
+    const rate=(item.growthRate||0)/100;
+    const buyAge=(item.buyAge!=null && item.buyAge>currentAge) ? item.buyAge : currentAge;
+    const sellAge=(item.sellAge!=null) ? item.sellAge : null;
+    let cur=item.value||0, sold=false;
+    for(let i=0;i<n;i++){
+      const age=ages[i];
+      if(age<buyAge) continue;
+      if(age>buyAge) cur=cur*(1+rate);
+      if(age===buyAge && buyAge>currentAge) cashAdj[i]-=cur;
+      if(sold) continue;
+      if(sellAge!=null && age===sellAge){
+        cashAdj[i]+=cur;
+        sold=true;
+        continue;
+      }
+      realArr[i]+=cur;
+    }
   }
-  return arr;
+  return{realArr,cashAdj};
 }
 
 // 정기수입 - 생활비단계 - 일시유입출 = 나이별 순현금흐름 (물가/성장률 반영, 만원)
@@ -147,15 +165,15 @@ module.exports=async(req,res)=>{
     const ages=[];
     for(let a=currentAge;a<=endAge;a++) ages.push(a);
 
-    const realAsset=body.realAsset||{};
+    const realAssets=body.realAssets||[];
     const finAsset=body.finAsset||{};
     const debts=body.debts||[];
     const runs=Math.min(20000, body.runs||10000);
 
-    const realArr=buildRealAssetArray(ages, realAsset);
+    const{realArr,cashAdj:realCashAdj}=buildRealAssetsSchedule(realAssets, ages, currentAge);
     const{balance:debtBalanceArr,payment:debtPaymentArr}=buildDebtSchedule(debts, ages);
     const flowArr=buildCashflowArray(ages, currentAge, body.incomes||[], body.stages||[], body.events||[], body.inflation||0);
-    const netFlowArr=flowArr.map((v,i)=>v-debtPaymentArr[i]);
+    const netFlowArr=flowArr.map((v,i)=>v-debtPaymentArr[i]+realCashAdj[i]);
 
     const finStart=finAsset.current||0;
     const expReturn=finAsset.expReturn||0;
