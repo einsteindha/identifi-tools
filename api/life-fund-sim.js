@@ -110,6 +110,25 @@ function buildCashflowArray(ages, currentAge, incomes, stages, events, inflation
   return arr;
 }
 
+// 지출·자산유출 (막대그래프용, 항상 양수, 만원): 생활비 단계 + 유출성 일시 이벤트(음수 금액)만 포함, 유입 이벤트는 제외
+function buildExpenseArray(ages, currentAge, stages, events, inflationPct){
+  const n=ages.length, arr=new Array(n).fill(0), infl=inflationPct/100;
+  for(const st of (stages||[])){
+    for(let i=0;i<n;i++){
+      const age=ages[i];
+      if(age>=st.startAge && age<=st.endAge){
+        arr[i]+=(st.monthlyAmount||0)*12*Math.pow(1+infl, Math.max(0,age-currentAge));
+      }
+    }
+  }
+  for(const ev of (events||[])){
+    if((ev.amount||0)>=0) continue;
+    const idx=ages.indexOf(ev.age);
+    if(idx>=0) arr[idx]+=Math.abs(ev.amount)*Math.pow(1+infl, Math.max(0,ev.age-currentAge));
+  }
+  return arr;
+}
+
 // 결정론적 금융자산 경로 (index 0 = 현재, index i>=1 = ages[i] 시점 말)
 function detFinPath(finStart, expReturnPct, ages, netFlowArr){
   const r=expReturnPct/100, n=ages.length, path=new Array(n);
@@ -174,6 +193,7 @@ module.exports=async(req,res)=>{
     const{balance:debtBalanceArr,payment:debtPaymentArr}=buildDebtSchedule(debts, ages);
     const flowArr=buildCashflowArray(ages, currentAge, body.incomes||[], body.stages||[], body.events||[], body.inflation||0);
     const netFlowArr=flowArr.map((v,i)=>v-debtPaymentArr[i]+realCashAdj[i]);
+    const expenseArr=buildExpenseArray(ages, currentAge, body.stages||[], body.events||[], body.inflation||0);
 
     const finStart=finAsset.current||0;
     const expReturn=finAsset.expReturn||0;
@@ -191,7 +211,7 @@ module.exports=async(req,res)=>{
 
     res.setHeader('Access-Control-Allow-Origin','*');
     return res.status(200).json({
-      ages, real:realArr, debtBalance:debtBalanceArr, finDet:finPathDet, netWorthDet,
+      ages, real:realArr, debtBalance:debtBalanceArr, finDet:finPathDet, netWorthDet, expense:expenseArr,
       p10:mc.p10, p50:mc.p50, p90:mc.p90, finP10:mc.fp10, finP50:mc.fp50, finP90:mc.fp90,
       depletionAge:mc.depletionAge, debtPayoffAge, successRate:mc.successRate
     });

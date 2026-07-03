@@ -185,17 +185,13 @@ input:focus,select:focus{border-color:var(--accent)}
   </div>
 
   <div class="chart-wrap">
-    <div class="chart-title">순자산 전망 (몬테카를로 10,000회 · 10/50/90분위)</div>
-    <canvas id="chart-net" class="chart-canvas" height="150"></canvas>
+    <div class="chart-title">자산 · 부채 · 지출 종합 전망 (결정론적 시나리오)</div>
+    <canvas id="chart-net" class="chart-canvas" height="170"></canvas>
     <div id="chart-net-ph" class="placeholder">
       <div style="font-size:22px">📊</div>
       <div>왼쪽에 정보를 입력하고<br>‘시뮬레이션 실행’ 버튼을 눌러주세요.</div>
     </div>
-  </div>
-
-  <div class="chart-wrap">
-    <div class="chart-title">자산 · 부채 구성 (결정론적 시나리오)</div>
-    <canvas id="chart-comp" class="chart-canvas" height="150"></canvas>
+    <div class="section-hint" style="margin-top:8px">좌측 축: 총자산·실물자산·금융자산·부채·순자산 (억원) · 우측 축: 지출·자산유출 (막대, 만원). 자산유입은 별도 표시 없이 금융자산·순자산·총자산에 반영됩니다.</div>
   </div>
 
   <div class="chart-wrap" id="table-wrap" style="display:none">
@@ -382,7 +378,7 @@ function fmtMan(v){
   return Math.round(v).toLocaleString()+'만';
 }
 
-let chartNet=null, chartComp=null;
+let chartNet=null;
 
 async function runSim(){
   const btn=$('run-btn');
@@ -408,31 +404,25 @@ function renderResults(d){
 
   const labels=d.ages.map(a=>a+'세');
 
+  const totalAsset=d.real.map((v,i)=>v+d.finDet[i]);
+
   if(chartNet) chartNet.destroy();
   chartNet=new Chart($('chart-net'),{
-    type:'line',
     data:{labels,datasets:[
-      {label:'MC 하위10%',data:d.p10.map(v=>v/10000),borderColor:'rgba(196,147,63,.3)',backgroundColor:'rgba(196,147,63,.08)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'origin',tension:.25},
-      {label:'MC 상위10%',data:d.p90.map(v=>v/10000),borderColor:'rgba(196,147,63,.3)',backgroundColor:'rgba(196,147,63,.08)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'-1',tension:.25},
-      {label:'MC 중앙값',data:d.p50.map(v=>v/10000),borderColor:'#9a9080',borderWidth:1.5,borderDash:[4,2],pointRadius:0,fill:false,tension:.25},
-      {label:'결정론적',data:d.netWorthDet.map(v=>v/10000),borderColor:'#c4933f',borderWidth:2.5,pointRadius:0,fill:false,tension:.25}
+      {type:'bar',label:'지출·자산유출',data:d.expense,yAxisID:'y1',backgroundColor:'rgba(148,48,48,.18)',borderWidth:0,order:9,barPercentage:0.9,categoryPercentage:0.9},
+      {type:'line',label:'총자산',data:totalAsset.map(v=>v/10000),yAxisID:'y',borderColor:'#7c5cbf',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25,order:1},
+      {type:'line',label:'금융자산',data:d.finDet.map(v=>v/10000),yAxisID:'y',borderColor:'#2a7c6f',backgroundColor:'rgba(42,124,111,.08)',borderWidth:2,pointRadius:0,fill:true,tension:.25,order:2},
+      {type:'line',label:'실물자산',data:d.real.map(v=>v/10000),yAxisID:'y',borderColor:'#c4933f',backgroundColor:'transparent',borderWidth:2,pointRadius:0,fill:false,tension:.25,order:2},
+      {type:'line',label:'부채',data:d.debtBalance.map(v=>v/10000),yAxisID:'y',borderColor:'#943030',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,tension:.25,order:2},
+      {type:'line',label:'순자산',data:d.netWorthDet.map(v=>v/10000),yAxisID:'y',borderColor:'#1a1814',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25,order:0}
     ]},
-    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,animation:{duration:0},interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
-      scales:{x:{ticks:{color:'#7a776f',font:{size:10},maxTicksLimit:12},grid:{color:'rgba(26,24,20,.06)'}},y:{ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}}}}
-  });
-
-  if(chartComp) chartComp.destroy();
-  chartComp=new Chart($('chart-comp'),{
-    type:'line',
-    data:{labels,datasets:[
-      {label:'실물자산',data:d.real.map(v=>v/10000),borderColor:'#c4933f',backgroundColor:'transparent',borderWidth:2,pointRadius:0,fill:false,tension:.25},
-      {label:'금융자산',data:d.finDet.map(v=>v/10000),borderColor:'#2a7c6f',backgroundColor:'rgba(42,124,111,.08)',borderWidth:2,pointRadius:0,fill:true,tension:.25},
-      {label:'총부채',data:d.debtBalance.map(v=>v/10000),borderColor:'#943030',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,tension:.25}
-    ]},
-    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,animation:{duration:0},interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
-      scales:{x:{ticks:{color:'#7a776f',font:{size:10},maxTicksLimit:12},grid:{color:'rgba(26,24,20,.06)'}},y:{ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}}}}
+    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.1,animation:{duration:0},interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>ctx.dataset.yAxisID==='y1'?' '+ctx.dataset.label+': '+Math.round(ctx.parsed.y).toLocaleString()+'만':' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
+      scales:{
+        x:{ticks:{color:'#7a776f',font:{size:10},maxTicksLimit:12},grid:{color:'rgba(26,24,20,.06)'}},
+        y:{position:'left',ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}},
+        y1:{position:'right',ticks:{color:'#7a776f',font:{size:10},callback:v=>v.toLocaleString()+'만'},grid:{drawOnChartArea:false}}
+      }}
   });
 
   const tbody=$('table-body');tbody.innerHTML='';
