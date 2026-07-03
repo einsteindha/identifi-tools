@@ -36,7 +36,7 @@ function debtScheduleForOne(d, ages){
     }
   }
   return ages.map(age=>{
-    if(age<originAge) return{bal:principal,payment:0};
+    if(age<originAge) return{bal:0,payment:0}; // 대출실행 전(미래 대출)에는 부채가 존재하지 않음
     const y=age-originAge;
     if(y>=years) return{bal:0,payment:0};
     return perYear[y];
@@ -225,9 +225,13 @@ module.exports=async(req,res)=>{
 
     const mc=monteCarlo(finStart, expReturn, vol, ages, netFlowArr, realArr, debtBalanceArr, runs);
 
+    // "완제 시점" = 잔액이 0보다 컸던 마지막 나이 다음 해. (미래에 대출을 실행하는 경우 원금이 생기기 전까지는
+    // 잔액이 0이므로, 단순히 "처음 0이 되는 나이"를 찾으면 대출 실행 전인데 완제로 오판하게 된다.)
     let debtPayoffAge=null;
     if(debts.length>0){
-      for(let i=0;i<ages.length;i++){if(debtBalanceArr[i]<=0){debtPayoffAge=ages[i];break;}}
+      let lastPositiveIdx=-1;
+      for(let i=0;i<ages.length;i++){ if(debtBalanceArr[i]>0) lastPositiveIdx=i; }
+      if(lastPositiveIdx>=0 && lastPositiveIdx<ages.length-1) debtPayoffAge=ages[lastPositiveIdx+1];
     }
 
     res.setHeader('Access-Control-Allow-Origin','*');
