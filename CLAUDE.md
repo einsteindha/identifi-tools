@@ -29,7 +29,7 @@ public/
     data/
       kr_stocks.json   # KR 종목 3910개 (ticker/name/market/sector, 가격 없음)
       us_stocks.json   # US 종목 (ticker/name/market/sector, 가격 없음)
-  life-fund-simulator/
+  whole-life-simulation/
     index.html         # 생애자금 시뮬레이터 (실물·금융자산+부채+현금흐름, 130세까지 전망)
 api/
   yahoo-proxy.js       # Vercel 서버에서 Yahoo Finance 중계
