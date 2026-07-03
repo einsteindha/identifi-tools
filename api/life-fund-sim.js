@@ -155,7 +155,7 @@ function detFinPath(finStart, expReturnPct, ages, netFlowArr){
   const r=expReturnPct/100, n=ages.length, path=new Array(n);
   path[0]=finStart;
   let b=finStart;
-  for(let i=1;i<n;i++){b=Math.max(0,b*(1+r)+netFlowArr[i]);path[i]=b;}
+  for(let i=1;i<n;i++){b=b*(1+r)+netFlowArr[i];path[i]=b;}
   return path;
 }
 
@@ -169,7 +169,7 @@ function monteCarlo(finStart, expReturnPct, volPct, ages, netFlowArr, realArr, d
     fp[0]=b; nw[0]=realArr[0]+b-debtBalanceArr[0];
     for(let i=1;i<n;i++){
       const rr=Math.exp(mu+sigma*randNorm())-1;
-      b=Math.max(0,b*(1+rr)+netFlowArr[i]);
+      b=b*(1+rr)+netFlowArr[i];
       fp[i]=b; nw[i]=realArr[i]+b-debtBalanceArr[i];
     }
     nwPaths[r]=nw; finPaths[r]=fp;

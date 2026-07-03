@@ -188,7 +188,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <div id="calc-status" style="font-size:11px;color:var(--text3);min-height:14px;margin-bottom:6px"></div>
 
   <div class="dash-grid">
-    <div class="dash-card"><div class="dash-label">금융자산 고갈 시점 (중앙값)</div><div class="dash-value" id="kpi-deplete">—</div></div>
+    <div class="dash-card"><div class="dash-label">금융자산 적자 전환 시점 (중앙값)</div><div class="dash-value" id="kpi-deplete">—</div></div>
     <div class="dash-card"><div class="dash-label">부채 완제 시점</div><div class="dash-value" id="kpi-debtpay">—</div></div>
   </div>
 
@@ -205,7 +205,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <div class="chart-wrap">
     <div class="chart-title">순자산 몬테카를로 시뮬레이션 (10,000회 · 10/50/90분위)</div>
     <canvas id="chart-mc" class="chart-canvas" height="170"></canvas>
-    <div class="section-hint" style="margin-top:8px">금융자산 수익률의 매년 변동성을 반영해 10,000개의 시나리오를 시뮬레이션한 결과입니다. 굵은 실선은 위 결정론적 시나리오와 동일하며, 음영은 하위 10%~상위 90% 구간, 점선은 중앙값입니다.</div>
+    <div class="section-hint" style="margin-top:8px">금융자산 수익률의 매년 변동성을 반영해 10,000개의 시나리오를 시뮬레이션한 결과입니다. 굵은 실선은 중앙값, 음영은 하위 10%~상위 90% 구간입니다.</div>
   </div>
 
   <div class="chart-wrap" id="table-wrap" style="display:none">
@@ -507,7 +507,7 @@ function renderResults(d){
   $('chart-net-ph').style.display='none';
   $('table-wrap').style.display='block';
 
-  $('kpi-deplete').textContent=d.depletionAge?d.depletionAge+'세':'고갈 없음';
+  $('kpi-deplete').textContent=d.depletionAge?d.depletionAge+'세':'적자 없음';
   $('kpi-debtpay').textContent=d.debtPayoffAge?d.debtPayoffAge+'세':(debts.length?'미완제':'부채 없음');
 
   const labels=d.ages.map(a=>a+'세');
@@ -539,8 +539,7 @@ function renderResults(d){
     data:{labels,datasets:[
       {label:'하위 10%',data:d.p10.map(v=>v/10000),borderColor:'rgba(28,24,20,.25)',backgroundColor:'rgba(124,92,191,.10)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'origin',tension:.25},
       {label:'상위 90%',data:d.p90.map(v=>v/10000),borderColor:'rgba(28,24,20,.25)',backgroundColor:'rgba(124,92,191,.10)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'-1',tension:.25},
-      {label:'중앙값',data:d.p50.map(v=>v/10000),borderColor:'#9a9080',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,2],pointRadius:0,fill:false,tension:.25},
-      {label:'결정론적(순자산)',data:d.netWorthDet.map(v=>v/10000),borderColor:'#1a1814',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25}
+      {label:'중앙값',data:d.p50.map(v=>v/10000),borderColor:'#1a1814',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25}
     ]},
     options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.1,animation:{duration:0},interaction:{mode:'index',intersect:false},
       plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
@@ -556,7 +555,7 @@ function renderResults(d){
     const total=d.real[i]+d.finP50[i];
     const nw=d.p50[i];
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${age}세</td><td>${fmtMan(d.real[i])}</td><td>${fmtMan(d.finP50[i])}</td><td>${fmtMan(total)}</td><td>${fmtMan(d.debtBalance[i])}</td><td class="${nw<0?'t-neg':''}">${fmtMan(nw)}</td>`;
+    tr.innerHTML=`<td>${age}세</td><td>${fmtMan(d.real[i])}</td><td class="${d.finP50[i]<0?'t-neg':''}">${fmtMan(d.finP50[i])}</td><td class="${total<0?'t-neg':''}">${fmtMan(total)}</td><td>${fmtMan(d.debtBalance[i])}</td><td class="${nw<0?'t-neg':''}">${fmtMan(nw)}</td>`;
     tbody.appendChild(tr);
   });
 }
