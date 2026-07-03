@@ -71,6 +71,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 .add-btn{display:flex;align-items:center;gap:5px;padding:7px 12px;font-size:12px;font-weight:500;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text2);cursor:pointer;width:100%;justify-content:center}
 .add-btn:hover{background:var(--bg2)}
 .empty-hint{font-size:11.5px;color:var(--text3);padding:6px 0}
+.kr-money{font-size:10.5px;color:var(--accent);margin-top:3px;font-family:'DM Mono',monospace}
 
 .dash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
 .dash-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 13px}
@@ -132,7 +133,8 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <div class="section">
     <div class="section-title">금융자산</div>
     <label>금융자산 (예금·투자 등) 현재 가치</label>
-    <div class="input-unit"><input type="number" id="in-fin" value="10000" step="100" oninput="_pv()"><span class="unit">만원</span></div>
+    <div class="input-unit"><input type="number" id="in-fin" value="10000" step="100" oninput="$('kr-fin').textContent=krMoneyLabel(+this.value)"><span class="unit">만원</span></div>
+    <div class="kr-money" id="kr-fin">1억원</div>
     <label>기대수익률 (연)</label>
     <div class="range-row"><input type="range" id="in-ret" min="0" max="12" step="0.5" value="5" oninput="sr(this,'in-ret-v',1)"><span class="range-val" id="in-ret-v">5.0%</span></div>
     <label>변동성 (연, 몬테카를로용)</label>
@@ -275,7 +277,7 @@ function renderRealAssets(){
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">이름</div><input class="flow-input" type="text" value="${r.name}" oninput="realAssetU(${r.id},'name',this.value)"></div>
-      <div><div class="flow-label">가치 (만원)</div><input class="flow-input" type="number" value="${r.value}" step="100" oninput="realAssetU(${r.id},'value',+this.value)"></div>
+      <div><div class="flow-label">가치 (만원)</div><input class="flow-input" type="number" value="${r.value}" step="100" oninput="realAssetU(${r.id},'value',+this.value);$('kr-real-${r.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-real-${r.id}">${krMoneyLabel(r.value)}</div></div>
       <div style="grid-column:1/-1"><div class="flow-label">상승률 (연)</div>
         <div class="range-row"><input type="range" min="-5" max="10" step="0.5" value="${r.growthRate}" oninput="realAssetU(${r.id},'growthRate',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(1)+'%';_rp(this)"><span class="range-val">${(+r.growthRate).toFixed(1)}%</span></div>
       </div>
@@ -300,7 +302,7 @@ function renderDebts(){
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">부채 이름</div><input class="flow-input" type="text" value="${d.name}" oninput="debtU(${d.id},'name',this.value)"></div>
-      <div><div class="flow-label">원금 (만원)</div><input class="flow-input" type="number" value="${d.principal}" step="100" oninput="debtU(${d.id},'principal',+this.value)"></div>
+      <div><div class="flow-label">원금 (만원)</div><input class="flow-input" type="number" value="${d.principal}" step="100" oninput="debtU(${d.id},'principal',+this.value);$('kr-debt-${d.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-debt-${d.id}">${krMoneyLabel(d.principal)}</div></div>
       <div><div class="flow-label">금리 (연, %)</div><input class="flow-input" type="number" value="${d.rate}" step="0.1" oninput="debtU(${d.id},'rate',+this.value)"></div>
       <div><div class="flow-label">상환방식</div><select class="flow-input" onchange="debtU(${d.id},'method',this.value)">
         <option value="equal_payment" ${d.method==='equal_payment'?'selected':''}>원리금균등</option>
@@ -329,7 +331,7 @@ function renderIncomes(){
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">수입 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="incU(${e.id},'label',this.value)"></div>
-      <div><div class="flow-label">연간 금액 (만원)</div><input class="flow-input" type="number" value="${e.annualAmount}" step="100" oninput="incU(${e.id},'annualAmount',+this.value)"></div>
+      <div><div class="flow-label">연간 금액 (만원)</div><input class="flow-input" type="number" value="${e.annualAmount}" step="100" oninput="incU(${e.id},'annualAmount',+this.value);$('kr-inc-${e.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-inc-${e.id}">${krMoneyLabel(e.annualAmount)}</div></div>
       <div><div class="flow-label">성장률 (연, %)</div><input class="flow-input" type="number" value="${e.growth}" step="0.5" oninput="incU(${e.id},'growth',+this.value)"></div>
       <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.startAge}" oninput="incU(${e.id},'startAge',Math.max(${minAge},+this.value))"></div>
       <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.endAge}" oninput="incU(${e.id},'endAge',Math.max(${minAge},+this.value))"></div>
@@ -385,7 +387,7 @@ function renderStages(){
           ? `<div class="range-row"><input type="range" min="0" max="${Math.max(1,r.duration)}" value="${Math.max(1,r.duration)}" disabled style="opacity:.55;cursor:default"><span class="range-val">${r.duration}년 (자동)</span></div>`
           : `<div class="range-row"><input type="range" min="0" max="${r.maxDur}" step="1" value="${r.duration}" oninput="this.nextElementSibling.textContent=this.value+'년'" onchange="stageU(${s.id},'duration',+this.value);renderStages();"><span class="range-val">${r.duration}년</span></div>`}
       </div>
-      <div style="grid-column:1/-1"><div class="flow-label">월 생활비 (만원)</div><input class="flow-input" type="number" value="${s.monthlyAmount}" step="10" oninput="stageU(${s.id},'monthlyAmount',+this.value)"></div>
+      <div style="grid-column:1/-1"><div class="flow-label">월 생활비 (만원)</div><input class="flow-input" type="number" value="${s.monthlyAmount}" step="10" oninput="stageU(${s.id},'monthlyAmount',+this.value);$('kr-stage-${s.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-stage-${s.id}">${krMoneyLabel(s.monthlyAmount)}</div></div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeStage(${s.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
@@ -409,7 +411,7 @@ function renderInflows(){
       <div style="grid-column:1/-1"><div class="flow-label">이벤트 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="inflowU(${e.id},'label',this.value)"></div>
       <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.startAge}" oninput="inflowU(${e.id},'startAge',Math.max(${minAge},+this.value))"></div>
       <div><div class="flow-label">종료 나이 (=시작이면 1회성)</div><input class="flow-input" type="number" min="${minAge}" value="${e.endAge}" oninput="inflowU(${e.id},'endAge',Math.max(${minAge},+this.value));$('amt-label-in-${e.id}').textContent=(inflows.find(x=>x.id===${e.id}).endAge>inflows.find(x=>x.id===${e.id}).startAge?'연간 금액 (만원)':'금액 (만원)')"></div>
-      <div><div class="flow-label" id="amt-label-in-${e.id}">${recurring?'연간 금액 (만원)':'금액 (만원)'}</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="inflowU(${e.id},'amount',Math.abs(+this.value))"></div>
+      <div><div class="flow-label" id="amt-label-in-${e.id}">${recurring?'연간 금액 (만원)':'금액 (만원)'}</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="inflowU(${e.id},'amount',Math.abs(+this.value));$('kr-in-${e.id}').textContent=krMoneyLabel(Math.abs(+this.value))"><div class="kr-money" id="kr-in-${e.id}">${krMoneyLabel(e.amount)}</div></div>
       <button class="del-btn" onclick="removeInflow(${e.id})">×</button>
     </div>`;
     list.appendChild(row);
@@ -431,7 +433,7 @@ function renderOutflows(){
       <div style="grid-column:1/-1"><div class="flow-label">이벤트 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="outflowU(${e.id},'label',this.value)"></div>
       <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.startAge}" oninput="outflowU(${e.id},'startAge',Math.max(${minAge},+this.value))"></div>
       <div><div class="flow-label">종료 나이 (=시작이면 1회성)</div><input class="flow-input" type="number" min="${minAge}" value="${e.endAge}" oninput="outflowU(${e.id},'endAge',Math.max(${minAge},+this.value));$('amt-label-out-${e.id}').textContent=(outflows.find(x=>x.id===${e.id}).endAge>outflows.find(x=>x.id===${e.id}).startAge?'연간 금액 (만원)':'금액 (만원)')"></div>
-      <div><div class="flow-label" id="amt-label-out-${e.id}">${recurring?'연간 금액 (만원)':'금액 (만원)'}</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="outflowU(${e.id},'amount',Math.abs(+this.value))"></div>
+      <div><div class="flow-label" id="amt-label-out-${e.id}">${recurring?'연간 금액 (만원)':'금액 (만원)'}</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="outflowU(${e.id},'amount',Math.abs(+this.value));$('kr-out-${e.id}').textContent=krMoneyLabel(Math.abs(+this.value))"><div class="kr-money" id="kr-out-${e.id}">${krMoneyLabel(e.amount)}</div></div>
       <button class="del-btn" onclick="removeOutflow(${e.id})">×</button>
     </div>`;
     list.appendChild(row);
@@ -473,6 +475,19 @@ function fmtMan(v){
   const av=Math.abs(v);
   if(av>=10000) return (v/10000).toFixed(2)+'억';
   return Math.round(v).toLocaleString()+'만';
+}
+
+// 입력값(만원 단위)을 "3억 5,000만원" 같은 한글 단위 표기로 변환
+function krMoneyLabel(v){
+  v=Math.round(v||0);
+  const neg=v<0; v=Math.abs(v);
+  if(v===0) return '0원';
+  const eok=Math.floor(v/10000), man=v%10000;
+  let s='';
+  if(eok>0) s+=eok.toLocaleString()+'억';
+  if(man>0) s+=(s?' ':'')+man.toLocaleString()+'만원';
+  else if(eok>0) s+='원';
+  return (neg?'-':'')+s;
 }
 
 function scheduleRun(){
