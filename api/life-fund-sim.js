@@ -90,14 +90,30 @@ function inStageRange(age, startAge, endAge, lastAge){
   return age>=startAge && (age<endAge || (age===lastAge && age<=endAge));
 }
 
-// 정기수입 - 생활비단계 - 일시유입출 = 나이별 순현금흐름 (물가/성장률 반영, 만원)
+// 일시(startAge===endAge) 또는 매년 반복(startAge<endAge) 흐름을 나이별 배열에 물가 반영해 더한다.
+// 사용자가 직접 지정한 독립적인 구간이므로(생활비 단계처럼 자동으로 이어붙는 구조가 아님) 끝 나이를 포함한다.
+function addFlow(arr, ages, currentAge, infl, startAge, endAge, amount){
+  if(startAge===endAge){
+    const idx=ages.indexOf(startAge);
+    if(idx>=0) arr[idx]+=amount*Math.pow(1+infl, Math.max(0,startAge-currentAge));
+    return;
+  }
+  for(let i=0;i<ages.length;i++){
+    const age=ages[i];
+    if(age>=startAge && age<=endAge){
+      arr[i]+=amount*Math.pow(1+infl, Math.max(0,age-currentAge));
+    }
+  }
+}
+
+// 정기수입 - 생활비단계 - 일시/반복 유입출 = 나이별 순현금흐름 (물가/성장률 반영, 만원)
 function buildCashflowArray(ages, currentAge, incomes, stages, events, inflationPct){
   const n=ages.length, arr=new Array(n).fill(0), infl=inflationPct/100, lastAge=ages[n-1];
   for(const inc of (incomes||[])){
     const growth=(inc.growth||0)/100;
     for(let i=0;i<n;i++){
       const age=ages[i];
-      if(inStageRange(age, inc.startAge, inc.endAge, lastAge)){
+      if(age>=inc.startAge && age<=inc.endAge){
         arr[i]+=(inc.annualAmount||0)*Math.pow(1+growth, age-inc.startAge);
       }
     }
@@ -111,13 +127,12 @@ function buildCashflowArray(ages, currentAge, incomes, stages, events, inflation
     }
   }
   for(const ev of (events||[])){
-    const idx=ages.indexOf(ev.age);
-    if(idx>=0) arr[idx]+=(ev.amount||0)*Math.pow(1+infl, Math.max(0,ev.age-currentAge));
+    addFlow(arr, ages, currentAge, infl, ev.startAge, ev.endAge, ev.amount||0);
   }
   return arr;
 }
 
-// 지출·자산유출 (막대그래프용, 항상 양수, 만원): 생활비 단계 + 유출성 일시 이벤트(음수 금액)만 포함, 유입 이벤트는 제외
+// 지출·자산유출 (막대그래프용, 항상 양수, 만원): 생활비 단계 + 유출성 일시/반복 이벤트(음수 금액)만 포함, 유입 이벤트는 제외
 function buildExpenseArray(ages, currentAge, stages, events, inflationPct){
   const n=ages.length, arr=new Array(n).fill(0), infl=inflationPct/100, lastAge=ages[n-1];
   for(const st of (stages||[])){
@@ -130,8 +145,7 @@ function buildExpenseArray(ages, currentAge, stages, events, inflationPct){
   }
   for(const ev of (events||[])){
     if((ev.amount||0)>=0) continue;
-    const idx=ages.indexOf(ev.age);
-    if(idx>=0) arr[idx]+=Math.abs(ev.amount)*Math.pow(1+infl, Math.max(0,ev.age-currentAge));
+    addFlow(arr, ages, currentAge, infl, ev.startAge, ev.endAge, Math.abs(ev.amount));
   }
   return arr;
 }
