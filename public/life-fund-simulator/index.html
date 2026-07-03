@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IdentiFi — 생애자금 시뮬레이터</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'"></script>
+<style>
+:root{
+  --bg:#faf8f4;--bg2:#f2efe9;--bg3:#e8e4db;--bg4:#ddd9d0;
+  --text:#1a1814;--text2:#3d3a35;--text3:#7a776f;
+  --border:rgba(26,24,20,.1);--border2:rgba(26,24,20,.18);
+  --radius:2px;--radius-lg:4px;
+  --blue:#c4933f;--green:#2a7c6f;--amber:#b86e1a;--red:#943030;--purple:#7c5cbf;
+  --gold:#c4933f;--accent:#c4933f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;line-height:1.6}
+
+.header{min-height:60px;height:auto;background:var(--bg);border-bottom:1px solid var(--bg3);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+.header-logo{text-decoration:none;color:inherit}
+.header-title{font-family:'DM Serif Display',serif;font-size:21px;font-weight:400;color:var(--text);white-space:nowrap;letter-spacing:.02em;line-height:1.1}
+.header-title span{color:var(--gold);font-style:italic}
+.header-sub{font-size:11px;color:var(--text3);margin-top:3px;letter-spacing:.03em}
+.header-badge{font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.hdr-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.hdr-btn{padding:5px 10px;font-size:12px;font-weight:500;background:var(--bg);color:var(--text3);border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;white-space:nowrap;font-family:inherit;transition:border-color .14s,color .14s}
+.hdr-btn:hover{border-color:var(--text3);color:var(--text)}
+
+.container{display:flex;height:calc(100% - 70px)}
+.split-left{flex:0 0 52%;height:100%;overflow-y:auto;padding:18px 22px 60px}
+.split-right{flex:0 0 48%;height:100%;overflow-y:auto;padding:18px 22px 60px;border-left:1px solid var(--border);background:var(--bg3)}
+@media(max-width:900px){
+  html,body{overflow:auto}
+  .container{flex-direction:column;height:auto}
+  .split-left,.split-right{flex:none;width:100%;height:auto;overflow-y:visible}
+  .split-right{border-left:none;border-top:2px solid var(--border)}
+}
+
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 14px;margin-bottom:12px}
+.split-right .section{background:var(--bg)}
+.section-title{font-family:'Noto Serif KR',serif;font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';display:block;width:3px;height:12px;background:var(--accent);border-radius:2px}
+.section-hint{font-size:10.5px;color:var(--text3);margin:-4px 0 10px;line-height:1.7}
+
+label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;margin-top:9px}
+label:first-child{margin-top:0}
+input[type=text],input[type=number],select{width:100%;padding:7px 9px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:inherit;font-size:13px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.input-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.input-unit{position:relative}
+.input-unit input{padding-right:34px}
+.input-unit .unit{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text3);pointer-events:none;font-family:'DM Mono',monospace}
+
+.range-row{display:flex;align-items:center;gap:8px}
+.range-row input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:linear-gradient(to right,var(--accent) 0%,var(--accent) var(--pct,50%),var(--bg4) var(--pct,50%));border-radius:4px;padding:0;border:none;cursor:pointer}
+.range-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);box-shadow:0 0 0 2px rgba(196,147,63,.3)}
+.range-val{font-size:13px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace;min-width:44px;text-align:right}
+
+.flow-list{display:flex;flex-direction:column;gap:7px;margin-bottom:8px}
+.flow-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:9px 11px}
+.flow-grid{display:grid;gap:7px;align-items:end}
+.flow-input{width:100%;padding:5px 7px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:12px}
+.flow-label{font-size:10px;color:var(--text2);margin-bottom:3px}
+.del-btn{padding:3px 7px;font-size:17px;border:none;background:none;color:var(--text3);cursor:pointer;border-radius:var(--radius);line-height:1;align-self:end}
+.del-btn:hover{color:var(--red)}
+.add-btn{display:flex;align-items:center;gap:5px;padding:7px 12px;font-size:12px;font-weight:500;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text2);cursor:pointer;width:100%;justify-content:center}
+.add-btn:hover{background:var(--bg2)}
+.empty-hint{font-size:11.5px;color:var(--text3);padding:6px 0}
+
+.btn-run{width:100%;padding:12px;border:none;border-radius:var(--radius-lg);color:#fff;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;box-shadow:0 4px 16px rgba(196,147,63,.25);background:linear-gradient(135deg,#b86e1a,#c4933f);margin-top:4px}
+.btn-run:hover{opacity:.92}
+.btn-run:disabled{opacity:.5;cursor:default}
+
+.dash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.dash-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 13px}
+.dash-label{font-size:10px;font-weight:600;color:var(--text3);margin-bottom:3px}
+.dash-value{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;line-height:1.2}
+.dash-sub{font-size:10px;color:var(--text2);margin-top:3px}
+
+.chart-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px}
+.chart-title{font-family:'Noto Serif KR',serif;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:10px}
+.chart-canvas{width:100%!important;max-height:320px}
+
+.data-table-wrap{overflow-x:auto}
+.data-table{width:100%;border-collapse:collapse;font-size:11px}
+.data-table th{padding:6px 8px;text-align:right;color:var(--text3);font-weight:600;font-size:10px;border-bottom:1px solid var(--border);background:var(--bg2);white-space:nowrap}
+.data-table th:first-child,.data-table td:first-child{text-align:left}
+.data-table td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;white-space:nowrap}
+.data-table tr:hover td{background:rgba(26,24,20,.03)}
+.t-neg{color:var(--red)}
+
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:220px;gap:10px;color:var(--text3);text-align:center;font-size:12px;line-height:1.8}
+
+@media(max-width:600px){
+  .header-title{font-size:17px}.header-sub{font-size:10px}.header-badge{display:none}
+  .dash-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="/" class="header-logo">
+    <div class="header-title">Identi<span>Fi</span></div>
+    <div class="header-sub">생애자금 시뮬레이터 · 130세까지 자산·부채·현금흐름 전망</div>
+  </a>
+  <div class="hdr-actions">
+    <button class="hdr-btn" onclick="saveState()">💾 저장</button>
+    <button class="hdr-btn" onclick="loadState()">📂 불러오기</button>
+    <span class="header-badge">상담용 참고자료</span>
+  </div>
+</div>
+
+<div class="container">
+<div class="split-left">
+
+  <div class="section">
+    <div class="section-title">기본 정보</div>
+    <label>현재 나이</label>
+    <input type="number" id="in-age" value="35" min="0" max="129" oninput="_pv()">
+    <div class="section-hint">시뮬레이션은 현재 나이부터 130세까지 진행됩니다 (기대수명 입력 없음).</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">자산</div>
+    <label>실물자산 (부동산 등) 현재 가치</label>
+    <div class="input-unit"><input type="number" id="in-real" value="30000" step="100" oninput="_pv()"><span class="unit">만원</span></div>
+    <div class="section-hint">자동 상승률은 적용하지 않습니다. 매도·매수 없이 현재 상태 기준이며, 필요시 아래에서 특정 연도의 값을 재설정할 수 있습니다.</div>
+    <div class="flow-list" id="reval-list"></div>
+    <button class="add-btn" onclick="addReval()">＋ 실물자산 값 재설정 포인트 추가</button>
+
+    <label style="margin-top:14px">금융자산 (예금·투자 등) 현재 가치</label>
+    <div class="input-unit"><input type="number" id="in-fin" value="10000" step="100" oninput="_pv()"><span class="unit">만원</span></div>
+    <label>기대수익률 (연)</label>
+    <div class="range-row"><input type="range" id="in-ret" min="0" max="12" step="0.5" value="5" oninput="sr(this,'in-ret-v',1)"><span class="range-val" id="in-ret-v">5.0%</span></div>
+    <label>변동성 (연, 몬테카를로용)</label>
+    <div class="range-row"><input type="range" id="in-vol" min="0" max="30" step="0.5" value="12" oninput="sr(this,'in-vol-v',1)"><span class="range-val" id="in-vol-v">12.0%</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">부채</div>
+    <div class="flow-list" id="debt-list"></div>
+    <button class="add-btn" onclick="addDebt()">＋ 부채 추가</button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">정기 수입</div>
+    <div class="flow-list" id="income-list"></div>
+    <button class="add-btn" onclick="addIncome()">＋ 수입 추가</button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">인생 단계별 생활비</div>
+    <div class="section-hint">물가상승률이 자동 반영됩니다.</div>
+    <div class="flow-list" id="stage-list"></div>
+    <button class="add-btn" onclick="addStage()">＋ 단계 추가</button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">일시 자산 유입 · 유출</div>
+    <div class="section-hint">상속·증여·자녀 학자금 등. 유입은 양수, 유출은 음수로 입력하세요.</div>
+    <div class="flow-list" id="event-list"></div>
+    <button class="add-btn" onclick="addEvt()">＋ 이벤트 추가</button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">공통 가정</div>
+    <label>물가상승률 (연)</label>
+    <div class="range-row"><input type="range" id="in-infl" min="0" max="6" step="0.1" value="2.5" oninput="sr(this,'in-infl-v',1)"><span class="range-val" id="in-infl-v">2.5%</span></div>
+  </div>
+
+  <button class="btn-run" id="run-btn" onclick="runSim()">🚀 시뮬레이션 실행</button>
+
+</div><!-- /split-left -->
+
+<div class="split-right">
+
+  <div class="dash-grid">
+    <div class="dash-card"><div class="dash-label">금융자산 고갈 시점 (중앙값)</div><div class="dash-value" id="kpi-deplete">—</div></div>
+    <div class="dash-card"><div class="dash-label">부채 완제 시점</div><div class="dash-value" id="kpi-debtpay">—</div></div>
+    <div class="dash-card"><div class="dash-label">130세 순자산 (중앙값)</div><div class="dash-value" id="kpi-networth">—</div></div>
+    <div class="dash-card"><div class="dash-label">130세까지 순자산 유지 확률</div><div class="dash-value" id="kpi-success">—</div></div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">순자산 전망 (몬테카를로 10,000회 · 10/50/90분위)</div>
+    <canvas id="chart-net" class="chart-canvas" height="150"></canvas>
+    <div id="chart-net-ph" class="placeholder">
+      <div style="font-size:22px">📊</div>
+      <div>왼쪽에 정보를 입력하고<br>‘시뮬레이션 실행’ 버튼을 눌러주세요.</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">자산 · 부채 구성 (결정론적 시나리오)</div>
+    <canvas id="chart-comp" class="chart-canvas" height="150"></canvas>
+  </div>
+
+  <div class="chart-wrap" id="table-wrap" style="display:none">
+    <div class="chart-title">연도별 요약 (5년 단위)</div>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead><tr><th>나이</th><th>실물자산</th><th>금융자산(중앙값)</th><th>총자산</th><th>부채</th><th>순자산(중앙값)</th></tr></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /split-right -->
+</div><!-- /container -->
+
+<script>
+const $=id=>document.getElementById(id);
+function sr(el,vid,dec){$(vid).textContent=(+el.value).toFixed(dec)+'%';_rp(el);}
+function _rp(e){var v=parseFloat(e.value),mn=parseFloat(e.min)||0,mx=parseFloat(e.max)||100;if(mx!==mn)e.style.setProperty('--pct',((v-mn)/(mx-mn)*100).toFixed(1)+'%');}
+function _pv(){}
+
+// ── 상태 ─────────────────────────────────────────────
+let revals=[], debts=[], incomes=[], stages=[], events=[];
+let seqReval=0, seqDebt=0, seqInc=0, seqStage=0, seqEvt=0;
+
+// 실물자산 재설정 포인트
+function addReval(){revals.push({id:++seqReval,age:60,value:40000});renderRevals();}
+function removeReval(id){revals=revals.filter(x=>x.id!==id);renderRevals();}
+function revU(id,f,v){const x=revals.find(r=>r.id===id);if(x)x[f]=v;}
+function renderRevals(){
+  const list=$('reval-list');list.innerHTML='';
+  if(!revals.length){list.innerHTML='<div class="empty-hint">재설정 포인트 없음 (현재 값 그대로 유지)</div>';return;}
+  revals.forEach(r=>{
+    const row=document.createElement('div');row.className='flow-item';
+    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr auto">
+      <div><div class="flow-label">나이</div><input class="flow-input" type="number" value="${r.age}" oninput="revU(${r.id},'age',+this.value)"></div>
+      <div><div class="flow-label">재설정 값 (만원)</div><input class="flow-input" type="number" value="${r.value}" step="100" oninput="revU(${r.id},'value',+this.value)"></div>
+      <button class="del-btn" onclick="removeReval(${r.id})">×</button>
+    </div>`;
+    list.appendChild(row);
+  });
+}
+
+// 부채
+function addDebt(){debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,startAge:+$('in-age').value||35});renderDebts();}
+function removeDebt(id){debts=debts.filter(x=>x.id!==id);renderDebts();}
+function debtU(id,f,v){const x=debts.find(d=>d.id===id);if(x)x[f]=v;}
+function renderDebts(){
+  const list=$('debt-list');list.innerHTML='';
+  if(!debts.length){list.innerHTML='<div class="empty-hint">부채 없음</div>';return;}
+  debts.forEach(d=>{
+    const row=document.createElement('div');row.className='flow-item';
+    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
+      <div style="grid-column:1/-1"><div class="flow-label">부채 이름</div><input class="flow-input" type="text" value="${d.name}" oninput="debtU(${d.id},'name',this.value)"></div>
+      <div><div class="flow-label">원금 (만원)</div><input class="flow-input" type="number" value="${d.principal}" step="100" oninput="debtU(${d.id},'principal',+this.value)"></div>
+      <div><div class="flow-label">금리 (연, %)</div><input class="flow-input" type="number" value="${d.rate}" step="0.1" oninput="debtU(${d.id},'rate',+this.value)"></div>
+      <div><div class="flow-label">상환방식</div><select class="flow-input" onchange="debtU(${d.id},'method',this.value)">
+        <option value="equal_payment" ${d.method==='equal_payment'?'selected':''}>원리금균등</option>
+        <option value="equal_principal" ${d.method==='equal_principal'?'selected':''}>원금균등</option>
+        <option value="bullet" ${d.method==='bullet'?'selected':''}>만기일시</option>
+      </select></div>
+      <div><div class="flow-label">상환 기간 (년)</div><input class="flow-input" type="number" value="${d.years}" oninput="debtU(${d.id},'years',+this.value)"></div>
+      <div style="grid-column:1/-1"><div class="flow-label">상환 시작 나이</div><input class="flow-input" type="number" value="${d.startAge}" oninput="debtU(${d.id},'startAge',+this.value)"></div>
+      <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeDebt(${d.id})">× 삭제</button>
+    </div>`;
+    list.appendChild(row);
+  });
+}
+
+// 정기 수입
+function addIncome(){incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:+$('in-age').value||35,endAge:60,growth:2});renderIncomes();}
+function removeIncome(id){incomes=incomes.filter(x=>x.id!==id);renderIncomes();}
+function incU(id,f,v){const x=incomes.find(i=>i.id===id);if(x)x[f]=v;}
+function renderIncomes(){
+  const list=$('income-list');list.innerHTML='';
+  if(!incomes.length){list.innerHTML='<div class="empty-hint">정기 수입 없음</div>';return;}
+  incomes.forEach(e=>{
+    const row=document.createElement('div');row.className='flow-item';
+    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
+      <div style="grid-column:1/-1"><div class="flow-label">수입 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="incU(${e.id},'label',this.value)"></div>
+      <div><div class="flow-label">연간 금액 (만원)</div><input class="flow-input" type="number" value="${e.annualAmount}" step="100" oninput="incU(${e.id},'annualAmount',+this.value)"></div>
+      <div><div class="flow-label">성장률 (연, %)</div><input class="flow-input" type="number" value="${e.growth}" step="0.5" oninput="incU(${e.id},'growth',+this.value)"></div>
+      <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" value="${e.startAge}" oninput="incU(${e.id},'startAge',+this.value)"></div>
+      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" value="${e.endAge}" oninput="incU(${e.id},'endAge',+this.value)"></div>
+      <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeIncome(${e.id})">× 삭제</button>
+    </div>`;
+    list.appendChild(row);
+  });
+}
+
+// 인생 단계별 생활비
+function addStage(){stages.push({id:++seqStage,label:'새 단계',startAge:60,endAge:80,monthlyAmount:250});renderStages();}
+function removeStage(id){stages=stages.filter(x=>x.id!==id);renderStages();}
+function stageU(id,f,v){const x=stages.find(s=>s.id===id);if(x)x[f]=v;}
+function renderStages(){
+  const list=$('stage-list');list.innerHTML='';
+  if(!stages.length){list.innerHTML='<div class="empty-hint">생활비 단계 없음</div>';return;}
+  stages.forEach(s=>{
+    const row=document.createElement('div');row.className='flow-item';
+    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
+      <div style="grid-column:1/-1"><div class="flow-label">단계 이름</div><input class="flow-input" type="text" value="${s.label}" oninput="stageU(${s.id},'label',this.value)"></div>
+      <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" value="${s.startAge}" oninput="stageU(${s.id},'startAge',+this.value)"></div>
+      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" value="${s.endAge}" oninput="stageU(${s.id},'endAge',+this.value)"></div>
+      <div style="grid-column:1/-1"><div class="flow-label">월 생활비 (만원)</div><input class="flow-input" type="number" value="${s.monthlyAmount}" step="10" oninput="stageU(${s.id},'monthlyAmount',+this.value)"></div>
+      <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeStage(${s.id})">× 삭제</button>
+    </div>`;
+    list.appendChild(row);
+  });
+}
+
+// 일시 유입/유출
+function addEvt(){events.push({id:++seqEvt,label:'자녀 학자금',age:50,amount:-3000});renderEvts();}
+function removeEvt(id){events=events.filter(x=>x.id!==id);renderEvts();}
+function evtU(id,f,v){const x=events.find(e=>e.id===id);if(x)x[f]=v;}
+function renderEvts(){
+  const list=$('event-list');list.innerHTML='';
+  if(!events.length){list.innerHTML='<div class="empty-hint">일시 유입/유출 없음</div>';return;}
+  events.forEach(e=>{
+    const row=document.createElement('div');row.className='flow-item';
+    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr 1fr auto">
+      <div><div class="flow-label">이벤트 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="evtU(${e.id},'label',this.value)"></div>
+      <div><div class="flow-label">나이</div><input class="flow-input" type="number" value="${e.age}" oninput="evtU(${e.id},'age',+this.value)"></div>
+      <div><div class="flow-label">금액 (만원, 유출은 -)</div><input class="flow-input" type="number" value="${e.amount}" step="100" oninput="evtU(${e.id},'amount',+this.value)"></div>
+      <button class="del-btn" onclick="removeEvt(${e.id})">×</button>
+    </div>`;
+    list.appendChild(row);
+  });
+}
+
+// ── 초기값 ───────────────────────────────────────────
+function seedDefaults(){
+  const age=+$('in-age').value||35;
+  incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:age,endAge:60,growth:2});
+  stages.push({id:++seqStage,label:'활동기',startAge:age,endAge:65,monthlyAmount:300});
+  stages.push({id:++seqStage,label:'회상기',startAge:65,endAge:85,monthlyAmount:250});
+  stages.push({id:++seqStage,label:'간병기',startAge:85,endAge:130,monthlyAmount:200});
+  renderRevals();renderDebts();renderIncomes();renderStages();renderEvts();
+}
+seedDefaults();
+['in-ret','in-vol','in-infl'].forEach(id=>_rp($(id)));
+
+// ── 실행 ─────────────────────────────────────────────
+function collectPayload(){
+  return{
+    currentAge:+$('in-age').value||35,
+    realAsset:{current:+$('in-real').value||0, revals:revals.map(r=>({age:r.age,value:r.value}))},
+    finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
+    debts:debts.map(d=>({principal:d.principal,rate:d.rate,method:d.method,years:d.years,startAge:d.startAge})),
+    incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.endAge,growth:i.growth})),
+    stages:stages.map(s=>({startAge:s.startAge,endAge:s.endAge,monthlyAmount:s.monthlyAmount})),
+    events:events.map(e=>({age:e.age,amount:e.amount})),
+    inflation:+$('in-infl').value||0,
+    runs:10000
+  };
+}
+
+function fmtMan(v){
+  const av=Math.abs(v);
+  if(av>=10000) return (v/10000).toFixed(2)+'억';
+  return Math.round(v).toLocaleString()+'만';
+}
+
+let chartNet=null, chartComp=null;
+
+async function runSim(){
+  const btn=$('run-btn');
+  btn.disabled=true;btn.textContent='계산 중...';
+  try{
+    const res=await fetch('/api/life-fund-sim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(collectPayload())});
+    const data=await res.json();
+    if(data.error){alert('오류: '+data.error);return;}
+    renderResults(data);
+  }catch(err){
+    alert('계산 중 오류가 발생했습니다: '+err.message);
+  }finally{
+    btn.disabled=false;btn.textContent='🚀 시뮬레이션 실행';
+  }
+}
+
+function renderResults(d){
+  $('chart-net-ph').style.display='none';
+  $('table-wrap').style.display='block';
+
+  $('kpi-deplete').textContent=d.depletionAge?d.depletionAge+'세':'고갈 없음';
+  $('kpi-debtpay').textContent=d.debtPayoffAge?d.debtPayoffAge+'세':(debts.length?'미완제':'부채 없음');
+  $('kpi-networth').textContent=fmtMan(d.p50[d.p50.length-1]);
+  $('kpi-success').textContent=d.successRate.toFixed(1)+'%';
+
+  const labels=d.ages.map(a=>a+'세');
+
+  if(chartNet) chartNet.destroy();
+  chartNet=new Chart($('chart-net'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'MC 하위10%',data:d.p10.map(v=>v/10000),borderColor:'rgba(196,147,63,.3)',backgroundColor:'rgba(196,147,63,.08)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'origin',tension:.25},
+      {label:'MC 상위10%',data:d.p90.map(v=>v/10000),borderColor:'rgba(196,147,63,.3)',backgroundColor:'rgba(196,147,63,.08)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'-1',tension:.25},
+      {label:'MC 중앙값',data:d.p50.map(v=>v/10000),borderColor:'#9a9080',borderWidth:1.5,borderDash:[4,2],pointRadius:0,fill:false,tension:.25},
+      {label:'결정론적',data:d.netWorthDet.map(v=>v/10000),borderColor:'#c4933f',borderWidth:2.5,pointRadius:0,fill:false,tension:.25}
+    ]},
+    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,animation:{duration:0},interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
+      scales:{x:{ticks:{color:'#7a776f',font:{size:10},maxTicksLimit:12},grid:{color:'rgba(26,24,20,.06)'}},y:{ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}}}}
+  });
+
+  if(chartComp) chartComp.destroy();
+  chartComp=new Chart($('chart-comp'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'실물자산',data:d.real.map(v=>v/10000),borderColor:'#c4933f',backgroundColor:'transparent',borderWidth:2,pointRadius:0,fill:false,tension:.25},
+      {label:'금융자산',data:d.finDet.map(v=>v/10000),borderColor:'#2a7c6f',backgroundColor:'rgba(42,124,111,.08)',borderWidth:2,pointRadius:0,fill:true,tension:.25},
+      {label:'총부채',data:d.debtBalance.map(v=>v/10000),borderColor:'#943030',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,tension:.25}
+    ]},
+    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,animation:{duration:0},interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
+      scales:{x:{ticks:{color:'#7a776f',font:{size:10},maxTicksLimit:12},grid:{color:'rgba(26,24,20,.06)'}},y:{ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}}}}
+  });
+
+  const tbody=$('table-body');tbody.innerHTML='';
+  d.ages.forEach((age,i)=>{
+    if(age%5!==0 && i!==d.ages.length-1) return;
+    const total=d.real[i]+d.finP50[i];
+    const nw=d.p50[i];
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${age}세</td><td>${fmtMan(d.real[i])}</td><td>${fmtMan(d.finP50[i])}</td><td>${fmtMan(total)}</td><td>${fmtMan(d.debtBalance[i])}</td><td class="${nw<0?'t-neg':''}">${fmtMan(nw)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── 저장/불러오기 (localStorage) ─────────────────────
+function saveState(){
+  const state={
+    age:$('in-age').value, real:$('in-real').value, fin:$('in-fin').value,
+    ret:$('in-ret').value, vol:$('in-vol').value, infl:$('in-infl').value,
+    revals, debts, incomes, stages, events
+  };
+  localStorage.setItem('lifeFundSimState', JSON.stringify(state));
+  alert('저장되었습니다.');
+}
+function loadState(){
+  const raw=localStorage.getItem('lifeFundSimState');
+  if(!raw){alert('저장된 데이터가 없습니다.');return;}
+  const s=JSON.parse(raw);
+  $('in-age').value=s.age;$('in-real').value=s.real;$('in-fin').value=s.fin;
+  $('in-ret').value=s.ret;sr($('in-ret'),'in-ret-v',1);
+  $('in-vol').value=s.vol;sr($('in-vol'),'in-vol-v',1);
+  $('in-infl').value=s.infl;sr($('in-infl'),'in-infl-v',1);
+  revals=s.revals||[];debts=s.debts||[];incomes=s.incomes||[];stages=s.stages||[];events=s.events||[];
+  seqReval=Math.max(0,...revals.map(x=>x.id||0));
+  seqDebt=Math.max(0,...debts.map(x=>x.id||0));
+  seqInc=Math.max(0,...incomes.map(x=>x.id||0));
+  seqStage=Math.max(0,...stages.map(x=>x.id||0));
+  seqEvt=Math.max(0,...events.map(x=>x.id||0));
+  renderRevals();renderDebts();renderIncomes();renderStages();renderEvts();
+}
+</script>
+</body>
+</html>

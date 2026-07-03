@@ -5,6 +5,7 @@
     "api/retirement-sim.js": { "maxDuration": 30 },
     "api/backtest-asset.js": { "maxDuration": 30 },
     "api/goal-sim.js": { "maxDuration": 30 },
+    "api/life-fund-sim.js": { "maxDuration": 30 },
     "api/investment-profile.js": { "maxDuration": 10 },
     "api/financial-statement.js": { "maxDuration": 10 },
     "api/yahoo-proxy.js": { "maxDuration": 15 }
