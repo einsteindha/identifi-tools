@@ -51,14 +51,18 @@ function buildDebtSchedule(debts, ages){
   return{balance,payment};
 }
 
-// 실물자산: 현재값 유지, 재설정 포인트(age,value) 도달 시 갱신
+// 실물자산: 매년 growthRate로 복리 증가, 재설정 포인트(age,value) 도달 시 그 값으로 재설정 후 계속 증가
 function buildRealAssetArray(ages, realAsset){
+  const rate=((realAsset&&realAsset.growthRate)||0)/100;
   const revals=((realAsset&&realAsset.revals)||[]).slice().sort((a,b)=>a.age-b.age);
   let cur=(realAsset&&realAsset.current)||0, ri=0;
-  return ages.map(age=>{
-    while(ri<revals.length && revals[ri].age<=age){cur=revals[ri].value;ri++;}
-    return cur;
-  });
+  const n=ages.length, arr=new Array(n);
+  for(let i=0;i<n;i++){
+    if(i>0) cur=cur*(1+rate);
+    while(ri<revals.length && revals[ri].age<=ages[i]){cur=revals[ri].value;ri++;}
+    arr[i]=cur;
+  }
+  return arr;
 }
 
 // 정기수입 - 생활비단계 - 일시유입출 = 나이별 순현금흐름 (물가/성장률 반영, 만원)

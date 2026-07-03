@@ -125,14 +125,19 @@ input:focus,select:focus{border-color:var(--accent)}
   </div>
 
   <div class="section">
-    <div class="section-title">자산</div>
+    <div class="section-title">실물자산</div>
     <label>실물자산 (부동산 등) 현재 가치</label>
     <div class="input-unit"><input type="number" id="in-real" value="30000" step="100" oninput="_pv()"><span class="unit">만원</span></div>
-    <div class="section-hint">자동 상승률은 적용하지 않습니다. 매도·매수 없이 현재 상태 기준이며, 필요시 아래에서 특정 연도의 값을 재설정할 수 있습니다.</div>
+    <label>부동산 가격 상승률 (연)</label>
+    <div class="range-row"><input type="range" id="in-real-ret" min="-5" max="10" step="0.5" value="2" oninput="sr(this,'in-real-ret-v',1)"><span class="range-val" id="in-real-ret-v">2.0%</span></div>
+    <div class="section-hint">매도·매수 이벤트는 없으며, 매년 위 상승률로 복리 증가합니다. 필요시 아래에서 특정 연도의 값을 직접 재설정할 수 있습니다 (예: 매도·상속 등으로 가치가 크게 바뀌는 시점).</div>
     <div class="flow-list" id="reval-list"></div>
     <button class="add-btn" onclick="addReval()">＋ 실물자산 값 재설정 포인트 추가</button>
+  </div>
 
-    <label style="margin-top:14px">금융자산 (예금·투자 등) 현재 가치</label>
+  <div class="section">
+    <div class="section-title">금융자산</div>
+    <label>금융자산 (예금·투자 등) 현재 가치</label>
     <div class="input-unit"><input type="number" id="in-fin" value="10000" step="100" oninput="_pv()"><span class="unit">만원</span></div>
     <label>기대수익률 (연)</label>
     <div class="range-row"><input type="range" id="in-ret" min="0" max="12" step="0.5" value="5" oninput="sr(this,'in-ret-v',1)"><span class="range-val" id="in-ret-v">5.0%</span></div>
@@ -356,13 +361,13 @@ function seedDefaults(){
   renderRevals();renderDebts();renderIncomes();renderStages();renderEvts();
 }
 seedDefaults();
-['in-ret','in-vol','in-infl'].forEach(id=>_rp($(id)));
+['in-real-ret','in-ret','in-vol','in-infl'].forEach(id=>_rp($(id)));
 
 // ── 실행 ─────────────────────────────────────────────
 function collectPayload(){
   return{
     currentAge:getCurrentAge(),
-    realAsset:{current:+$('in-real').value||0, revals:revals.map(r=>({age:r.age,value:r.value}))},
+    realAsset:{current:+$('in-real').value||0, growthRate:+$('in-real-ret').value||0, revals:revals.map(r=>({age:r.age,value:r.value}))},
     finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
     debts:debts.map(d=>({principal:d.principal,rate:d.rate,method:d.method,years:d.years,startAge:d.startAge})),
     incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.endAge,growth:i.growth})),
@@ -448,7 +453,7 @@ function renderResults(d){
 // ── 저장/불러오기 (localStorage) ─────────────────────
 function saveState(){
   const state={
-    birth:$('in-birth').value, real:$('in-real').value, fin:$('in-fin').value,
+    birth:$('in-birth').value, real:$('in-real').value, realRet:$('in-real-ret').value, fin:$('in-fin').value,
     ret:$('in-ret').value, vol:$('in-vol').value, infl:$('in-infl').value,
     revals, debts, incomes, stages, events
   };
@@ -460,6 +465,7 @@ function loadState(){
   if(!raw){alert('저장된 데이터가 없습니다.');return;}
   const s=JSON.parse(raw);
   $('in-birth').value=s.birth;updateAgeDisplay();$('in-real').value=s.real;$('in-fin').value=s.fin;
+  $('in-real-ret').value=s.realRet||0;sr($('in-real-ret'),'in-real-ret-v',1);
   $('in-ret').value=s.ret;sr($('in-ret'),'in-ret-v',1);
   $('in-vol').value=s.vol;sr($('in-vol'),'in-vol-v',1);
   $('in-infl').value=s.infl;sr($('in-infl'),'in-infl-v',1);
