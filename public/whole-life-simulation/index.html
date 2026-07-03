@@ -70,10 +70,6 @@ input:focus,select:focus{border-color:var(--accent)}
 .add-btn:hover{background:var(--bg2)}
 .empty-hint{font-size:11.5px;color:var(--text3);padding:6px 0}
 
-.btn-run{width:100%;padding:12px;border:none;border-radius:var(--radius-lg);color:#fff;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;box-shadow:0 4px 16px rgba(196,147,63,.25);background:linear-gradient(135deg,#b86e1a,#c4933f);margin-top:4px}
-.btn-run:hover{opacity:.92}
-.btn-run:disabled{opacity:.5;cursor:default}
-
 .dash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
 .dash-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 13px}
 .dash-label{font-size:10px;font-weight:600;color:var(--text3);margin-bottom:3px}
@@ -118,15 +114,10 @@ input:focus,select:focus{border-color:var(--accent)}
 
   <div class="section">
     <div class="section-title">기본 정보</div>
-    <label>생년월</label>
-    <div style="display:flex;align-items:center;gap:4px">
-      <input type="number" id="in-birth-y" min="1930" max="2026" step="1" oninput="updateAgeDisplay()" style="width:70px">
-      <span style="font-size:11px;color:var(--text3)">년</span>
-      <input type="number" id="in-birth-m" min="1" max="12" step="1" oninput="updateAgeDisplay()" style="width:50px">
-      <span style="font-size:11px;color:var(--text3)">월</span>
-    </div>
+    <label>생년월일</label>
+    <input type="date" id="in-birth" oninput="updateAgeDisplay()">
     <div class="section-hint" id="age-display">현재 만 —세</div>
-    <div class="section-hint">현재 나이는 생년월 기준 만 나이로 자동 계산되며, 시뮬레이션은 현재 나이부터 130세까지 진행됩니다 (기대수명 입력 없음).</div>
+    <div class="section-hint">현재 나이는 생년월일 기준 만 나이로 자동 계산되며, 시뮬레이션은 현재 나이부터 130세까지 진행됩니다 (기대수명 입력 없음).</div>
   </div>
 
   <div class="section">
@@ -166,23 +157,32 @@ input:focus,select:focus{border-color:var(--accent)}
   </div>
 
   <div class="section">
-    <div class="section-title">일시 자산 유입 · 유출</div>
-    <div class="section-hint">상속·증여·자녀 학자금 등. 유입은 양수, 유출은 음수로 입력하세요.</div>
-    <div class="flow-list" id="event-list"></div>
-    <button class="add-btn" onclick="addEvt()">＋ 이벤트 추가</button>
+    <div class="section-title">일시 자산 유입</div>
+    <div class="section-hint">상속·증여 등 목돈이 들어오는 시점. 금액은 항상 양수로 입력하며, 그래프에 별도 표시 없이 금융자산·순자산·총자산에 반영됩니다.</div>
+    <div class="flow-list" id="inflow-list"></div>
+    <button class="add-btn" onclick="addInflow()">＋ 유입 추가</button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">일시 자산 유출</div>
+    <div class="section-hint">자녀 학자금 등 목돈이 나가는 시점. 금액은 항상 양수로 입력하며, 지출 막대그래프에 함께 표시됩니다.</div>
+    <div class="flow-list" id="outflow-list"></div>
+    <button class="add-btn" onclick="addOutflow()">＋ 유출 추가</button>
   </div>
 
   <div class="section">
     <div class="section-title">공통 가정</div>
     <label>물가상승률 (연)</label>
     <div class="range-row"><input type="range" id="in-infl" min="0" max="6" step="0.1" value="2.5" oninput="sr(this,'in-infl-v',1)"><span class="range-val" id="in-infl-v">2.5%</span></div>
+    <div class="section-hint">인생 단계별 생활비·일시 유입/유출 금액에만 적용됩니다. 실물자산은 각 항목의 상승률, 정기수입은 각 항목의 성장률, 금융자산은 기대수익률을 별도로 적용하므로 물가상승률의 영향을 받지 않습니다.</div>
   </div>
 
-  <button class="btn-run" id="run-btn" onclick="runSim()">🚀 시뮬레이션 실행</button>
 
 </div><!-- /split-left -->
 
 <div class="split-right">
+
+  <div id="calc-status" style="font-size:11px;color:var(--text3);min-height:14px;margin-bottom:6px"></div>
 
   <div class="dash-grid">
     <div class="dash-card"><div class="dash-label">금융자산 고갈 시점 (중앙값)</div><div class="dash-value" id="kpi-deplete">—</div></div>
@@ -194,7 +194,7 @@ input:focus,select:focus{border-color:var(--accent)}
     <canvas id="chart-net" class="chart-canvas" height="170"></canvas>
     <div id="chart-net-ph" class="placeholder">
       <div style="font-size:22px">📊</div>
-      <div>왼쪽에 정보를 입력하고<br>‘시뮬레이션 실행’ 버튼을 눌러주세요.</div>
+      <div>계산 중입니다…</div>
     </div>
     <div class="section-hint" style="margin-top:8px">좌측 축: 총자산·실물자산·금융자산·부채·순자산 (억원) · 우측 축: 지출·자산유출 (막대, 만원). 자산유입은 별도 표시 없이 금융자산·순자산·총자산에 반영됩니다.</div>
   </div>
@@ -218,31 +218,41 @@ function sr(el,vid,dec){$(vid).textContent=(+el.value).toFixed(dec)+'%';_rp(el);
 function _rp(e){var v=parseFloat(e.value),mn=parseFloat(e.min)||0,mx=parseFloat(e.max)||100;if(mx!==mn)e.style.setProperty('--pct',((v-mn)/(mx-mn)*100).toFixed(1)+'%');}
 function _pv(){}
 
-// 생년월(y,m) 기준, 대상 연월(ty,tm)에서의 만 나이
+// 생년월(y,m) 기준, 대상 연월(ty,tm)에서의 만 나이 (부채 대출실행일 등 월 단위 계산용)
 function ageAtYM(by,bm,ty,tm){
   let age=ty-by;
   if(tm<bm) age--;
   return age;
 }
 function getBirthYM(){
-  return{y:+$('in-birth-y').value||1991, m:+$('in-birth-m').value||1};
+  const v=$('in-birth').value;
+  if(!v) return{y:1991,m:1};
+  const b=new Date(v);
+  return{y:b.getFullYear(), m:b.getMonth()+1};
 }
 function getCurrentAge(){
-  const b=getBirthYM(), t=new Date();
-  return Math.max(0, ageAtYM(b.y,b.m,t.getFullYear(),t.getMonth()+1));
+  const v=$('in-birth').value;
+  if(!v) return 35;
+  const b=new Date(v), t=new Date();
+  let age=t.getFullYear()-b.getFullYear();
+  const m=t.getMonth()-b.getMonth();
+  if(m<0 || (m===0 && t.getDate()<b.getDate())) age--;
+  return Math.max(0, age);
 }
 function updateAgeDisplay(){
   $('age-display').textContent='현재 만 '+getCurrentAge()+'세';
 }
 function setDefaultBirth(){
   const t=new Date();
-  $('in-birth-y').value=t.getFullYear()-35;
-  $('in-birth-m').value=t.getMonth()+1;
+  const y=t.getFullYear()-35;
+  $('in-birth').value=y+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
 }
 
 // ── 상태 ─────────────────────────────────────────────
-let realAssets=[], debts=[], incomes=[], stages=[], events=[];
-let seqReal=0, seqDebt=0, seqInc=0, seqStage=0, seqEvt=0;
+let chartNet=null;
+let _simTimer=null, _simSeq=0;
+let realAssets=[], debts=[], incomes=[], stages=[], inflows=[], outflows=[];
+let seqReal=0, seqDebt=0, seqInc=0, seqStage=0, seqInflow=0, seqOutflow=0;
 
 // 실물자산
 function addRealAsset(){realAssets.push({id:++seqReal,name:'실물자산',value:30000,growthRate:2,buyAge:null,sellAge:null});renderRealAssets();}
@@ -256,17 +266,20 @@ function renderRealAssets(){
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">이름</div><input class="flow-input" type="text" value="${r.name}" oninput="realAssetU(${r.id},'name',this.value)"></div>
       <div><div class="flow-label">가치 (만원)</div><input class="flow-input" type="number" value="${r.value}" step="100" oninput="realAssetU(${r.id},'value',+this.value)"></div>
-      <div><div class="flow-label">상승률 (연, %)</div><input class="flow-input" type="number" value="${r.growthRate}" step="0.5" oninput="realAssetU(${r.id},'growthRate',+this.value)"></div>
+      <div style="grid-column:1/-1"><div class="flow-label">상승률 (연)</div>
+        <div class="range-row"><input type="range" min="-5" max="10" step="0.5" value="${r.growthRate}" oninput="realAssetU(${r.id},'growthRate',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(1)+'%';_rp(this)"><span class="range-val">${(+r.growthRate).toFixed(1)}%</span></div>
+      </div>
       <div><div class="flow-label">매수 시점 (나이, 비우면 현재 보유)</div><input class="flow-input" type="number" value="${r.buyAge==null?'':r.buyAge}" oninput="realAssetU(${r.id},'buyAge',this.value===''?null:+this.value)"></div>
       <div><div class="flow-label">매도 시점 (나이, 비우면 매도 없음)</div><input class="flow-input" type="number" value="${r.sellAge==null?'':r.sellAge}" oninput="realAssetU(${r.id},'sellAge',this.value===''?null:+this.value)"></div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeRealAsset(${r.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
+    _rp(row.querySelector('input[type=range]'));
   });
 }
 
 // 부채
-function addDebt(){const t=new Date();debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,originY:t.getFullYear(),originM:t.getMonth()+1});renderDebts();}
+function addDebt(){const t=new Date();debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,originYM:t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')});renderDebts();}
 function removeDebt(id){debts=debts.filter(x=>x.id!==id);renderDebts();}
 function debtU(id,f,v){const x=debts.find(d=>d.id===id);if(x)x[f]=v;}
 function renderDebts(){
@@ -285,12 +298,7 @@ function renderDebts(){
       </select></div>
       <div><div class="flow-label">상환 기간 (년)</div><input class="flow-input" type="number" value="${d.years}" oninput="debtU(${d.id},'years',+this.value)"></div>
       <div style="grid-column:1/-1"><div class="flow-label">대출실행일 (과거도 입력 가능 — 이미 상환 중인 대출의 현재 잔액을 정확히 계산합니다)</div>
-        <div style="display:flex;align-items:center;gap:4px">
-          <input class="flow-input" type="number" value="${d.originY}" style="width:70px" oninput="debtU(${d.id},'originY',+this.value)">
-          <span style="font-size:10px;color:var(--text3)">년</span>
-          <input class="flow-input" type="number" value="${d.originM}" min="1" max="12" style="width:50px" oninput="debtU(${d.id},'originM',+this.value)">
-          <span style="font-size:10px;color:var(--text3)">월</span>
-        </div>
+        <input class="flow-input" type="month" value="${d.originYM}" oninput="debtU(${d.id},'originYM',this.value)">
       </div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeDebt(${d.id})">× 삭제</button>
     </div>`;
@@ -339,20 +347,39 @@ function renderStages(){
   });
 }
 
-// 일시 유입/유출
-function addEvt(){events.push({id:++seqEvt,label:'자녀 학자금',age:50,amount:-3000});renderEvts();}
-function removeEvt(id){events=events.filter(x=>x.id!==id);renderEvts();}
-function evtU(id,f,v){const x=events.find(e=>e.id===id);if(x)x[f]=v;}
-function renderEvts(){
-  const list=$('event-list');list.innerHTML='';
-  if(!events.length){list.innerHTML='<div class="empty-hint">일시 유입/유출 없음</div>';return;}
-  events.forEach(e=>{
+// 일시 유입
+function addInflow(){inflows.push({id:++seqInflow,label:'상속',age:60,amount:20000});renderInflows();}
+function removeInflow(id){inflows=inflows.filter(x=>x.id!==id);renderInflows();}
+function inflowU(id,f,v){const x=inflows.find(e=>e.id===id);if(x)x[f]=v;}
+function renderInflows(){
+  const list=$('inflow-list');list.innerHTML='';
+  if(!inflows.length){list.innerHTML='<div class="empty-hint">일시 유입 없음</div>';return;}
+  inflows.forEach(e=>{
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr 1fr auto">
-      <div><div class="flow-label">이벤트 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="evtU(${e.id},'label',this.value)"></div>
-      <div><div class="flow-label">나이</div><input class="flow-input" type="number" value="${e.age}" oninput="evtU(${e.id},'age',+this.value)"></div>
-      <div><div class="flow-label">금액 (만원, 유출은 -)</div><input class="flow-input" type="number" value="${e.amount}" step="100" oninput="evtU(${e.id},'amount',+this.value)"></div>
-      <button class="del-btn" onclick="removeEvt(${e.id})">×</button>
+      <div><div class="flow-label">이벤트 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="inflowU(${e.id},'label',this.value)"></div>
+      <div><div class="flow-label">나이</div><input class="flow-input" type="number" value="${e.age}" oninput="inflowU(${e.id},'age',+this.value)"></div>
+      <div><div class="flow-label">금액 (만원)</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="inflowU(${e.id},'amount',Math.abs(+this.value))"></div>
+      <button class="del-btn" onclick="removeInflow(${e.id})">×</button>
+    </div>`;
+    list.appendChild(row);
+  });
+}
+
+// 일시 유출
+function addOutflow(){outflows.push({id:++seqOutflow,label:'자녀 학자금',age:50,amount:3000});renderOutflows();}
+function removeOutflow(id){outflows=outflows.filter(x=>x.id!==id);renderOutflows();}
+function outflowU(id,f,v){const x=outflows.find(e=>e.id===id);if(x)x[f]=v;}
+function renderOutflows(){
+  const list=$('outflow-list');list.innerHTML='';
+  if(!outflows.length){list.innerHTML='<div class="empty-hint">일시 유출 없음</div>';return;}
+  outflows.forEach(e=>{
+    const row=document.createElement('div');row.className='flow-item';
+    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr 1fr auto">
+      <div><div class="flow-label">이벤트 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="outflowU(${e.id},'label',this.value)"></div>
+      <div><div class="flow-label">나이</div><input class="flow-input" type="number" value="${e.age}" oninput="outflowU(${e.id},'age',+this.value)"></div>
+      <div><div class="flow-label">금액 (만원)</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="outflowU(${e.id},'amount',Math.abs(+this.value))"></div>
+      <button class="del-btn" onclick="removeOutflow(${e.id})">×</button>
     </div>`;
     list.appendChild(row);
   });
@@ -368,10 +395,11 @@ function seedDefaults(){
   stages.push({id:++seqStage,label:'적립기 - 경제활동기',startAge:age,endAge:65,monthlyAmount:300});
   stages.push({id:++seqStage,label:'인출기 - 활동기',startAge:65,endAge:85,monthlyAmount:250});
   stages.push({id:++seqStage,label:'인출기 - 간병기',startAge:85,endAge:130,monthlyAmount:200});
-  renderRealAssets();renderDebts();renderIncomes();renderStages();renderEvts();
+  renderRealAssets();renderDebts();renderIncomes();renderStages();renderInflows();renderOutflows();
 }
 seedDefaults();
 ['in-ret','in-vol','in-infl'].forEach(id=>_rp($(id)));
+runSim();
 
 // ── 실행 ─────────────────────────────────────────────
 function collectPayload(){
@@ -379,10 +407,10 @@ function collectPayload(){
     currentAge:getCurrentAge(),
     realAssets:realAssets.map(r=>({value:r.value,growthRate:r.growthRate,buyAge:r.buyAge,sellAge:r.sellAge})),
     finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
-    debts:debts.map(d=>{const b=getBirthYM();return{principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:ageAtYM(b.y,b.m,d.originY,d.originM)};}),
+    debts:debts.map(d=>{const b=getBirthYM();const[oy,om]=(d.originYM||'').split('-').map(Number);return{principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:ageAtYM(b.y,b.m,oy||b.y,om||1)};}),
     incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.endAge,growth:i.growth})),
     stages:stages.map(s=>({startAge:s.startAge,endAge:s.endAge,monthlyAmount:s.monthlyAmount})),
-    events:events.map(e=>({age:e.age,amount:e.amount})),
+    events:[...inflows.map(e=>({age:e.age,amount:Math.abs(e.amount)})), ...outflows.map(e=>({age:e.age,amount:-Math.abs(e.amount)}))],
     inflation:+$('in-infl').value||0,
     runs:10000
   };
@@ -394,22 +422,33 @@ function fmtMan(v){
   return Math.round(v).toLocaleString()+'만';
 }
 
-let chartNet=null;
+function scheduleRun(){
+  clearTimeout(_simTimer);
+  $('calc-status').textContent='입력 대기 중…';
+  _simTimer=setTimeout(runSim, 500);
+}
 
 async function runSim(){
-  const btn=$('run-btn');
-  btn.disabled=true;btn.textContent='계산 중...';
+  const seq=++_simSeq;
+  $('calc-status').textContent='계산 중…';
   try{
     const res=await fetch('/api/life-fund-sim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(collectPayload())});
     const data=await res.json();
-    if(data.error){alert('오류: '+data.error);return;}
+    if(seq!==_simSeq) return; // 이후 입력으로 이미 새 요청이 나간 경우 낡은 응답은 무시
+    if(data.error){$('calc-status').textContent='오류: '+data.error;return;}
     renderResults(data);
+    $('calc-status').textContent='';
   }catch(err){
-    alert('계산 중 오류가 발생했습니다: '+err.message);
-  }finally{
-    btn.disabled=false;btn.textContent='🚀 시뮬레이션 실행';
+    if(seq===_simSeq) $('calc-status').textContent='계산 중 오류가 발생했습니다: '+err.message;
   }
 }
+
+// 좌측 입력 영역의 모든 input/change/click(추가·삭제 버튼)을 위임 감지해 실시간 재계산
+document.querySelector('.split-left').addEventListener('input', scheduleRun);
+document.querySelector('.split-left').addEventListener('change', scheduleRun);
+document.querySelector('.split-left').addEventListener('click', e=>{
+  if(e.target.closest('.add-btn, .del-btn')) scheduleRun();
+});
 
 function renderResults(d){
   $('chart-net-ph').style.display='none';
@@ -455,9 +494,9 @@ function renderResults(d){
 // ── 저장/불러오기 (localStorage) ─────────────────────
 function saveState(){
   const state={
-    birthY:$('in-birth-y').value, birthM:$('in-birth-m').value, fin:$('in-fin').value,
+    birth:$('in-birth').value, fin:$('in-fin').value,
     ret:$('in-ret').value, vol:$('in-vol').value, infl:$('in-infl').value,
-    realAssets, debts, incomes, stages, events
+    realAssets, debts, incomes, stages, inflows, outflows
   };
   localStorage.setItem('lifeFundSimState', JSON.stringify(state));
   alert('저장되었습니다.');
@@ -466,17 +505,18 @@ function loadState(){
   const raw=localStorage.getItem('lifeFundSimState');
   if(!raw){alert('저장된 데이터가 없습니다.');return;}
   const s=JSON.parse(raw);
-  $('in-birth-y').value=s.birthY;$('in-birth-m').value=s.birthM;updateAgeDisplay();$('in-fin').value=s.fin;
+  $('in-birth').value=s.birth;updateAgeDisplay();$('in-fin').value=s.fin;
   $('in-ret').value=s.ret;sr($('in-ret'),'in-ret-v',1);
   $('in-vol').value=s.vol;sr($('in-vol'),'in-vol-v',1);
   $('in-infl').value=s.infl;sr($('in-infl'),'in-infl-v',1);
-  realAssets=s.realAssets||[];debts=s.debts||[];incomes=s.incomes||[];stages=s.stages||[];events=s.events||[];
+  realAssets=s.realAssets||[];debts=s.debts||[];incomes=s.incomes||[];stages=s.stages||[];inflows=s.inflows||[];outflows=s.outflows||[];
   seqReal=Math.max(0,...realAssets.map(x=>x.id||0));
   seqDebt=Math.max(0,...debts.map(x=>x.id||0));
   seqInc=Math.max(0,...incomes.map(x=>x.id||0));
   seqStage=Math.max(0,...stages.map(x=>x.id||0));
-  seqEvt=Math.max(0,...events.map(x=>x.id||0));
-  renderRealAssets();renderDebts();renderIncomes();renderStages();renderEvts();
+  seqInflow=Math.max(0,...inflows.map(x=>x.id||0));
+  seqOutflow=Math.max(0,...outflows.map(x=>x.id||0));
+  renderRealAssets();renderDebts();renderIncomes();renderStages();renderInflows();renderOutflows();
 }
 </script>
 </body>
