@@ -182,8 +182,6 @@ input:focus,select:focus{border-color:var(--accent)}
   <div class="dash-grid">
     <div class="dash-card"><div class="dash-label">금융자산 고갈 시점 (중앙값)</div><div class="dash-value" id="kpi-deplete">—</div></div>
     <div class="dash-card"><div class="dash-label">부채 완제 시점</div><div class="dash-value" id="kpi-debtpay">—</div></div>
-    <div class="dash-card"><div class="dash-label">130세 순자산 (중앙값)</div><div class="dash-value" id="kpi-networth">—</div></div>
-    <div class="dash-card"><div class="dash-label">130세까지 순자산 유지 확률</div><div class="dash-value" id="kpi-success">—</div></div>
   </div>
 
   <div class="chart-wrap">
@@ -407,8 +405,6 @@ function renderResults(d){
 
   $('kpi-deplete').textContent=d.depletionAge?d.depletionAge+'세':'고갈 없음';
   $('kpi-debtpay').textContent=d.debtPayoffAge?d.debtPayoffAge+'세':(debts.length?'미완제':'부채 없음');
-  $('kpi-networth').textContent=fmtMan(d.p50[d.p50.length-1]);
-  $('kpi-success').textContent=d.successRate.toFixed(1)+'%';
 
   const labels=d.ages.map(a=>a+'세');
 
