@@ -37,9 +37,10 @@ function debtScheduleForOne(d, ages){
   }
   return ages.map(age=>{
     if(age<originAge) return{bal:0,payment:0}; // 대출실행 전(미래 대출)에는 부채가 존재하지 않음
-    const y=age-originAge;
-    if(y>=years) return{bal:0,payment:0};
-    return perYear[y];
+    const y=age-originAge; // y=0: 대출실행 당해(아직 상환 1회도 안 함) → 원금 그대로, 납입 0
+    if(y===0) return{bal:principal,payment:0};
+    if(y>years) return{bal:0,payment:0};
+    return perYear[y-1]; // y=1 → 1회차 상환 후, ..., y=years → 완제
   });
 }
 
@@ -102,10 +103,12 @@ function applyCollateralPayoffs(debts, debtScheds, sellInfo, realCashAdj, n){
     const info=sellInfo[d.linkAssetId];
     if(!info) return;
     const sched=debtScheds[di];
+    // 매각 당해의 정기 납입액(sched.payment[ageIdx])은 그대로 유지해 평소처럼 현금흐름에 반영하고,
+    // 그 납입 "이후" 남은 잔액만 매각대금에서 별도로 선상환한다 (둘을 섞어 이중공제/과소공제가 나지 않도록).
     const payoff=sched.balance[info.ageIdx];
-    if(payoff<=0) return;
-    realCashAdj[info.ageIdx]-=payoff;
-    for(let i=info.ageIdx;i<n;i++){ sched.balance[i]=0; sched.payment[i]=0; }
+    if(payoff>0) realCashAdj[info.ageIdx]-=payoff;
+    sched.balance[info.ageIdx]=0;
+    for(let i=info.ageIdx+1;i<n;i++){ sched.balance[i]=0; sched.payment[i]=0; }
   });
 }
 
@@ -260,7 +263,7 @@ module.exports=async(req,res)=>{
     let debtPayoffAge=null;
     if(debts.length>0){
       let lastPositiveIdx=-1;
-      for(let i=0;i<ages.length;i++){ if(debtBalanceArr[i]>0) lastPositiveIdx=i; }
+      for(let i=0;i<ages.length;i++){ if(debtBalanceArr[i]>0.01) lastPositiveIdx=i; } // 부동소수점 반올림 오차(예: 4e-11) 무시
       if(lastPositiveIdx>=0 && lastPositiveIdx<ages.length-1) debtPayoffAge=ages[lastPositiveIdx+1];
     }
 
