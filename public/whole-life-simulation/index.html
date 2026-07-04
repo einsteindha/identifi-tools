@@ -599,13 +599,10 @@ function renderResults(d){
   });
 
   // 몬테카를로 차트: 장기 구간에서 10~90분위 폭이 매우 넓어지면 중앙값이 0처럼 눌려 보이는 문제를 줄이기 위해
-  // 축 범위를 "중앙값이 실제로 움직이는 구간" 기준으로 잡는다. 분위 밴드가 이 범위를 벗어나면 잘려서 표시되며,
-  // 이는 "그 이상 벌어진다"는 의미로 안내 문구에서 설명한다.
+  // 위 종합차트와 같은 세로축 범위(leftMin~leftMax, 자산 단위)를 그대로 사용한다. 분위 밴드가 이 범위를
+  // 벗어나면 잘려서 표시되며, 이는 "그 이상 벌어진다"는 의미로 안내 문구에서 설명한다.
   const p50vals=d.p50.map(v=>v/10000);
-  let p50Min=Math.min(0,...p50vals), p50Max=Math.max(0,...p50vals);
-  const p50Range=(p50Max-p50Min)||1;
-  let mcMin=p50Min-p50Range*1.2, mcMax=p50Max+p50Range*1.2;
-  ({min:mcMin,max:mcMax}=niceAxisRange(mcMin,mcMax));
+  const mcMin=leftMin, mcMax=leftMax;
 
   if(chartMc) chartMc.destroy();
   chartMc=new Chart($('chart-mc'),{
