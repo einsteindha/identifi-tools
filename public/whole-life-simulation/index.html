@@ -110,7 +110,10 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   .flow-item{padding:5px 8px!important;break-inside:avoid}
   .section{break-inside:avoid;margin-bottom:6px!important}
   .chart-canvas{max-height:260px!important}
-  .chart-wrap,.dash-grid,.data-table-wrap{break-inside:avoid}
+  .chart-wrap,.dash-grid{break-inside:avoid}
+  .data-table-wrap{overflow:visible!important}
+  .data-table tr{break-inside:avoid}
+  .data-table thead{display:table-header-group}
   #calc-status{display:none!important}
   input[type=range]{display:none!important}
 }
@@ -220,13 +223,13 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
       <div style="font-size:22px">📊</div>
       <div>계산 중입니다…</div>
     </div>
-    <div class="section-hint" style="margin-top:8px">좌측 축: 총자산·실물자산·금융자산·부채·순자산 (억원) · 우측 축: 지출·자산유출 (막대, 만원). 자산유입은 별도 표시 없이 금융자산·순자산·총자산에 반영됩니다.</div>
+    <div class="section-hint" style="margin-top:8px">좌측 축: 총자산·실물자산·금융자산·부채·순자산 (억원) · 우측 축: 지출·자산유출 (막대, 만원, 두 축의 0 위치를 맞춰 지출 막대가 마이너스로 오해되지 않게 했습니다). 자산유입은 별도 표시 없이 금융자산·순자산·총자산에 반영됩니다.</div>
   </div>
 
   <div class="chart-wrap">
     <div class="chart-title">순자산 몬테카를로 시뮬레이션 (10,000회 · 10/50/90분위)</div>
     <canvas id="chart-mc" class="chart-canvas" height="170"></canvas>
-    <div class="section-hint" style="margin-top:8px">금융자산 수익률의 매년 변동성을 반영해 10,000개의 시나리오를 시뮬레이션한 결과입니다. 굵은 실선은 중앙값, 음영은 하위 10%~상위 90% 구간입니다.</div>
+    <div class="section-hint" style="margin-top:8px">금융자산 수익률의 매년 변동성을 반영해 10,000개의 시나리오를 시뮬레이션한 결과입니다. 굵은 실선은 중앙값, 음영은 하위 10%~상위 90% 구간입니다. 세로축은 중앙값이 잘 보이도록 범위를 맞췄으며, 장기 구간에서 분위 폭이 매우 넓어지면 음영이 위아래로 잘려 표시될 수 있습니다(실제로는 그 이상 벌어짐).</div>
   </div>
 
   <div class="chart-wrap" id="table-wrap" style="display:none">
@@ -515,6 +518,16 @@ function krMoneyLabel(v){
   return (neg?'-':'')+s;
 }
 
+// min~max 범위를 그래프 눈금으로 보기 좋은 "깔끔한" 값으로 반올림 (1/2/5×10^n 단위)
+function niceAxisRange(min,max){
+  const span=(max-min)||1;
+  const raw=span/8;
+  const mag=Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm=raw/mag;
+  const step=(norm<1.5?1:norm<3?2:norm<7?5:10)*mag;
+  return {min:Math.floor(min/step)*step, max:Math.ceil(max/step)*step};
+}
+
 function scheduleRun(){
   clearTimeout(_simTimer);
   $('calc-status').textContent='입력 대기 중…';
@@ -555,6 +568,17 @@ function renderResults(d){
 
   const totalAsset=d.real.map((v,i)=>v+d.finDet[i]);
 
+  // 좌측 축(자산·부채·순자산, 억원)과 우측 축(지출, 만원)의 0 위치를 맞춰서
+  // 지출 막대가 좌측 축 기준 마이너스처럼 보이지 않게 한다. (두 축을 같은 min/max 비율로 스케일)
+  const leftSeries=[...totalAsset.map(v=>v/10000), ...d.finDet.map(v=>v/10000), ...d.real.map(v=>v/10000), ...d.debtBalance.map(v=>-v/10000), ...d.netWorthDet.map(v=>v/10000)];
+  let leftMin=Math.min(0,...leftSeries), leftMax=Math.max(0,...leftSeries);
+  const leftPad=((leftMax-leftMin)||1)*0.08;
+  leftMin-=leftPad; leftMax+=leftPad;
+  ({min:leftMin,max:leftMax}=niceAxisRange(leftMin,leftMax));
+  const expenseMax=Math.max(1,...d.expense);
+  const rightMax=niceAxisRange(0,expenseMax*1.15).max;
+  const rightMin=leftMax>0 ? leftMin*(rightMax/leftMax) : 0;
+
   if(chartNet) chartNet.destroy();
   chartNet=new Chart($('chart-net'),{
     data:{labels,datasets:[
@@ -569,10 +593,19 @@ function renderResults(d){
       plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>ctx.dataset.yAxisID==='y1'?' '+ctx.dataset.label+': '+Math.round(ctx.parsed.y).toLocaleString()+'만':' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
       scales:{
         x:{ticks:{color:'#7a776f',font:{size:10},maxTicksLimit:12},grid:{color:'rgba(26,24,20,.06)'}},
-        y:{position:'left',ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}},
-        y1:{position:'right',ticks:{color:'#7a776f',font:{size:10},callback:v=>v.toLocaleString()+'만'},grid:{drawOnChartArea:false}}
+        y:{position:'left',min:leftMin,max:leftMax,ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}},
+        y1:{position:'right',min:rightMin,max:rightMax,ticks:{color:'#7a776f',font:{size:10},callback:v=>v.toLocaleString()+'만'},grid:{drawOnChartArea:false}}
       }}
   });
+
+  // 몬테카를로 차트: 장기 구간에서 10~90분위 폭이 매우 넓어지면 중앙값이 0처럼 눌려 보이는 문제를 줄이기 위해
+  // 축 범위를 "중앙값이 실제로 움직이는 구간" 기준으로 잡는다. 분위 밴드가 이 범위를 벗어나면 잘려서 표시되며,
+  // 이는 "그 이상 벌어진다"는 의미로 안내 문구에서 설명한다.
+  const p50vals=d.p50.map(v=>v/10000);
+  let p50Min=Math.min(0,...p50vals), p50Max=Math.max(0,...p50vals);
+  const p50Range=(p50Max-p50Min)||1;
+  let mcMin=p50Min-p50Range*1.2, mcMax=p50Max+p50Range*1.2;
+  ({min:mcMin,max:mcMax}=niceAxisRange(mcMin,mcMax));
 
   if(chartMc) chartMc.destroy();
   chartMc=new Chart($('chart-mc'),{
@@ -580,13 +613,13 @@ function renderResults(d){
     data:{labels,datasets:[
       {label:'하위 10%',data:d.p10.map(v=>v/10000),borderColor:'rgba(28,24,20,.25)',backgroundColor:'rgba(124,92,191,.10)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'origin',tension:.25},
       {label:'상위 90%',data:d.p90.map(v=>v/10000),borderColor:'rgba(28,24,20,.25)',backgroundColor:'rgba(124,92,191,.10)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'-1',tension:.25},
-      {label:'중앙값',data:d.p50.map(v=>v/10000),borderColor:'#1a1814',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25}
+      {label:'중앙값',data:p50vals,borderColor:'#1a1814',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25}
     ]},
     options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.1,animation:{duration:0},interaction:{mode:'index',intersect:false},
       plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
       scales:{
         x:{ticks:{color:'#7a776f',font:{size:10},maxTicksLimit:12},grid:{color:'rgba(26,24,20,.06)'}},
-        y:{ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}}
+        y:{min:mcMin,max:mcMax,ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}}
       }}
   });
 
