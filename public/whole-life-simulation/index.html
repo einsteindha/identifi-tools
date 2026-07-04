@@ -233,7 +233,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </div>
 
   <div class="chart-wrap" id="table-wrap" style="display:none">
-    <div class="chart-title">연도별 요약 (5년 단위)</div>
+    <div class="chart-title">연도별 요약 (5년 단위, 105세까지)</div>
     <div class="data-table-wrap">
       <table class="data-table">
         <thead><tr><th>나이</th><th>실물자산</th><th>금융자산(중앙값)</th><th>총자산</th><th>부채</th><th>순자산(중앙값)</th></tr></thead>
@@ -623,9 +623,11 @@ function renderResults(d){
       }}
   });
 
+  const TABLE_MAX_AGE=105;
   const tbody=$('table-body');tbody.innerHTML='';
   d.ages.forEach((age,i)=>{
-    if(age%5!==0 && i!==d.ages.length-1) return;
+    if(age>TABLE_MAX_AGE) return;
+    if(age%5!==0 && age!==TABLE_MAX_AGE) return;
     const total=d.real[i]+d.finP50[i];
     const nw=d.p50[i];
     const tr=document.createElement('tr');
