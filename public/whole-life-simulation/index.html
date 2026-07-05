@@ -164,7 +164,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 
   <div class="section">
     <div class="section-title">금융자산</div>
-    <label>금융자산 (예금·투자 등) 현재 가치</label>
+    <label>금융자산 (예금·투자 등) 현재 평가금</label>
     <div class="input-unit"><input type="number" id="in-fin" value="10000" step="100" oninput="$('kr-fin').textContent=krMoneyLabel(+this.value)"><span class="unit">만원</span></div>
     <div class="kr-money" id="kr-fin">1억원</div>
     <label>기대수익률 (연)</label>
@@ -360,7 +360,7 @@ function renderRealAssets(){
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">이름</div><input class="flow-input" type="text" value="${r.name}" oninput="realAssetU(${r.id},'name',this.value)"></div>
-      <div><div class="flow-label">가치 (만원)</div><input class="flow-input" type="number" value="${r.value}" step="100" oninput="realAssetU(${r.id},'value',+this.value);$('kr-real-${r.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-real-${r.id}">${krMoneyLabel(r.value)}</div></div>
+      <div style="grid-column:1/-1"><div class="flow-label">가격 (만원)</div><input class="flow-input" type="number" value="${r.value}" step="100" oninput="realAssetU(${r.id},'value',+this.value);$('kr-real-${r.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-real-${r.id}">${krMoneyLabel(r.value)}</div></div>
       <div><div class="flow-label">매수 시점 (나이, 비우면 현재 보유)</div><input class="flow-input" type="number" min="${minAge}" value="${r.buyAge==null?'':r.buyAge}" oninput="realAssetU(${r.id},'buyAge',this.value===''?null:Math.max(${minAge},+this.value))"></div>
       <div><div class="flow-label">매도 시점 (나이, 비우면 매도 없음)</div><input class="flow-input" type="number" min="${minAge}" value="${r.sellAge==null?'':r.sellAge}" oninput="realAssetU(${r.id},'sellAge',this.value===''?null:Math.max(${minAge},+this.value))"></div>
       <div style="grid-column:1/-1"><div class="flow-label">상승률 (연)</div>
@@ -559,12 +559,12 @@ function renderInflows(){
   inflows.forEach(e=>{
     const row=document.createElement('div');row.className='flow-item';
     const recurring=e.endAge>e.startAge;
-    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr 1fr 1fr auto">
+    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">이벤트 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="inflowU(${e.id},'label',this.value)"></div>
       <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.startAge}" oninput="inflowU(${e.id},'startAge',Math.max(${minAge},+this.value))"></div>
       <div><div class="flow-label">종료 나이 (=시작이면 1회성)</div><input class="flow-input" type="number" min="${minAge}" value="${e.endAge}" oninput="inflowU(${e.id},'endAge',Math.max(${minAge},+this.value));$('amt-label-in-${e.id}').textContent=(inflows.find(x=>x.id===${e.id}).endAge>inflows.find(x=>x.id===${e.id}).startAge?'연간 금액 (만원)':'금액 (만원)')"></div>
-      <div><div class="flow-label" id="amt-label-in-${e.id}">${recurring?'연간 금액 (만원)':'금액 (만원)'}</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="inflowU(${e.id},'amount',Math.abs(+this.value));$('kr-in-${e.id}').textContent=krMoneyLabel(Math.abs(+this.value))"><div class="kr-money" id="kr-in-${e.id}">${krMoneyLabel(e.amount)}</div></div>
-      <button class="del-btn" onclick="removeInflow(${e.id})">×</button>
+      <div style="grid-column:1/-1"><div class="flow-label" id="amt-label-in-${e.id}">${recurring?'연간 금액 (만원)':'금액 (만원)'}</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="inflowU(${e.id},'amount',Math.abs(+this.value));$('kr-in-${e.id}').textContent=krMoneyLabel(Math.abs(+this.value))"><div class="kr-money" id="kr-in-${e.id}">${krMoneyLabel(e.amount)}</div></div>
+      <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeInflow(${e.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
   });
@@ -581,12 +581,12 @@ function renderOutflows(){
   outflows.forEach(e=>{
     const row=document.createElement('div');row.className='flow-item';
     const recurring=e.endAge>e.startAge;
-    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr 1fr 1fr auto">
+    row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">이벤트 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="outflowU(${e.id},'label',this.value)"></div>
       <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.startAge}" oninput="outflowU(${e.id},'startAge',Math.max(${minAge},+this.value))"></div>
       <div><div class="flow-label">종료 나이 (=시작이면 1회성)</div><input class="flow-input" type="number" min="${minAge}" value="${e.endAge}" oninput="outflowU(${e.id},'endAge',Math.max(${minAge},+this.value));$('amt-label-out-${e.id}').textContent=(outflows.find(x=>x.id===${e.id}).endAge>outflows.find(x=>x.id===${e.id}).startAge?'연간 금액 (만원)':'금액 (만원)')"></div>
-      <div><div class="flow-label" id="amt-label-out-${e.id}">${recurring?'연간 금액 (만원)':'금액 (만원)'}</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="outflowU(${e.id},'amount',Math.abs(+this.value));$('kr-out-${e.id}').textContent=krMoneyLabel(Math.abs(+this.value))"><div class="kr-money" id="kr-out-${e.id}">${krMoneyLabel(e.amount)}</div></div>
-      <button class="del-btn" onclick="removeOutflow(${e.id})">×</button>
+      <div style="grid-column:1/-1"><div class="flow-label" id="amt-label-out-${e.id}">${recurring?'연간 금액 (만원)':'금액 (만원)'}</div><input class="flow-input" type="number" value="${e.amount}" min="0" step="100" oninput="outflowU(${e.id},'amount',Math.abs(+this.value));$('kr-out-${e.id}').textContent=krMoneyLabel(Math.abs(+this.value))"><div class="kr-money" id="kr-out-${e.id}">${krMoneyLabel(e.amount)}</div></div>
+      <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeOutflow(${e.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
   });
