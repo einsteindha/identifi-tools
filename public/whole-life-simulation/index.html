@@ -83,6 +83,11 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 .chart-title{font-family:'Noto Serif KR',serif;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:10px}
 .chart-canvas{width:100%!important;max-height:320px}
 .chart-canvas-tall{max-height:640px}
+.chart-legend-groups{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.clg-row{display:flex;align-items:center;gap:11px;flex-wrap:wrap;font-size:10.5px;color:var(--text2)}
+.clg-tag{font-size:9.5px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;padding:1px 6px;border:1px solid var(--border2);border-radius:10px}
+.clg-item{display:inline-flex;align-items:center;gap:5px}
+.clg-item i{width:11px;height:11px;border-radius:2px;display:inline-block;flex-shrink:0}
 
 .data-table-wrap{overflow-x:auto}
 .data-table{width:100%;border-collapse:collapse;font-size:11px}
@@ -130,6 +135,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <div class="hdr-actions">
     <button class="hdr-btn" onclick="saveState()">💾 저장</button>
     <button class="hdr-btn" onclick="loadState()">📂 불러오기</button>
+    <button class="hdr-btn" onclick="resetState()">🔄 초기화</button>
     <button class="hdr-btn" onclick="_mPrint(doPrint)">📄 PDF 저장</button>
     <span class="header-badge">상담용 참고자료</span>
   </div>
@@ -144,7 +150,8 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <input type="date" id="in-birth" oninput="clampEndAge();updateAgeDisplay();renderRealAssets();renderIncomes();renderStages();renderInflows();renderOutflows();">
     <div class="section-hint" id="age-display">현재 만 —세</div>
     <label>시뮬레이션 종료 나이</label>
-    <div class="input-unit"><input type="number" id="in-endage" min="1" max="130" value="130" oninput="clampEndAge();renderStages();"><span class="unit">세</span></div>
+    <div class="range-row"><input type="range" id="in-endage" min="1" max="130" step="1" value="130" oninput="clampEndAge();renderStages();"><span class="range-val" id="in-endage-v">130세</span></div>
+    <input type="number" id="in-endage-n" class="flow-input" style="margin-top:5px;max-width:110px" min="1" max="130" step="1" value="130" onchange="endAgeNumChange(this)">
     <div class="section-hint">현재 나이는 생년월일 기준 만 나이로 자동 계산됩니다. 시뮬레이션은 현재 나이부터 위에서 지정한 종료 나이까지 진행되며, 최대 130세까지 설정할 수 있습니다.</div>
   </div>
 
@@ -227,6 +234,22 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 
   <div class="chart-wrap">
     <div class="chart-title" id="chart-net-title">자산 · 부채 · 지출 종합 전망 (결정론적 + 몬테카를로 10,000회)</div>
+    <div class="chart-legend-groups">
+      <div class="clg-row">
+        <span class="clg-tag">결정론적</span>
+        <span class="clg-item"><i style="background:rgba(148,48,48,.35)"></i>지출·자산유출</span>
+        <span class="clg-item"><i style="background:#7c5cbf"></i>총자산</span>
+        <span class="clg-item"><i style="background:#2a7c6f"></i>금융자산</span>
+        <span class="clg-item"><i style="background:#c4933f"></i>실물자산</span>
+        <span class="clg-item"><i style="background:#943030;border-top:2px dashed #943030;height:0"></i>부채</span>
+        <span class="clg-item"><i style="background:#1a1814"></i>순자산</span>
+      </div>
+      <div class="clg-row">
+        <span class="clg-tag">몬테카를로</span>
+        <span class="clg-item"><i style="background:rgba(124,92,191,.25)"></i>10~90분위</span>
+        <span class="clg-item"><i style="background:#3a6ea5;border-top:2px dashed #3a6ea5;height:0"></i>중앙값(순자산)</span>
+      </div>
+    </div>
     <canvas id="chart-net" class="chart-canvas chart-canvas-tall" height="340"></canvas>
     <div id="chart-net-ph" class="placeholder">
       <div style="font-size:22px">📊</div>
@@ -286,19 +309,32 @@ function getCurrentAge(){
 function updateAgeDisplay(){
   $('age-display').textContent='현재 만 '+getCurrentAge()+'세';
 }
-// 시뮬레이션 종료 나이 (현재 나이 초과, 최대 130세)
+// 시뮬레이션 종료 나이 (현재 나이 초과, 최대 130세) — 슬라이더(in-endage)가 기준값, 숫자입력(in-endage-n)은 미러
 function getSimEndAge(){
   const minEnd=getCurrentAge()+1;
   const v=Math.round(+$('in-endage').value)||130;
   return Math.min(130, Math.max(minEnd, v));
 }
 function clampEndAge(){
-  const el=$('in-endage');
+  const el=$('in-endage'), nEl=$('in-endage-n');
   const minEnd=getCurrentAge()+1;
-  el.min=minEnd;
+  el.min=minEnd; if(nEl) nEl.min=minEnd;
   let v=Math.round(+el.value)||130;
   v=Math.max(minEnd, Math.min(130, v));
   el.value=v;
+  if(nEl) nEl.value=v;
+  $('in-endage-v').textContent=v+'세';
+  _rp(el);
+}
+function endAgeNumChange(el){
+  const rangeEl=$('in-endage');
+  const minEnd=getCurrentAge()+1;
+  let v=parseFloat(el.value); if(isNaN(v)) v=+rangeEl.value;
+  v=Math.max(minEnd, Math.min(130, v));
+  el.value=v; rangeEl.value=v;
+  $('in-endage-v').textContent=v+'세';
+  _rp(rangeEl);
+  renderStages();
 }
 function setDefaultBirth(){
   const t=new Date();
@@ -570,6 +606,7 @@ function seedDefaults(){
 }
 seedDefaults();
 ['in-ret','in-vol','in-infl'].forEach(id=>_rp($(id)));
+clampEndAge();
 runSim();
 
 // ── 실행 ─────────────────────────────────────────────
@@ -696,7 +733,7 @@ function renderResults(d){
       {type:'line',label:'순자산 (결정론적)',data:d.netWorthDet.map(v=>v/10000),yAxisID:'y',borderColor:'#1a1814',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25,order:0}
     ]},
     options:{responsive:true,maintainAspectRatio:true,aspectRatio:1.05,animation:{duration:0},interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>ctx.dataset.yAxisID==='y1'?' '+ctx.dataset.label+': '+Math.round(ctx.parsed.y).toLocaleString()+'만':' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>ctx.dataset.yAxisID==='y1'?' '+ctx.dataset.label+': '+Math.round(ctx.parsed.y).toLocaleString()+'만':' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
       scales:{
         x:{ticks:{color:'#7a776f',font:{size:10},maxTicksLimit:12},grid:{color:'rgba(26,24,20,.06)'}},
         y:{position:'left',min:leftMin,max:leftMax,ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}},
@@ -744,6 +781,21 @@ function loadState(){
   seqInflow=Math.max(0,...inflows.map(x=>x.id||0));
   seqOutflow=Math.max(0,...outflows.map(x=>x.id||0));
   renderRealAssets();renderDebts();renderIncomes();renderStages();renderInflows();renderOutflows();
+}
+
+// ── 초기화 (모든 입력을 기본값으로) ─────────────────────
+function resetState(){
+  if(!confirm('모든 입력을 초기화하고 기본값으로 되돌립니다. 저장하지 않은 내용은 사라집니다. 계속할까요?')) return;
+  realAssets=[];debts=[];incomes=[];stages=[];inflows=[];outflows=[];
+  seqReal=0;seqDebt=0;seqInc=0;seqStage=0;seqInflow=0;seqOutflow=0;
+  $('in-endage').value=130;
+  $('in-fin').value=10000;$('kr-fin').textContent=krMoneyLabel(10000);
+  $('in-ret').value=5;sr($('in-ret'),'in-ret-v',1,'in-ret-n');
+  $('in-vol').value=12;sr($('in-vol'),'in-vol-v',1,'in-vol-n');
+  $('in-infl').value=2.5;sr($('in-infl'),'in-infl-v',1,'in-infl-n');
+  seedDefaults();
+  clampEndAge();
+  scheduleRun();
 }
 
 // ── PDF 저장 (브라우저 인쇄 → PDF로 저장) ─────────────────────
