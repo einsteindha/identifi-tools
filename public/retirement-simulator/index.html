@@ -1348,8 +1348,8 @@ function fmt(v){
   return a>=10000?(v/10000).toFixed(1)+'억':Math.round(v)+'만';
 }
 function fmtW(v){return fmt(v)+'원';}
-function probColor(p){return p>=90?'#2a7c6f':p>=70?'#b86e1a':'#943030';}
-function probClass(p){return p>=90?'ok':p>=70?'warn':'danger';}
+function probColor(p){return p>=95?'#2a7c6f':p>=85?'#b86e1a':'#943030';}
+function probClass(p){return p>=95?'ok':p>=85?'warn':'danger';}
 function rateClass(r){return r<3.5?'ok':r<5?'warn':'danger';}
 
 function renderCFTable(bodyId,stages,pensions,infl,evts,retireAge){
@@ -1830,8 +1830,8 @@ async function update(){
   $('a-prob').textContent=probA+'%';$('a-prob').className='mv '+probClass(probA);
   // 배우자 있으면 "동반기 성공률" (전체 계획 성공률은 probS), 없으면 최종 성공률
   $('a-prob-s').textContent=(hasSp
-    ? (probA>=90?'동반기 달성':probA>=70?'동반기 주의':'동반기 위험') + ' · 전체는 독거 탭 참조'
-    : (probA>=90?'목표 달성':probA>=70?'보완 필요':'재설계 필요'));
+    ? (probA>=95?'동반기 달성':probA>=85?'동반기 주의':'동반기 위험') + ' · 전체는 독거 탭 참조'
+    : (probA>=95?'목표 달성':probA>=85?'보완 필요':'재설계 필요'));
   $('a-buf').textContent=fmtW(initBuf);
   const bufMaxEl=$('a-buf-max');if(bufMaxEl)bufMaxEl.textContent=fmtW(maxBuf);
   const bufMaxSEl=$('a-buf-max-s');if(bufMaxSEl)bufMaxSEl.textContent=`${maxBufStartAge}세 시점 기준`;
@@ -1894,13 +1894,13 @@ async function update(){
   const runs=10000;
   const probNote=`<div style="font-size:12px;color:var(--text2);margin-top:5px">10,000가지 시장 시나리오 중 <b>${runs-failA}번</b> 성공, <b style="color:var(--red,#D85A30)">${failA}번</b>은 자산 고갈.</div>`;
   let msgA='',clsA='';
-  if(probA>=90&&rateA<=4){
+  if(probA>=95&&rateA<=4){
     clsA='ok';
     msgA=`<span class="tag tok">안전</span> ${periodA}년 계획 생존 확률 <b>${probA}%</b> 목표 달성. 인출률 <b>${rateA.toFixed(2)}%</b>.`+(inflows.length?` 자산 유입 ${inflows.length}건 반영.`:'');
-  } else if(probA>=90&&rateA>4){
+  } else if(probA>=95&&rateA>4){
     clsA='ok';
     msgA=`<span class="tag tok">안전</span> 생존 확률 <b>${probA}%</b> 목표 달성. 인출률 <b>${rateA.toFixed(2)}%</b>는 다소 높으나 수익률이 보완하고 있습니다.`;
-  } else if(probA>=70){
+  } else if(probA>=85){
     clsA='warn';
     msgA=`<span class="tag twarn">주의</span> ${periodA}년 계획 생존 확률 <b>${probA}%</b>. 보완 필요. 추가 필요 자산 약 <b>${fmtW(Math.abs(gapA))}</b>.`;
   } else {
@@ -1980,7 +1980,7 @@ async function update(){
   $('s-rate').textContent=rateS.toFixed(2)+'%';$('s-rate').className='mv '+rateClass(rateS);$('s-rate-s').textContent=rateS<3.5?'안전':rateS<5?'주의':'위험';
   $('s-buf').textContent=fmtW(soloBufAmt);
   $('s-prob').textContent=probS+'%';$('s-prob').className='mv '+probClass(probS);
-  $('s-prob-s').textContent=(probS>=90?'전체 목표 달성':probS>=70?'보완 필요':'재설계 필요')+` (동반${probA}%→전체${probS}%)`;
+  $('s-prob-s').textContent=(probS>=95?'전체 목표 달성':probS>=85?'보완 필요':'재설계 필요')+` (동반${probA}%→전체${probS}%)`;
   // s-diff: 조건부 성공률(condProbS)로 표시 — 독거 단계 자체의 실질 위험
   $('s-diff').textContent=condProbS+'%';$('s-diff').className='mv '+probClass(condProbS);
   $('s-diff').title=`조건부 성공률: 동반기 성공(${probA}%) 전제 하에 독거기간도 성공할 확률 = ${condProbS}% (mcChained 직접 계산)`;
@@ -2005,22 +2005,22 @@ async function update(){
   // condProbS = 동반기를 버텼다는 전제 하에 독거기도 버틸 확률 = probS/probA
   //           → 독거 단계 자체의 실질 위험을 가장 잘 나타냄
   let msgS='',clsS='';
-  const condTag = condProbS>=90?`<span class="tag tok">독거 단계 안전</span>`
-    : condProbS>=70?`<span class="tag twarn">독거 단계 주의</span>`
+  const condTag = condProbS>=95?`<span class="tag tok">독거 단계 안전</span>`
+    : condProbS>=85?`<span class="tag twarn">독거 단계 주의</span>`
     : `<span class="tag tdanger">독거 단계 위험</span>`;
-  if(probS>=90){
+  if(probS>=95){
     clsS='ok';
     msgS=`<span class="tag tok">안전</span> 동반 성공률 <b>${probA}%</b>, 전구간 성공률 <b>${probS}%</b> — 목표 달성. ${condTag} 독거 조건부 성공률 <b>${condProbS}%</b>.`;
-  } else if(probS>=70){
+  } else if(probS>=85){
     clsS='warn';
-    if(condProbS>=90){
+    if(condProbS>=95){
       msgS=`<span class="tag twarn">보완 필요</span> 독거 단계 자체의 조건부 성공률은 <b>${condProbS}%</b>로 양호하지만, 동반기(${probA}%)를 포함한 <b>전구간 성공률이 ${probS}%</b>이므로 보완이 필요합니다. 동반 기간 인출률 조정 또는 자산 증대를 검토하세요.`;
     } else {
       msgS=`<span class="tag twarn">보완 필요</span> 동반 성공률 <b>${probA}%</b>, 전구간 성공률 <b>${probS}%</b>. ${condTag} 독거 조건부 성공률 <b>${condProbS}%</b>. 연금 증액·생명보험으로 보완하세요.`;
     }
   } else {
     clsS='danger';
-    if(condProbS>=90){
+    if(condProbS>=95){
       msgS=`<span class="tag tdanger">재설계 필요</span> 독거 단계 자체의 조건부 성공률은 <b>${condProbS}%</b>이지만, 동반기(${probA}%)를 포함한 <b>전구간 성공률이 ${probS}%</b>로 낮습니다. 동반 기간 재설계가 필요합니다.`;
     } else {
       msgS=`<span class="tag tdanger">재설계 필요</span> 동반 성공률 <b>${probA}%</b>, 전구간 성공률 <b>${probS}%</b>. ${condTag} 독거 조건부 성공률 <b>${condProbS}%</b>. 전반적 재설계가 필요합니다.`;

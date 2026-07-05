@@ -215,9 +215,16 @@ function monteCarlo(finStart, expReturnPct, volPct, ages, netFlowArr, realArr, d
   for(let i=0;i<n;i++){if(fp50[i]<=0){depletionAge=ages[i];break;}}
   let netWorthDepletionAge=null;
   for(let i=0;i<n;i++){if(p50[i]<=0){netWorthDepletionAge=ages[i];break;}}
-  let successCount=0;
-  for(const nw of nwPaths) if(nw[n-1]>=0) successCount++;
-  return{p10,p50,p90,fp10,fp50,fp90,depletionAge,netWorthDepletionAge,successRate:successCount/runs*100};
+  let successCount=0, finSuccessCount=0, totalAssetSuccessCount=0;
+  for(let r=0;r<runs;r++){
+    if(nwPaths[r][n-1]>=0) successCount++;
+    if(finPaths[r][n-1]>=0) finSuccessCount++;
+    if(realArr[n-1]+finPaths[r][n-1]>=0) totalAssetSuccessCount++;
+  }
+  return{p10,p50,p90,fp10,fp50,fp90,depletionAge,netWorthDepletionAge,
+    successRate:successCount/runs*100,
+    finSuccessRate:finSuccessCount/runs*100,
+    totalAssetSuccessRate:totalAssetSuccessCount/runs*100};
 }
 
 module.exports=async(req,res)=>{
@@ -231,8 +238,8 @@ module.exports=async(req,res)=>{
   try{
     const body=req.body;
     const currentAge=Math.round(body.currentAge);
-    const endAge=130;
-    if(!(currentAge>=0 && currentAge<endAge)) return res.status(400).json({error:'currentAge invalid'});
+    const endAge=Math.min(130, Math.round(body.endAge)||130);
+    if(!(currentAge>=0 && currentAge<endAge)) return res.status(400).json({error:'currentAge/endAge invalid'});
     const ages=[];
     for(let a=currentAge;a<=endAge;a++) ages.push(a);
 
@@ -271,7 +278,8 @@ module.exports=async(req,res)=>{
     return res.status(200).json({
       ages, real:realArr, debtBalance:debtBalanceArr, finDet:finPathDet, netWorthDet, expense:expenseArr,
       p10:mc.p10, p50:mc.p50, p90:mc.p90, finP10:mc.fp10, finP50:mc.fp50, finP90:mc.fp90,
-      depletionAge:mc.depletionAge, netWorthDepletionAge:mc.netWorthDepletionAge, debtPayoffAge, successRate:mc.successRate
+      depletionAge:mc.depletionAge, netWorthDepletionAge:mc.netWorthDepletionAge, debtPayoffAge, successRate:mc.successRate,
+      finSuccessRate:mc.finSuccessRate, totalAssetSuccessRate:mc.totalAssetSuccessRate
     });
   }catch(e){
     return res.status(500).json({error:e.message});

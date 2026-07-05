@@ -63,7 +63,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 
 .flow-list{display:flex;flex-direction:column;gap:7px;margin-bottom:8px}
 .flow-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:9px 11px}
-.flow-grid{display:grid;gap:7px;align-items:end}
+.flow-grid{display:grid;gap:7px;align-items:start}
 .flow-input{width:100%;padding:5px 7px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:12px;color-scheme:light}
 .flow-label{font-size:10px;color:var(--text2);margin-bottom:3px}
 .del-btn{padding:3px 7px;font-size:17px;border:none;background:none;color:var(--text3);cursor:pointer;border-radius:var(--radius);line-height:1;align-self:end}
@@ -82,6 +82,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 .chart-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px}
 .chart-title{font-family:'Noto Serif KR',serif;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:10px}
 .chart-canvas{width:100%!important;max-height:320px}
+.chart-canvas-tall{max-height:640px}
 
 .data-table-wrap{overflow-x:auto}
 .data-table{width:100%;border-collapse:collapse;font-size:11px}
@@ -110,6 +111,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   .flow-item{padding:5px 8px!important;break-inside:avoid}
   .section{break-inside:avoid;margin-bottom:6px!important}
   .chart-canvas{max-height:260px!important}
+  .chart-canvas-tall{max-height:480px!important}
   .chart-wrap,.dash-grid{break-inside:avoid}
   .data-table-wrap{overflow:visible!important}
   .data-table tr{break-inside:avoid}
@@ -139,9 +141,11 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <div class="section">
     <div class="section-title">기본 정보</div>
     <label>생년월일</label>
-    <input type="date" id="in-birth" oninput="updateAgeDisplay();renderRealAssets();renderIncomes();renderStages();renderInflows();renderOutflows();">
+    <input type="date" id="in-birth" oninput="clampEndAge();updateAgeDisplay();renderRealAssets();renderIncomes();renderStages();renderInflows();renderOutflows();">
     <div class="section-hint" id="age-display">현재 만 —세</div>
-    <div class="section-hint">현재 나이는 생년월일 기준 만 나이로 자동 계산되며, 시뮬레이션은 현재 나이부터 130세까지 진행됩니다 (기대수명 입력 없음).</div>
+    <label>시뮬레이션 종료 나이</label>
+    <div class="input-unit"><input type="number" id="in-endage" min="1" max="130" value="130" oninput="clampEndAge();renderStages();"><span class="unit">세</span></div>
+    <div class="section-hint">현재 나이는 생년월일 기준 만 나이로 자동 계산됩니다. 시뮬레이션은 현재 나이부터 위에서 지정한 종료 나이까지 진행되며, 최대 130세까지 설정할 수 있습니다.</div>
   </div>
 
   <div class="section">
@@ -157,9 +161,11 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div class="input-unit"><input type="number" id="in-fin" value="10000" step="100" oninput="$('kr-fin').textContent=krMoneyLabel(+this.value)"><span class="unit">만원</span></div>
     <div class="kr-money" id="kr-fin">1억원</div>
     <label>기대수익률 (연)</label>
-    <div class="range-row"><input type="range" id="in-ret" min="0" max="12" step="0.5" value="5" oninput="sr(this,'in-ret-v',1)"><span class="range-val" id="in-ret-v">5.0%</span></div>
+    <div class="range-row"><input type="range" id="in-ret" min="0" max="12" step="0.5" value="5" oninput="sr(this,'in-ret-v',1,'in-ret-n')"><span class="range-val" id="in-ret-v">5.0%</span></div>
+    <input type="number" id="in-ret-n" class="flow-input" style="margin-top:5px;max-width:110px" step="0.5" min="0" max="12" value="5" onchange="numToRange('in-ret-n','in-ret','in-ret-v',1)">
     <label>변동성 (연, 몬테카를로용)</label>
-    <div class="range-row"><input type="range" id="in-vol" min="0" max="30" step="0.5" value="12" oninput="sr(this,'in-vol-v',1)"><span class="range-val" id="in-vol-v">12.0%</span></div>
+    <div class="range-row"><input type="range" id="in-vol" min="0" max="30" step="0.5" value="12" oninput="sr(this,'in-vol-v',1,'in-vol-n')"><span class="range-val" id="in-vol-v">12.0%</span></div>
+    <input type="number" id="in-vol-n" class="flow-input" style="margin-top:5px;max-width:110px" step="0.5" min="0" max="30" value="12" onchange="numToRange('in-vol-n','in-vol','in-vol-v',1)">
   </div>
 
   <div class="section">
@@ -199,7 +205,8 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <div class="section">
     <div class="section-title">공통 가정</div>
     <label>물가상승률 (연)</label>
-    <div class="range-row"><input type="range" id="in-infl" min="0" max="6" step="0.1" value="2.5" oninput="sr(this,'in-infl-v',1)"><span class="range-val" id="in-infl-v">2.5%</span></div>
+    <div class="range-row"><input type="range" id="in-infl" min="0" max="6" step="0.1" value="2.5" oninput="sr(this,'in-infl-v',1,'in-infl-n')"><span class="range-val" id="in-infl-v">2.5%</span></div>
+    <input type="number" id="in-infl-n" class="flow-input" style="margin-top:5px;max-width:110px" step="0.1" min="0" max="6" value="2.5" onchange="numToRange('in-infl-n','in-infl','in-infl-v',1)">
     <div class="section-hint">인생 단계별 생활비·일시 유입/유출 금액에만 적용됩니다. 실물자산은 각 항목의 상승률, 정기수입은 각 항목의 성장률, 금융자산은 기대수익률을 별도로 적용하므로 물가상승률의 영향을 받지 않습니다.</div>
   </div>
 
@@ -214,26 +221,22 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div class="dash-card"><div class="dash-label">금융자산 적자 전환 시점 (중앙값)</div><div class="dash-value" id="kpi-deplete">—</div></div>
     <div class="dash-card"><div class="dash-label">부채 완제 시점</div><div class="dash-value" id="kpi-debtpay">—</div></div>
     <div class="dash-card"><div class="dash-label">순자산 고갈 시점 (중앙값)</div><div class="dash-value" id="kpi-nw-deplete">—</div></div>
+    <div class="dash-card"><div class="dash-label">금융자산 생존확률</div><div class="dash-value" id="kpi-fin-prob">—</div><div class="dash-sub" id="kpi-fin-prob-sub">종료 시점 기준</div></div>
+    <div class="dash-card"><div class="dash-label">총자산 생존확률</div><div class="dash-value" id="kpi-total-prob">—</div><div class="dash-sub" id="kpi-total-prob-sub">종료 시점 기준</div></div>
   </div>
 
   <div class="chart-wrap">
-    <div class="chart-title">자산 · 부채 · 지출 종합 전망 (결정론적 시나리오)</div>
-    <canvas id="chart-net" class="chart-canvas" height="170"></canvas>
+    <div class="chart-title" id="chart-net-title">자산 · 부채 · 지출 종합 전망 (결정론적 + 몬테카를로 10,000회)</div>
+    <canvas id="chart-net" class="chart-canvas chart-canvas-tall" height="340"></canvas>
     <div id="chart-net-ph" class="placeholder">
       <div style="font-size:22px">📊</div>
       <div>계산 중입니다…</div>
     </div>
-    <div class="section-hint" style="margin-top:8px">좌측 축: 총자산·실물자산·금융자산·부채·순자산 (억원) · 우측 축: 지출·자산유출 (막대, 만원, 두 축의 0 위치를 맞춰 지출 막대가 마이너스로 오해되지 않게 했습니다). 자산유입은 별도 표시 없이 금융자산·순자산·총자산에 반영됩니다.</div>
-  </div>
-
-  <div class="chart-wrap">
-    <div class="chart-title">순자산 몬테카를로 시뮬레이션 (10,000회 · 10/50/90분위)</div>
-    <canvas id="chart-mc" class="chart-canvas" height="170"></canvas>
-    <div class="section-hint" style="margin-top:8px">금융자산 수익률의 매년 변동성을 반영해 10,000개의 시나리오를 시뮬레이션한 결과입니다. 굵은 실선은 중앙값, 음영은 하위 10%~상위 90% 구간입니다. 세로축은 중앙값이 잘 보이도록 범위를 맞췄으며, 장기 구간에서 분위 폭이 매우 넓어지면 음영이 위아래로 잘려 표시될 수 있습니다(실제로는 그 이상 벌어짐).</div>
+    <div class="section-hint" style="margin-top:8px">좌측 축: 총자산·실물자산·금융자산·부채·순자산 (억원, 실선은 결정론적 시나리오) · 음영·점선은 몬테카를로 순자산 10~90분위·중앙값(세로축은 결정론적 시나리오와 동일 범위를 사용해, 장기 구간에서 분위 폭이 매우 넓어지면 음영이 잘려 표시될 수 있습니다 — 실제로는 그 이상 벌어짐) · 우측 축: 지출·자산유출 (막대, 만원, 두 축의 0 위치를 맞춰 지출 막대가 마이너스로 오해되지 않게 했습니다). 자산유입은 별도 표시 없이 금융자산·순자산·총자산에 반영됩니다.</div>
   </div>
 
   <div class="chart-wrap" id="table-wrap" style="display:none">
-    <div class="chart-title">연도별 요약 (5년 단위, 105세까지)</div>
+    <div class="chart-title" id="table-title">연도별 요약 (5년 단위, 105세까지)</div>
     <div class="data-table-wrap">
       <table class="data-table">
         <thead><tr><th>나이</th><th>실물자산</th><th>금융자산(중앙값)</th><th>총자산</th><th>부채</th><th>순자산(중앙값)</th></tr></thead>
@@ -247,7 +250,15 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 
 <script>
 const $=id=>document.getElementById(id);
-function sr(el,vid,dec){$(vid).textContent=(+el.value).toFixed(dec)+'%';_rp(el);}
+function sr(el,vid,dec,numId){$(vid).textContent=(+el.value).toFixed(dec)+'%';_rp(el);if(numId)$(numId).value=el.value;}
+// 모바일 등에서 슬라이더 대신 숫자를 직접 입력할 수 있도록 하는 보조 입력 동기화
+function numToRange(numId,rangeId,vid,dec){
+  const r=$(rangeId),n=$(numId);
+  let v=parseFloat(n.value); if(isNaN(v)) v=+r.value;
+  v=Math.max(+r.min,Math.min(+r.max,v));
+  r.value=v; n.value=v;
+  sr(r,vid,dec);
+}
 function _rp(e){var v=parseFloat(e.value),mn=parseFloat(e.min)||0,mx=parseFloat(e.max)||100;if(mx!==mn)e.style.setProperty('--pct',((v-mn)/(mx-mn)*100).toFixed(1)+'%');}
 function _pv(){}
 
@@ -275,6 +286,20 @@ function getCurrentAge(){
 function updateAgeDisplay(){
   $('age-display').textContent='현재 만 '+getCurrentAge()+'세';
 }
+// 시뮬레이션 종료 나이 (현재 나이 초과, 최대 130세)
+function getSimEndAge(){
+  const minEnd=getCurrentAge()+1;
+  const v=Math.round(+$('in-endage').value)||130;
+  return Math.min(130, Math.max(minEnd, v));
+}
+function clampEndAge(){
+  const el=$('in-endage');
+  const minEnd=getCurrentAge()+1;
+  el.min=minEnd;
+  let v=Math.round(+el.value)||130;
+  v=Math.max(minEnd, Math.min(130, v));
+  el.value=v;
+}
 function setDefaultBirth(){
   const t=new Date();
   const y=t.getFullYear()-35;
@@ -282,7 +307,7 @@ function setDefaultBirth(){
 }
 
 // ── 상태 ─────────────────────────────────────────────
-let chartNet=null, chartMc=null;
+let chartNet=null;
 let _simTimer=null, _simSeq=0;
 let realAssets=[], debts=[], incomes=[], stages=[], inflows=[], outflows=[];
 let seqReal=0, seqDebt=0, seqInc=0, seqStage=0, seqInflow=0, seqOutflow=0;
@@ -300,18 +325,75 @@ function renderRealAssets(){
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">이름</div><input class="flow-input" type="text" value="${r.name}" oninput="realAssetU(${r.id},'name',this.value)"></div>
       <div><div class="flow-label">가치 (만원)</div><input class="flow-input" type="number" value="${r.value}" step="100" oninput="realAssetU(${r.id},'value',+this.value);$('kr-real-${r.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-real-${r.id}">${krMoneyLabel(r.value)}</div></div>
-      <div style="grid-column:1/-1"><div class="flow-label">상승률 (연)</div>
-        <div class="range-row"><input type="range" min="-5" max="10" step="0.5" value="${r.growthRate}" oninput="realAssetU(${r.id},'growthRate',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(1)+'%';_rp(this)"><span class="range-val">${(+r.growthRate).toFixed(1)}%</span></div>
-      </div>
       <div><div class="flow-label">매수 시점 (나이, 비우면 현재 보유)</div><input class="flow-input" type="number" min="${minAge}" value="${r.buyAge==null?'':r.buyAge}" oninput="realAssetU(${r.id},'buyAge',this.value===''?null:Math.max(${minAge},+this.value))"></div>
       <div><div class="flow-label">매도 시점 (나이, 비우면 매도 없음)</div><input class="flow-input" type="number" min="${minAge}" value="${r.sellAge==null?'':r.sellAge}" oninput="realAssetU(${r.id},'sellAge',this.value===''?null:Math.max(${minAge},+this.value))"></div>
+      <div style="grid-column:1/-1"><div class="flow-label">상승률 (연)</div>
+        <div class="range-row"><input type="range" id="real-growth-${r.id}" min="-5" max="10" step="0.5" value="${r.growthRate}" oninput="realAssetU(${r.id},'growthRate',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(1)+'%';_rp(this);$('real-growth-n-${r.id}').value=this.value"><span class="range-val">${(+r.growthRate).toFixed(1)}%</span></div>
+        <input type="number" id="real-growth-n-${r.id}" class="flow-input" style="margin-top:5px;max-width:110px" step="0.5" min="-5" max="10" value="${r.growthRate}" onchange="realAssetNumChange(${r.id},this)">
+        <div id="re-panel-${r.id}" style="margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px"></div>
+      </div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeRealAsset(${r.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
     const rangeEl=row.querySelector('input[type=range]');
     if(rangeEl) _rp(rangeEl);
+    $('re-panel-'+r.id).innerHTML=buildMiniReTable(r.id);
   });
 }
+function realAssetNumChange(id, el){
+  const rangeEl=$('real-growth-'+id);
+  let v=parseFloat(el.value); if(isNaN(v)) v=+rangeEl.value;
+  v=Math.max(-5,Math.min(10,v));
+  el.value=v; rangeEl.value=v;
+  realAssetU(id,'growthRate',v);
+  rangeEl.nextElementSibling.textContent=v.toFixed(1)+'%';
+  _rp(rangeEl);
+}
+
+// ── 부동산 상승률 참고자료 (목적자금 시뮬레이터 주택구입 카드의 데이터 재사용) ──
+let _reSrc='kab', _reType='apt';
+const _reData={
+  kab:{
+    apt:[['서울','4.8%','3.9%','2.1%'],['수도권','3.2%','2.8%','1.4%'],['5대광역시','2.4%','2.1%','0.8%'],['세종','5.1%','4.3%','-1.2%'],['지방평균','1.2%','1.0%','-0.3%'],['전국평균','2.9%','2.5%','0.7%']],
+    officetel:[['서울','3.1%','2.6%','0.8%'],['수도권','2.0%','1.7%','0.2%'],['5대광역시','1.3%','1.1%','-0.4%'],['지방평균','0.5%','0.4%','-0.8%'],['전국평균','1.8%','1.5%','0.1%']],
+    multi:[['서울','3.8%','3.2%','1.2%'],['수도권','2.5%','2.1%','0.6%'],['5대광역시','1.6%','1.4%','0.1%'],['지방평균','0.8%','0.7%','-0.5%'],['전국평균','2.1%','1.8%','0.4%']]
+  },
+  kb:{
+    apt:[['서울','5.2%','4.3%','2.4%'],['수도권','3.5%','3.0%','1.6%'],['5대광역시','2.6%','2.3%','0.9%'],['세종','5.4%','4.6%','-1.0%'],['지방평균','1.4%','1.2%','-0.2%'],['전국평균','3.1%','2.7%','0.9%']],
+    officetel:[['서울','3.3%','2.8%','1.0%'],['수도권','2.1%','1.8%','0.3%'],['5대광역시','1.4%','1.2%','-0.3%'],['지방평균','0.6%','0.5%','-0.7%'],['전국평균','1.9%','1.6%','0.2%']],
+    multi:[['서울','4.0%','3.4%','1.4%'],['수도권','2.7%','2.3%','0.7%'],['5대광역시','1.7%','1.5%','0.2%'],['지방평균','0.9%','0.8%','-0.4%'],['전국평균','2.3%','2.0%','0.5%']]
+  }
+};
+function buildMiniReTable(cid){
+  const data=(_reData[_reSrc]||_reData.kab)[_reType]||_reData.kab.apt;
+  const rows=data.map(r=>{
+    const cols=r.slice(1).map(v=>{
+      const c=v.charAt(0)==='-'?'var(--red)':'var(--green)';
+      return `<td style="padding:3px 5px;font-size:10px;font-family:'DM Mono',monospace;color:${c};text-align:center">${v}</td>`;
+    }).join('');
+    return `<tr><td style="padding:3px 5px;font-size:10px;color:var(--text2)">${r[0]}</td>${cols}</tr>`;
+  }).join('');
+  const st='padding:2px 8px;font-size:10px;border-radius:5px;cursor:pointer;font-family:inherit;border:1px solid ';
+  const aStyle=st+'rgba(42,124,111,.4);background:rgba(42,124,111,.1);color:var(--green)';
+  const nStyle=st+'var(--border2);background:var(--bg2);color:var(--text2)';
+  const srcBtns=`<button data-cid="${cid}" data-src="kab" onclick="switchMiniRe(this)" style="${_reSrc==='kab'?aStyle:nStyle}">한국부동산원</button> `
+    +`<button data-cid="${cid}" data-src="kb" onclick="switchMiniRe(this)" style="${_reSrc==='kb'?aStyle:nStyle}">KB부동산</button>`;
+  const typeBtns=`<button data-cid="${cid}" data-type="apt" onclick="switchMiniReType(this)" style="${_reType==='apt'?aStyle:nStyle}">아파트</button> `
+    +`<button data-cid="${cid}" data-type="officetel" onclick="switchMiniReType(this)" style="${_reType==='officetel'?aStyle:nStyle}">오피스텔</button> `
+    +`<button data-cid="${cid}" data-type="multi" onclick="switchMiniReType(this)" style="${_reType==='multi'?aStyle:nStyle}">다세대</button>`;
+  return `<div style="display:flex;gap:4px;margin-bottom:5px;flex-wrap:wrap">${srcBtns}</div>`
+    +`<div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap">${typeBtns}</div>`
+    +`<table style="width:100%;border-collapse:collapse"><thead><tr>`
+    +`<th style="padding:3px 5px;font-size:9px;color:var(--text3);text-align:left">지역</th>`
+    +`<th style="padding:3px 5px;font-size:9px;color:var(--text3);text-align:center">5년</th>`
+    +`<th style="padding:3px 5px;font-size:9px;color:var(--text3);text-align:center">10년</th>`
+    +`<th style="padding:3px 5px;font-size:9px;color:var(--text3);text-align:center">최근3년</th>`
+    +`</tr></thead><tbody>${rows}</tbody></table>`
+    +`<div style="font-size:10px;color:var(--text3);margin-top:5px">※ 2025년 초 기준 학습데이터 (참고용, 실제 상승률과 다를 수 있음)</div>`;
+}
+function refreshRePanels(){realAssets.forEach(r=>{const p=$('re-panel-'+r.id);if(p)p.innerHTML=buildMiniReTable(r.id);});}
+function switchMiniRe(btn){_reSrc=btn.getAttribute('data-src');refreshRePanels();}
+function switchMiniReType(btn){_reType=btn.getAttribute('data-type');refreshRePanels();}
 
 // 부채
 function addDebt(){const t=new Date();debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,originYM:t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0'),linkAssetId:null});renderDebts();}
@@ -324,6 +406,12 @@ function renderDebts(){
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">부채 이름</div><input class="flow-input" type="text" value="${d.name}" oninput="debtU(${d.id},'name',this.value)"></div>
+      <div style="grid-column:1/-1"><div class="flow-label">담보 실물자산 (선택 시, 해당 자산 매도할 때 매각대금에서 대출잔액이 자동 상환됩니다)</div>
+        <select class="flow-input" onchange="debtU(${d.id},'linkAssetId',this.value===''?null:+this.value)">
+          <option value="">없음 (담보 없음)</option>
+          ${realAssets.map(r=>`<option value="${r.id}" ${d.linkAssetId===r.id?'selected':''}>${r.name}</option>`).join('')}
+        </select>
+      </div>
       <div><div class="flow-label">원금 (만원)</div><input class="flow-input" type="number" value="${d.principal}" step="100" oninput="debtU(${d.id},'principal',+this.value);$('kr-debt-${d.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-debt-${d.id}">${krMoneyLabel(d.principal)}</div></div>
       <div><div class="flow-label">금리 (연, %)</div><input class="flow-input" type="number" value="${d.rate}" step="0.1" oninput="debtU(${d.id},'rate',+this.value)"></div>
       <div><div class="flow-label">상환방식</div><select class="flow-input" onchange="debtU(${d.id},'method',this.value)">
@@ -335,12 +423,6 @@ function renderDebts(){
       <div style="grid-column:1/-1"><div class="flow-label">대출실행일 (과거도 입력 가능 — 이미 상환 중인 대출의 현재 잔액을 정확히 계산합니다)</div>
         <input class="flow-input" type="month" value="${d.originYM}" oninput="debtU(${d.id},'originYM',this.value)">
       </div>
-      <div style="grid-column:1/-1"><div class="flow-label">담보 실물자산 (선택 시, 해당 자산 매도할 때 매각대금에서 대출잔액이 자동 상환됩니다)</div>
-        <select class="flow-input" onchange="debtU(${d.id},'linkAssetId',this.value===''?null:+this.value)">
-          <option value="">없음 (담보 없음)</option>
-          ${realAssets.map(r=>`<option value="${r.id}" ${d.linkAssetId===r.id?'selected':''}>${r.name}</option>`).join('')}
-        </select>
-      </div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeDebt(${d.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
@@ -348,7 +430,7 @@ function renderDebts(){
 }
 
 // 정기 수입
-function addIncome(){incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:getCurrentAge(),endAge:60,growth:2});renderIncomes();}
+function addIncome(){incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:getCurrentAge(),endAge:60,growth:2,lifetime:false});renderIncomes();}
 function removeIncome(id){incomes=incomes.filter(x=>x.id!==id);renderIncomes();}
 function incU(id,f,v){const x=incomes.find(i=>i.id===id);if(x)x[f]=v;}
 function renderIncomes(){
@@ -362,7 +444,11 @@ function renderIncomes(){
       <div><div class="flow-label">연간 금액 (만원)</div><input class="flow-input" type="number" value="${e.annualAmount}" step="100" oninput="incU(${e.id},'annualAmount',+this.value);$('kr-inc-${e.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-inc-${e.id}">${krMoneyLabel(e.annualAmount)}</div></div>
       <div><div class="flow-label">성장률 (연, %)</div><input class="flow-input" type="number" value="${e.growth}" step="0.5" oninput="incU(${e.id},'growth',+this.value)"></div>
       <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.startAge}" oninput="incU(${e.id},'startAge',Math.max(${minAge},+this.value))"></div>
-      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.endAge}" oninput="incU(${e.id},'endAge',Math.max(${minAge},+this.value))"></div>
+      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.endAge}" ${e.lifetime?'disabled style="opacity:.5"':''} oninput="incU(${e.id},'endAge',Math.max(${minAge},+this.value))"></div>
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;margin-top:2px">
+        <input type="checkbox" id="inc-life-${e.id}" ${e.lifetime?'checked':''} onchange="incU(${e.id},'lifetime',this.checked);renderIncomes()" style="width:auto;margin:0">
+        <label for="inc-life-${e.id}" style="margin:0;display:inline;font-size:11px;font-weight:500;color:var(--text2)">종신 (평생 지급 — 국민연금·주택연금 등, 체크 시 종료 나이 대신 시뮬레이션 종료 시점까지 지급)</label>
+      </div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeIncome(${e.id})">× 삭제</button>
     </div>`;
     list.appendChild(row);
@@ -374,10 +460,11 @@ function renderIncomes(){
 const STAGE_COLORS=['#c4933f','#2a7c6f','#7c5cbf','#b86e1a','#943030','#4a7fb5'];
 function computeStageRanges(){
   const currentAge=getCurrentAge();
+  const simEndAge=getSimEndAge();
   let cursor=currentAge;
   return stages.map((s,i)=>{
     const isLast=i===stages.length-1;
-    const remainBudget=Math.max(0,130-cursor);
+    const remainBudget=Math.max(0,simEndAge-cursor);
     const reserveForRest=isLast?0:(stages.length-1-i);
     const maxDur=Math.max(0, remainBudget-reserveForRest);
     const dur=isLast?remainBudget:Math.min(Math.max(0,s.duration||0), maxDur);
@@ -395,7 +482,7 @@ function renderStages(){
   const timeline=$('stage-timeline');timeline.innerHTML='';
   if(!stages.length){list.innerHTML='<div class="empty-hint">생활비 단계 없음</div>';return;}
   const ranges=computeStageRanges();
-  const totalYears=Math.max(1,130-getCurrentAge());
+  const totalYears=Math.max(1,getSimEndAge()-getCurrentAge());
 
   ranges.forEach((r,i)=>{
     const seg=document.createElement('div');
@@ -413,7 +500,8 @@ function renderStages(){
         <div class="flow-label">${r.startAge}세 — ${r.endAge}세 (${r.duration}년)</div>
         ${r.isLast
           ? `<div class="range-row"><input type="range" min="0" max="${Math.max(1,r.duration)}" value="${Math.max(1,r.duration)}" disabled style="opacity:.55;cursor:default"><span class="range-val">${r.duration}년 (자동)</span></div>`
-          : `<div class="range-row"><input type="range" min="0" max="${r.maxDur}" step="1" value="${r.duration}" oninput="this.nextElementSibling.textContent=this.value+'년'" onchange="stageU(${s.id},'duration',+this.value);renderStages();"><span class="range-val">${r.duration}년</span></div>`}
+          : `<div class="range-row"><input type="range" id="stage-dur-${s.id}" min="0" max="${r.maxDur}" step="1" value="${r.duration}" oninput="this.nextElementSibling.textContent=this.value+'년';$('stage-dur-n-${s.id}').value=this.value" onchange="stageU(${s.id},'duration',+this.value);renderStages();"><span class="range-val">${r.duration}년</span></div>
+             <input type="number" id="stage-dur-n-${s.id}" class="flow-input" style="margin-top:5px;max-width:110px" min="0" max="${r.maxDur}" step="1" value="${r.duration}" onchange="stageU(${s.id},'duration',Math.max(0,Math.min(${r.maxDur},+this.value)));renderStages();">`}
       </div>
       <div style="grid-column:1/-1"><div class="flow-label">월 생활비 (만원)</div><input class="flow-input" type="number" value="${s.monthlyAmount}" step="10" oninput="stageU(${s.id},'monthlyAmount',+this.value);$('kr-stage-${s.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-stage-${s.id}">${krMoneyLabel(s.monthlyAmount)}</div></div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeStage(${s.id})">× 삭제</button>
@@ -486,12 +574,14 @@ runSim();
 
 // ── 실행 ─────────────────────────────────────────────
 function collectPayload(){
+  const simEndAge=getSimEndAge();
   return{
     currentAge:getCurrentAge(),
+    endAge:simEndAge,
     realAssets:realAssets.map(r=>({id:r.id,value:r.value,growthRate:r.growthRate,buyAge:r.buyAge,sellAge:r.sellAge})),
     finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
     debts:debts.map(d=>{const b=getBirthYM();const[oy,om]=(d.originYM||'').split('-').map(Number);return{principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:ageAtYM(b.y,b.m,oy||b.y,om||1),linkAssetId:d.linkAssetId||null};}),
-    incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.endAge,growth:i.growth})),
+    incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.lifetime?simEndAge:i.endAge,growth:i.growth})),
     stages:computeStageRanges().map(r=>({startAge:r.startAge,endAge:r.endAge,monthlyAmount:r.monthlyAmount})),
     events:[...inflows.map(e=>({startAge:e.startAge,endAge:Math.max(e.startAge,e.endAge),amount:Math.abs(e.amount)})), ...outflows.map(e=>({startAge:e.startAge,endAge:Math.max(e.startAge,e.endAge),amount:-Math.abs(e.amount)}))],
     inflation:+$('in-infl').value||0,
@@ -556,6 +646,9 @@ document.querySelector('.split-left').addEventListener('click', e=>{
   if(e.target.closest('.add-btn, .del-btn')) scheduleRun();
 });
 
+// 생존확률 90(안전)/85(보완 필요)/미만(위험) 기준 색상 — 은퇴인출 시뮬레이터와 동일한 규칙
+function probColor(p){return p>=95?'var(--green)':p>=85?'var(--amber)':'var(--red)';}
+
 function renderResults(d){
   $('chart-net-ph').style.display='none';
   $('table-wrap').style.display='block';
@@ -563,6 +656,14 @@ function renderResults(d){
   $('kpi-deplete').textContent=d.depletionAge?d.depletionAge+'세':'적자 없음';
   $('kpi-debtpay').textContent=d.debtPayoffAge?d.debtPayoffAge+'세':(debts.length?'미완제':'부채 없음');
   $('kpi-nw-deplete').textContent=d.netWorthDepletionAge?d.netWorthDepletionAge+'세':'고갈 없음';
+
+  const endAgeLabel=d.ages[d.ages.length-1]+'세';
+  $('kpi-fin-prob').textContent=d.finSuccessRate.toFixed(1)+'%';
+  $('kpi-fin-prob').style.color=probColor(d.finSuccessRate);
+  $('kpi-fin-prob-sub').textContent=endAgeLabel+' 기준';
+  $('kpi-total-prob').textContent=d.totalAssetSuccessRate.toFixed(1)+'%';
+  $('kpi-total-prob').style.color=probColor(d.totalAssetSuccessRate);
+  $('kpi-total-prob-sub').textContent=endAgeLabel+' 기준';
 
   const labels=d.ages.map(a=>a+'세');
 
@@ -579,17 +680,22 @@ function renderResults(d){
   const rightMax=niceAxisRange(0,expenseMax*1.15).max;
   const rightMin=leftMax>0 ? leftMin*(rightMax/leftMax) : 0;
 
+  // 몬테카를로 밴드/중앙값도 위 결정론적 시나리오와 같은 세로축 범위(leftMin~leftMax)를 그대로 사용한다.
+  // 장기 구간에서 분위 폭이 벌어져 이 범위를 벗어나면 잘려서 표시되며, 안내 문구에서 이를 설명한다.
   if(chartNet) chartNet.destroy();
   chartNet=new Chart($('chart-net'),{
     data:{labels,datasets:[
       {type:'bar',label:'지출·자산유출',data:d.expense,yAxisID:'y1',backgroundColor:'rgba(148,48,48,.18)',borderWidth:0,order:9,barPercentage:0.9,categoryPercentage:0.9},
+      {type:'line',label:'몬테카를로 하위10%',data:d.p10.map(v=>v/10000),yAxisID:'y',borderColor:'rgba(28,24,20,.25)',backgroundColor:'rgba(124,92,191,.10)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'origin',tension:.25,order:8},
+      {type:'line',label:'몬테카를로 상위90%',data:d.p90.map(v=>v/10000),yAxisID:'y',borderColor:'rgba(28,24,20,.25)',backgroundColor:'rgba(124,92,191,.10)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'-1',tension:.25,order:8},
       {type:'line',label:'총자산',data:totalAsset.map(v=>v/10000),yAxisID:'y',borderColor:'#7c5cbf',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25,order:1},
       {type:'line',label:'금융자산',data:d.finDet.map(v=>v/10000),yAxisID:'y',borderColor:'#2a7c6f',backgroundColor:'rgba(42,124,111,.08)',borderWidth:2,pointRadius:0,fill:true,tension:.25,order:2},
       {type:'line',label:'실물자산',data:d.real.map(v=>v/10000),yAxisID:'y',borderColor:'#c4933f',backgroundColor:'transparent',borderWidth:2,pointRadius:0,fill:false,tension:.25,order:2},
       {type:'line',label:'부채',data:d.debtBalance.map(v=>-v/10000),yAxisID:'y',borderColor:'#943030',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,tension:.25,order:2},
-      {type:'line',label:'순자산',data:d.netWorthDet.map(v=>v/10000),yAxisID:'y',borderColor:'#1a1814',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25,order:0}
+      {type:'line',label:'순자산 (몬테카를로 중앙값)',data:d.p50.map(v=>v/10000),yAxisID:'y',borderColor:'#3a6ea5',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:0,fill:false,tension:.25,order:0.5},
+      {type:'line',label:'순자산 (결정론적)',data:d.netWorthDet.map(v=>v/10000),yAxisID:'y',borderColor:'#1a1814',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25,order:0}
     ]},
-    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.1,animation:{duration:0},interaction:{mode:'index',intersect:false},
+    options:{responsive:true,maintainAspectRatio:true,aspectRatio:1.05,animation:{duration:0},interaction:{mode:'index',intersect:false},
       plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>ctx.dataset.yAxisID==='y1'?' '+ctx.dataset.label+': '+Math.round(ctx.parsed.y).toLocaleString()+'만':' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
       scales:{
         x:{ticks:{color:'#7a776f',font:{size:10},maxTicksLimit:12},grid:{color:'rgba(26,24,20,.06)'}},
@@ -598,29 +704,8 @@ function renderResults(d){
       }}
   });
 
-  // 몬테카를로 차트: 장기 구간에서 10~90분위 폭이 매우 넓어지면 중앙값이 0처럼 눌려 보이는 문제를 줄이기 위해
-  // 위 종합차트와 같은 세로축 범위(leftMin~leftMax, 자산 단위)를 그대로 사용한다. 분위 밴드가 이 범위를
-  // 벗어나면 잘려서 표시되며, 이는 "그 이상 벌어진다"는 의미로 안내 문구에서 설명한다.
-  const p50vals=d.p50.map(v=>v/10000);
-  const mcMin=leftMin, mcMax=leftMax;
-
-  if(chartMc) chartMc.destroy();
-  chartMc=new Chart($('chart-mc'),{
-    type:'line',
-    data:{labels,datasets:[
-      {label:'하위 10%',data:d.p10.map(v=>v/10000),borderColor:'rgba(28,24,20,.25)',backgroundColor:'rgba(124,92,191,.10)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'origin',tension:.25},
-      {label:'상위 90%',data:d.p90.map(v=>v/10000),borderColor:'rgba(28,24,20,.25)',backgroundColor:'rgba(124,92,191,.10)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'-1',tension:.25},
-      {label:'중앙값',data:p50vals,borderColor:'#1a1814',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25}
-    ]},
-    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.1,animation:{duration:0},interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#7a776f',font:{size:10}}},tooltip:{backgroundColor:'#3d3a35',callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+'억'}}},
-      scales:{
-        x:{ticks:{color:'#7a776f',font:{size:10},maxTicksLimit:12},grid:{color:'rgba(26,24,20,.06)'}},
-        y:{min:mcMin,max:mcMax,ticks:{color:'#7a776f',font:{size:10},callback:v=>v+'억'},grid:{color:'rgba(26,24,20,.06)'}}
-      }}
-  });
-
-  const TABLE_MAX_AGE=105;
+  const TABLE_MAX_AGE=Math.min(105, d.ages[d.ages.length-1]);
+  $('table-title').textContent='연도별 요약 (5년 단위, '+TABLE_MAX_AGE+'세까지)';
   const tbody=$('table-body');tbody.innerHTML='';
   d.ages.forEach((age,i)=>{
     if(age>TABLE_MAX_AGE) return;
@@ -636,7 +721,7 @@ function renderResults(d){
 // ── 저장/불러오기 (localStorage) ─────────────────────
 function saveState(){
   const state={
-    birth:$('in-birth').value, fin:$('in-fin').value,
+    birth:$('in-birth').value, endAge:$('in-endage').value, fin:$('in-fin').value,
     ret:$('in-ret').value, vol:$('in-vol').value, infl:$('in-infl').value,
     realAssets, debts, incomes, stages, inflows, outflows
   };
@@ -647,10 +732,10 @@ function loadState(){
   const raw=localStorage.getItem('lifeFundSimState');
   if(!raw){alert('저장된 데이터가 없습니다.');return;}
   const s=JSON.parse(raw);
-  $('in-birth').value=s.birth;updateAgeDisplay();$('in-fin').value=s.fin;
-  $('in-ret').value=s.ret;sr($('in-ret'),'in-ret-v',1);
-  $('in-vol').value=s.vol;sr($('in-vol'),'in-vol-v',1);
-  $('in-infl').value=s.infl;sr($('in-infl'),'in-infl-v',1);
+  $('in-birth').value=s.birth;updateAgeDisplay();$('in-endage').value=s.endAge||130;clampEndAge();$('in-fin').value=s.fin;
+  $('in-ret').value=s.ret;sr($('in-ret'),'in-ret-v',1,'in-ret-n');
+  $('in-vol').value=s.vol;sr($('in-vol'),'in-vol-v',1,'in-vol-n');
+  $('in-infl').value=s.infl;sr($('in-infl'),'in-infl-v',1,'in-infl-n');
   realAssets=s.realAssets||[];debts=s.debts||[];incomes=s.incomes||[];stages=s.stages||[];inflows=s.inflows||[];outflows=s.outflows||[];
   seqReal=Math.max(0,...realAssets.map(x=>x.id||0));
   seqDebt=Math.max(0,...debts.map(x=>x.id||0));
@@ -675,7 +760,6 @@ function _mPrint(fn){
 }
 function doPrint(){
   if(chartNet) try{chartNet.resize();}catch(e){}
-  if(chartMc) try{chartMc.resize();}catch(e){}
   setTimeout(function(){
     const t=document.title;
     document.title='IdentiFi_생애자금시뮬레이터';
@@ -685,12 +769,10 @@ function doPrint(){
 }
 window.addEventListener('beforeprint', function(){
   if(chartNet) try{chartNet.resize();}catch(e){}
-  if(chartMc) try{chartMc.resize();}catch(e){}
 });
 window.addEventListener('afterprint', function(){
   setTimeout(function(){
     if(chartNet) try{chartNet.resize();}catch(e){}
-    if(chartMc) try{chartMc.resize();}catch(e){}
   }, 50);
 });
 </script>
