@@ -96,6 +96,10 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 .data-table td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;white-space:nowrap}
 .data-table tr:hover td{background:rgba(26,24,20,.03)}
 .t-neg{color:var(--red)}
+.t-warn{background:rgba(184,110,26,.14)}
+.liquidity-warn-note{margin-top:10px;font-size:11px;color:var(--text3);line-height:1.7}
+.liquidity-warn-note b{color:var(--amber)}
+.liquidity-warn-ranges{margin-top:4px;font-size:11px;color:var(--amber);font-family:'DM Mono',monospace}
 
 .placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:220px;gap:10px;color:var(--text3);text-align:center;font-size:12px;line-height:1.8}
 
@@ -230,6 +234,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div class="dash-card"><div class="dash-label">순자산 고갈 시점 (중앙값)</div><div class="dash-value" id="kpi-nw-deplete">—</div></div>
     <div class="dash-card"><div class="dash-label">금융자산 생존확률</div><div class="dash-value" id="kpi-fin-prob">—</div><div class="dash-sub" id="kpi-fin-prob-sub">종료 시점 기준</div></div>
     <div class="dash-card"><div class="dash-label">총자산 생존확률</div><div class="dash-value" id="kpi-total-prob">—</div><div class="dash-sub" id="kpi-total-prob-sub">종료 시점 기준</div></div>
+    <div class="dash-card"><div class="dash-label">유동성 부족 시작 나이</div><div class="dash-value" id="kpi-liq-warn">—</div><div class="dash-sub" id="kpi-liq-warn-sub">결정론적 기준</div></div>
   </div>
 
   <div class="chart-wrap">
@@ -243,6 +248,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
         <span class="clg-item"><i style="background:#c4933f"></i>실물자산</span>
         <span class="clg-item"><i style="background:#943030;border-top:2px dashed #943030;height:0"></i>부채</span>
         <span class="clg-item"><i style="background:#1a1814"></i>순자산</span>
+        <span class="clg-item"><i style="background:#b86e1a;border-top:2px dashed #b86e1a;height:0"></i>유동성 기준선(미래 3년 지출)</span>
       </div>
       <div class="clg-row">
         <span class="clg-tag">몬테카를로</span>
@@ -265,6 +271,10 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
         <thead><tr><th>나이</th><th>실물자산</th><th>금융자산(중앙값)</th><th>총자산</th><th>부채</th><th>순자산(중앙값)</th></tr></thead>
         <tbody id="table-body"></tbody>
       </table>
+    </div>
+    <div class="liquidity-warn-note" id="liquidity-warn-note" style="display:none">
+      <b>⚠ 유동성 부족 구간</b> — 금융자산(결정론적)이 그 시점 기준 향후 3년치 지출 합계 이하로 떨어져 있습니다.
+      <div class="liquidity-warn-ranges" id="liquidity-warn-ranges"></div>
     </div>
   </div>
 
@@ -686,6 +696,27 @@ document.querySelector('.split-left').addEventListener('click', e=>{
 // 생존확률 90(안전)/85(보완 필요)/미만(위험) 기준 색상 — 은퇴인출 시뮬레이터와 동일한 규칙
 function probColor(p){return p>=95?'var(--green)':p>=85?'var(--amber)':'var(--red)';}
 
+// 유동성 완충 판정: 결정론적 금융자산이 그 시점부터 향후 3년치 지출 합계 이하인지.
+// 한 해 지출 스파이크(생애단계 전환, 일시 이벤트)에 기준선이 요동치지 않도록 3년을 묶어서 비교한다.
+// 끝무렵(향후 3년이 남지 않은 시점)은 패딩 없이 남은 해(1~2년)만 합산 — 그만큼 기준선도 자연스럽게 낮아진다.
+function rollingExpense3(expense, i){
+  const n=expense.length;
+  let sum=0;
+  for(let k=0;k<3 && i+k<n;k++) sum+=expense[i+k];
+  return sum;
+}
+function findLiquidityWarningRanges(d){
+  const ranges=[];
+  let start=null;
+  for(let i=0;i<d.ages.length;i++){
+    const bad=d.finDet[i]<=rollingExpense3(d.expense,i);
+    if(bad && start===null) start=d.ages[i];
+    if(!bad && start!==null){ ranges.push({start,end:d.ages[i-1]}); start=null; }
+  }
+  if(start!==null) ranges.push({start,end:d.ages[d.ages.length-1]});
+  return ranges;
+}
+
 function renderResults(d){
   $('chart-net-ph').style.display='none';
   $('table-wrap').style.display='block';
@@ -702,13 +733,28 @@ function renderResults(d){
   $('kpi-total-prob').style.color=probColor(d.totalAssetSuccessRate);
   $('kpi-total-prob-sub').textContent=endAgeLabel+' 기준';
 
+  const liqRanges=findLiquidityWarningRanges(d);
+  if(liqRanges.length){
+    $('kpi-liq-warn').textContent=liqRanges[0].start+'세';
+    $('kpi-liq-warn').style.color='var(--amber)';
+    $('kpi-liq-warn-sub').textContent=liqRanges.length>1?('총 '+liqRanges.length+'개 구간 · 하단 표 참고'):'결정론적 기준';
+    $('liquidity-warn-note').style.display='block';
+    $('liquidity-warn-ranges').textContent=liqRanges.map(r=>r.start===r.end?(r.start+'세'):(r.start+'~'+r.end+'세')).join(', ');
+  }else{
+    $('kpi-liq-warn').textContent='부족 구간 없음';
+    $('kpi-liq-warn').style.color='var(--green)';
+    $('kpi-liq-warn-sub').textContent='결정론적 기준';
+    $('liquidity-warn-note').style.display='none';
+  }
+
   const labels=d.ages.map(a=>a+'세');
 
   const totalAsset=d.real.map((v,i)=>v+d.finDet[i]);
+  const liqBaseline=d.ages.map((a,i)=>rollingExpense3(d.expense,i));
 
   // 좌측 축(자산·부채·순자산, 억원)과 우측 축(지출, 만원)의 0 위치를 맞춰서
   // 지출 막대가 좌측 축 기준 마이너스처럼 보이지 않게 한다. (두 축을 같은 min/max 비율로 스케일)
-  const leftSeries=[...totalAsset.map(v=>v/10000), ...d.finDet.map(v=>v/10000), ...d.real.map(v=>v/10000), ...d.debtBalance.map(v=>-v/10000), ...d.netWorthDet.map(v=>v/10000)];
+  const leftSeries=[...totalAsset.map(v=>v/10000), ...d.finDet.map(v=>v/10000), ...d.real.map(v=>v/10000), ...d.debtBalance.map(v=>-v/10000), ...d.netWorthDet.map(v=>v/10000), ...liqBaseline.map(v=>v/10000)];
   let leftMin=Math.min(0,...leftSeries), leftMax=Math.max(0,...leftSeries);
   const leftPad=((leftMax-leftMin)||1)*0.08;
   leftMin-=leftPad; leftMax+=leftPad;
@@ -727,6 +773,7 @@ function renderResults(d){
       {type:'line',label:'몬테카를로 상위90%',data:d.p90.map(v=>v/10000),yAxisID:'y',borderColor:'rgba(28,24,20,.25)',backgroundColor:'rgba(124,92,191,.10)',borderWidth:1,borderDash:[2,2],pointRadius:0,fill:'-1',tension:.25,order:8},
       {type:'line',label:'총자산',data:totalAsset.map(v=>v/10000),yAxisID:'y',borderColor:'#7c5cbf',backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,fill:false,tension:.25,order:1},
       {type:'line',label:'금융자산',data:d.finDet.map(v=>v/10000),yAxisID:'y',borderColor:'#2a7c6f',backgroundColor:'rgba(42,124,111,.08)',borderWidth:2,pointRadius:0,fill:true,tension:.25,order:2},
+      {type:'line',label:'유동성 기준선(미래 3년 지출)',data:liqBaseline.map(v=>v/10000),yAxisID:'y',borderColor:'#b86e1a',backgroundColor:'transparent',borderWidth:1.5,borderDash:[3,3],pointRadius:0,fill:false,tension:.25,order:3},
       {type:'line',label:'실물자산',data:d.real.map(v=>v/10000),yAxisID:'y',borderColor:'#c4933f',backgroundColor:'transparent',borderWidth:2,pointRadius:0,fill:false,tension:.25,order:2},
       {type:'line',label:'부채',data:d.debtBalance.map(v=>-v/10000),yAxisID:'y',borderColor:'#943030',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,tension:.25,order:2},
       {type:'line',label:'순자산 (몬테카를로 중앙값)',data:d.p50.map(v=>v/10000),yAxisID:'y',borderColor:'#3a6ea5',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:0,fill:false,tension:.25,order:0.5},
@@ -749,8 +796,10 @@ function renderResults(d){
     if(age%5!==0 && age!==TABLE_MAX_AGE) return;
     const total=d.real[i]+d.finP50[i];
     const nw=d.p50[i];
+    const liqBad=d.finDet[i]<=rollingExpense3(d.expense,i);
+    const finCls=(d.finP50[i]<0?'t-neg ':'')+(liqBad?'t-warn':'');
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${age}세</td><td>${fmtMan(d.real[i])}</td><td class="${d.finP50[i]<0?'t-neg':''}">${fmtMan(d.finP50[i])}</td><td class="${total<0?'t-neg':''}">${fmtMan(total)}</td><td class="${d.debtBalance[i]>0?'t-neg':''}">${fmtMan(-d.debtBalance[i])}</td><td class="${nw<0?'t-neg':''}">${fmtMan(nw)}</td>`;
+    tr.innerHTML=`<td>${age}세</td><td>${fmtMan(d.real[i])}</td><td class="${finCls}">${fmtMan(d.finP50[i])}</td><td class="${total<0?'t-neg':''}">${fmtMan(total)}</td><td class="${d.debtBalance[i]>0?'t-neg':''}">${fmtMan(-d.debtBalance[i])}</td><td class="${nw<0?'t-neg':''}">${fmtMan(nw)}</td>`;
     tbody.appendChild(tr);
   });
 }
