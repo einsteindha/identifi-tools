@@ -155,7 +155,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div class="section-hint" id="age-display">현재 만 —세</div>
     <label>시뮬레이션 종료 나이</label>
     <div class="range-row"><input type="range" id="in-endage" min="1" max="130" step="1" value="130" oninput="clampEndAge();renderStages();"><span class="range-val" id="in-endage-v">130세</span></div>
-    <input type="number" id="in-endage-n" class="flow-input" style="margin-top:5px;max-width:110px" min="1" max="130" step="1" value="130" onchange="endAgeNumChange(this)">
+    <input type="number" id="in-endage-n" class="flow-input" style="margin-top:5px;max-width:110px;margin-left:auto;display:block;text-align:right" min="1" max="130" step="1" value="130" onchange="endAgeNumChange(this)">
     <div class="section-hint">현재 나이는 생년월일 기준 만 나이로 자동 계산됩니다. 시뮬레이션은 현재 나이부터 위에서 지정한 종료 나이까지 진행되며, 최대 130세까지 설정할 수 있습니다.</div>
   </div>
 
@@ -173,10 +173,10 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div class="kr-money" id="kr-fin">1억원</div>
     <label>기대수익률 (연)</label>
     <div class="range-row"><input type="range" id="in-ret" min="0" max="12" step="0.5" value="5" oninput="sr(this,'in-ret-v',1,'in-ret-n')"><span class="range-val" id="in-ret-v">5.0%</span></div>
-    <input type="number" id="in-ret-n" class="flow-input" style="margin-top:5px;max-width:110px" step="0.5" min="0" max="12" value="5" onchange="numToRange('in-ret-n','in-ret','in-ret-v',1)">
+    <input type="number" id="in-ret-n" class="flow-input" style="margin-top:5px;max-width:110px;margin-left:auto;display:block;text-align:right" step="0.5" min="0" max="12" value="5" onchange="numToRange('in-ret-n','in-ret','in-ret-v',1)">
     <label>변동성 (연, 몬테카를로용)</label>
     <div class="range-row"><input type="range" id="in-vol" min="0" max="30" step="0.5" value="12" oninput="sr(this,'in-vol-v',1,'in-vol-n')"><span class="range-val" id="in-vol-v">12.0%</span></div>
-    <input type="number" id="in-vol-n" class="flow-input" style="margin-top:5px;max-width:110px" step="0.5" min="0" max="30" value="12" onchange="numToRange('in-vol-n','in-vol','in-vol-v',1)">
+    <input type="number" id="in-vol-n" class="flow-input" style="margin-top:5px;max-width:110px;margin-left:auto;display:block;text-align:right" step="0.5" min="0" max="30" value="12" onchange="numToRange('in-vol-n','in-vol','in-vol-v',1)">
   </div>
 
   <div class="section">
@@ -217,7 +217,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div class="section-title">공통 가정</div>
     <label>물가상승률 (연)</label>
     <div class="range-row"><input type="range" id="in-infl" min="0" max="6" step="0.1" value="2.5" oninput="sr(this,'in-infl-v',1,'in-infl-n');renderIncomes()"><span class="range-val" id="in-infl-v">2.5%</span></div>
-    <input type="number" id="in-infl-n" class="flow-input" style="margin-top:5px;max-width:110px" step="0.1" min="0" max="6" value="2.5" onchange="numToRange('in-infl-n','in-infl','in-infl-v',1);renderIncomes()">
+    <input type="number" id="in-infl-n" class="flow-input" style="margin-top:5px;max-width:110px;margin-left:auto;display:block;text-align:right" step="0.1" min="0" max="6" value="2.5" onchange="numToRange('in-infl-n','in-infl','in-infl-v',1);renderIncomes()">
     <div class="section-hint">인생 단계별 생활비·일시 유입/유출 금액에 적용됩니다. 실물자산은 각 항목의 상승률, 정기수입은 각 항목의 성장률(단, "물가연동" 체크 시 예외), 금융자산은 기대수익률을 별도로 적용하므로 원칙적으로 물가상승률의 영향을 받지 않습니다.</div>
   </div>
 
@@ -375,7 +375,7 @@ function renderRealAssets(){
       <div><div class="flow-label">매도 시점 (나이, 비우면 매도 없음)</div><input class="flow-input" type="number" min="${minAge}" value="${r.sellAge==null?'':r.sellAge}" oninput="realAssetU(${r.id},'sellAge',this.value===''?null:Math.max(${minAge},+this.value))"></div>
       <div style="grid-column:1/-1"><div class="flow-label">상승률 (연)</div>
         <div class="range-row"><input type="range" id="real-growth-${r.id}" min="-5" max="10" step="0.5" value="${r.growthRate}" oninput="realAssetU(${r.id},'growthRate',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(1)+'%';_rp(this);$('real-growth-n-${r.id}').value=this.value"><span class="range-val">${(+r.growthRate).toFixed(1)}%</span></div>
-        <input type="number" id="real-growth-n-${r.id}" class="flow-input" style="margin-top:5px;max-width:110px" step="0.5" min="-5" max="10" value="${r.growthRate}" onchange="realAssetNumChange(${r.id},this)">
+        <input type="number" id="real-growth-n-${r.id}" class="flow-input" style="margin-top:5px;max-width:110px;margin-left:auto;display:block;text-align:right" step="0.5" min="-5" max="10" value="${r.growthRate}" onchange="realAssetNumChange(${r.id},this)">
         <div id="re-panel-${r.id}" style="margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px"></div>
       </div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeRealAsset(${r.id})">× 삭제</button>
