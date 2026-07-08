@@ -216,9 +216,9 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <div class="section">
     <div class="section-title">공통 가정</div>
     <label>물가상승률 (연)</label>
-    <div class="range-row"><input type="range" id="in-infl" min="0" max="6" step="0.1" value="2.5" oninput="sr(this,'in-infl-v',1,'in-infl-n')"><span class="range-val" id="in-infl-v">2.5%</span></div>
-    <input type="number" id="in-infl-n" class="flow-input" style="margin-top:5px;max-width:110px" step="0.1" min="0" max="6" value="2.5" onchange="numToRange('in-infl-n','in-infl','in-infl-v',1)">
-    <div class="section-hint">인생 단계별 생활비·일시 유입/유출 금액에만 적용됩니다. 실물자산은 각 항목의 상승률, 정기수입은 각 항목의 성장률, 금융자산은 기대수익률을 별도로 적용하므로 물가상승률의 영향을 받지 않습니다.</div>
+    <div class="range-row"><input type="range" id="in-infl" min="0" max="6" step="0.1" value="2.5" oninput="sr(this,'in-infl-v',1,'in-infl-n');renderIncomes()"><span class="range-val" id="in-infl-v">2.5%</span></div>
+    <input type="number" id="in-infl-n" class="flow-input" style="margin-top:5px;max-width:110px" step="0.1" min="0" max="6" value="2.5" onchange="numToRange('in-infl-n','in-infl','in-infl-v',1);renderIncomes()">
+    <div class="section-hint">인생 단계별 생활비·일시 유입/유출 금액에 적용됩니다. 실물자산은 각 항목의 상승률, 정기수입은 각 항목의 성장률(단, "물가연동" 체크 시 예외), 금융자산은 기대수익률을 별도로 적용하므로 원칙적으로 물가상승률의 영향을 받지 않습니다.</div>
   </div>
 
 
@@ -476,24 +476,44 @@ function renderDebts(){
 }
 
 // 정기 수입
-function addIncome(){incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:getCurrentAge(),endAge:60,growth:2,lifetime:false});renderIncomes();}
+function addIncome(){incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:getCurrentAge(),endAge:60,growth:2,lifetime:false,inflationLinked:false});renderIncomes();}
 function removeIncome(id){incomes=incomes.filter(x=>x.id!==id);renderIncomes();}
 function incU(id,f,v){const x=incomes.find(i=>i.id===id);if(x)x[f]=v;}
+// 시작 나이를 올려 기존 종료 나이를 넘어서면 종료 나이도 같이 끌어올려, 종료<시작인 무효 구간이 생기지 않게 한다.
+function incStartAgeChange(id,v){
+  const x=incomes.find(i=>i.id===id);if(!x)return;
+  const minAge=getCurrentAge();
+  x.startAge=Math.max(minAge,v);
+  if(x.endAge<x.startAge){
+    x.endAge=x.startAge;
+    const endEl=$('inc-end-'+id);
+    if(endEl) endEl.value=x.startAge;
+  }
+}
+function incEndAgeChange(id,v){
+  const x=incomes.find(i=>i.id===id);if(!x)return;
+  x.endAge=Math.max(x.startAge,v);
+}
 function renderIncomes(){
   const list=$('income-list');list.innerHTML='';
   if(!incomes.length){list.innerHTML='<div class="empty-hint">정기 수입 없음</div>';return;}
   const minAge=getCurrentAge();
+  const inflNow=+$('in-infl').value||0;
   incomes.forEach(e=>{
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">수입 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="incU(${e.id},'label',this.value)"></div>
       <div><div class="flow-label">연간 금액 (만원)</div><input class="flow-input" type="number" value="${e.annualAmount}" step="100" oninput="incU(${e.id},'annualAmount',+this.value);$('kr-inc-${e.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-inc-${e.id}">${krMoneyLabel(e.annualAmount)}</div></div>
-      <div><div class="flow-label">성장률 (연, %)</div><input class="flow-input" type="number" value="${e.growth}" step="0.5" oninput="incU(${e.id},'growth',+this.value)"></div>
-      <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.startAge}" oninput="incU(${e.id},'startAge',Math.max(${minAge},+this.value))"></div>
-      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" min="${minAge}" value="${e.endAge}" ${e.lifetime?'disabled style="opacity:.5"':''} oninput="incU(${e.id},'endAge',Math.max(${minAge},+this.value))"></div>
+      <div><div class="flow-label">성장률 (연, %)</div><input class="flow-input" type="number" value="${e.inflationLinked?inflNow:e.growth}" step="0.5" ${e.inflationLinked?'disabled style="opacity:.5"':''} oninput="incU(${e.id},'growth',+this.value)"></div>
+      <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" id="inc-start-${e.id}" min="${minAge}" value="${e.startAge}" oninput="incStartAgeChange(${e.id},+this.value)"></div>
+      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" id="inc-end-${e.id}" min="${e.startAge}" value="${e.endAge}" ${e.lifetime?'disabled style="opacity:.5"':''} oninput="incEndAgeChange(${e.id},+this.value)"></div>
       <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;margin-top:2px">
         <input type="checkbox" id="inc-life-${e.id}" ${e.lifetime?'checked':''} onchange="incU(${e.id},'lifetime',this.checked);renderIncomes()" style="width:auto;margin:0">
         <label for="inc-life-${e.id}" style="margin:0;display:inline;font-size:11px;font-weight:500;color:var(--text2)">종신 (평생 지급 — 국민연금·주택연금 등, 체크 시 종료 나이 대신 시뮬레이션 종료 시점까지 지급)</label>
+      </div>
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;margin-top:2px">
+        <input type="checkbox" id="inc-infl-${e.id}" ${e.inflationLinked?'checked':''} onchange="incU(${e.id},'inflationLinked',this.checked);renderIncomes()" style="width:auto;margin:0">
+        <label for="inc-infl-${e.id}" style="margin:0;display:inline;font-size:11px;font-weight:500;color:var(--text2)">물가연동 (국민연금처럼 물가상승률만큼 증가 — 체크 시 성장률 입력 대신 전체 설정의 물가상승률을 그대로 사용)</label>
       </div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeIncome(${e.id})">× 삭제</button>
     </div>`;
@@ -608,7 +628,7 @@ function seedDefaults(){
   updateAgeDisplay();
   const age=getCurrentAge();
   realAssets.push({id:++seqReal,name:'주택',value:30000,growthRate:2,buyAge:null,sellAge:null});
-  incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:age,endAge:60,growth:2});
+  incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:age,endAge:60,growth:2,lifetime:false,inflationLinked:false});
   stages.push({id:++seqStage,label:'적립기 - 경제활동기',duration:Math.max(0,65-age),monthlyAmount:300});
   stages.push({id:++seqStage,label:'인출기 - 활동기',duration:20,monthlyAmount:250});
   stages.push({id:++seqStage,label:'인출기 - 간병기',duration:9999,monthlyAmount:200});
@@ -628,7 +648,7 @@ function collectPayload(){
     realAssets:realAssets.map(r=>({id:r.id,value:r.value,growthRate:r.growthRate,buyAge:r.buyAge,sellAge:r.sellAge})),
     finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
     debts:debts.map(d=>{const b=getBirthYM();const[oy,om]=(d.originYM||'').split('-').map(Number);return{principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:ageAtYM(b.y,b.m,oy||b.y,om||1),linkAssetId:d.linkAssetId||null};}),
-    incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.lifetime?simEndAge:i.endAge,growth:i.growth})),
+    incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.lifetime?simEndAge:i.endAge,growth:i.inflationLinked?(+$('in-infl').value||0):i.growth})),
     stages:computeStageRanges().map(r=>({startAge:r.startAge,endAge:r.endAge,monthlyAmount:r.monthlyAmount})),
     events:[...inflows.map(e=>({startAge:e.startAge,endAge:Math.max(e.startAge,e.endAge),amount:Math.abs(e.amount)})), ...outflows.map(e=>({startAge:e.startAge,endAge:Math.max(e.startAge,e.endAge),amount:-Math.abs(e.amount)}))],
     inflation:+$('in-infl').value||0,
