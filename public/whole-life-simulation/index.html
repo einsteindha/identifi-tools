@@ -479,20 +479,23 @@ function renderDebts(){
 function addIncome(){incomes.push({id:++seqInc,label:'근로소득',annualAmount:6000,startAge:getCurrentAge(),endAge:60,growth:2,lifetime:false,inflationLinked:false});renderIncomes();}
 function removeIncome(id){incomes=incomes.filter(x=>x.id!==id);renderIncomes();}
 function incU(id,f,v){const x=incomes.find(i=>i.id===id);if(x)x[f]=v;}
-// 시작 나이를 올려 기존 종료 나이를 넘어서면 종료 나이도 같이 끌어올려, 종료<시작인 무효 구간이 생기지 않게 한다.
-function incStartAgeChange(id,v){
+// 시작 나이는 현재 나이 이상으로 강제하고, 이를 올려 기존 종료 나이를 넘어서면 종료 나이도 같이 끌어올려
+// 종료<시작인 무효 구간이 생기지 않게 한다. 입력칸 표시값도 클램프된 값으로 되돌려 화면과 실제 데이터가 어긋나지 않게 한다.
+function incStartAgeChange(id,el){
   const x=incomes.find(i=>i.id===id);if(!x)return;
   const minAge=getCurrentAge();
-  x.startAge=Math.max(minAge,v);
+  x.startAge=Math.max(minAge,+el.value);
+  el.value=x.startAge;
   if(x.endAge<x.startAge){
     x.endAge=x.startAge;
     const endEl=$('inc-end-'+id);
     if(endEl) endEl.value=x.startAge;
   }
 }
-function incEndAgeChange(id,v){
+function incEndAgeChange(id,el){
   const x=incomes.find(i=>i.id===id);if(!x)return;
-  x.endAge=Math.max(x.startAge,v);
+  x.endAge=Math.max(x.startAge,+el.value);
+  el.value=x.endAge;
 }
 function renderIncomes(){
   const list=$('income-list');list.innerHTML='';
@@ -505,8 +508,8 @@ function renderIncomes(){
       <div style="grid-column:1/-1"><div class="flow-label">수입 이름</div><input class="flow-input" type="text" value="${e.label}" oninput="incU(${e.id},'label',this.value)"></div>
       <div><div class="flow-label">연간 금액 (만원)</div><input class="flow-input" type="number" value="${e.annualAmount}" step="100" oninput="incU(${e.id},'annualAmount',+this.value);$('kr-inc-${e.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-inc-${e.id}">${krMoneyLabel(e.annualAmount)}</div></div>
       <div><div class="flow-label">성장률 (연, %)</div><input class="flow-input" type="number" value="${e.inflationLinked?inflNow:e.growth}" step="0.5" ${e.inflationLinked?'disabled style="opacity:.5"':''} oninput="incU(${e.id},'growth',+this.value)"></div>
-      <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" id="inc-start-${e.id}" min="${minAge}" value="${e.startAge}" oninput="incStartAgeChange(${e.id},+this.value)"></div>
-      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" id="inc-end-${e.id}" min="${e.startAge}" value="${e.endAge}" ${e.lifetime?'disabled style="opacity:.5"':''} oninput="incEndAgeChange(${e.id},+this.value)"></div>
+      <div><div class="flow-label">시작 나이</div><input class="flow-input" type="number" id="inc-start-${e.id}" min="${minAge}" value="${e.startAge}" onchange="incStartAgeChange(${e.id},this)"></div>
+      <div><div class="flow-label">종료 나이</div><input class="flow-input" type="number" id="inc-end-${e.id}" min="${e.startAge}" value="${e.endAge}" ${e.lifetime?'disabled style="opacity:.5"':''} onchange="incEndAgeChange(${e.id},this)"></div>
       <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;margin-top:2px">
         <input type="checkbox" id="inc-life-${e.id}" ${e.lifetime?'checked':''} onchange="incU(${e.id},'lifetime',this.checked);renderIncomes()" style="width:auto;margin:0">
         <label for="inc-life-${e.id}" style="margin:0;display:inline;font-size:11px;font-weight:500;color:var(--text2)">종신 (평생 지급 — 국민연금·주택연금 등, 체크 시 종료 나이 대신 시뮬레이션 종료 시점까지 지급)</label>
