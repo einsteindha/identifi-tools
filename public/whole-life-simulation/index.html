@@ -501,6 +501,14 @@ function renderIncomes(){
   const list=$('income-list');list.innerHTML='';
   if(!incomes.length){list.innerHTML='<div class="empty-hint">정기 수입 없음</div>';return;}
   const minAge=getCurrentAge();
+  // 생년월일 변경 등으로 현재 나이가 올라가면, 이미 입력된 수입의 시작 나이도 즉시 현재 나이로 끌어올린다
+  // (종료 나이가 그보다 낮아지면 같이 끌어올려 종료<시작 무효 구간 방지).
+  incomes.forEach(x=>{
+    if(x.startAge<minAge){
+      x.startAge=minAge;
+      if(x.endAge<x.startAge) x.endAge=x.startAge;
+    }
+  });
   const inflNow=+$('in-infl').value||0;
   incomes.forEach(e=>{
     const row=document.createElement('div');row.className='flow-item';
