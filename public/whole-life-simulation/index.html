@@ -567,7 +567,7 @@ function renderStages(){
         ${r.isLast
           ? `<div class="range-row"><input type="range" min="0" max="${Math.max(1,r.duration)}" value="${Math.max(1,r.duration)}" disabled style="opacity:.55;cursor:default"><span class="range-val">${r.duration}년 (자동)</span></div>`
           : `<div class="range-row"><input type="range" id="stage-dur-${s.id}" min="0" max="${r.maxDur}" step="1" value="${r.duration}" oninput="this.nextElementSibling.textContent=this.value+'년';$('stage-dur-n-${s.id}').value=this.value" onchange="stageU(${s.id},'duration',+this.value);renderStages();"><span class="range-val">${r.duration}년</span></div>
-             <input type="number" id="stage-dur-n-${s.id}" class="flow-input" style="margin-top:5px;max-width:110px" min="0" max="${r.maxDur}" step="1" value="${r.duration}" onchange="stageU(${s.id},'duration',Math.max(0,Math.min(${r.maxDur},+this.value)));renderStages();">`}
+             <input type="number" id="stage-dur-n-${s.id}" class="flow-input" style="margin-top:5px;max-width:110px;margin-left:auto;display:block;text-align:right" min="0" max="${r.maxDur}" step="1" value="${r.duration}" onchange="stageU(${s.id},'duration',Math.max(0,Math.min(${r.maxDur},+this.value)));renderStages();">`}
       </div>
       <div style="grid-column:1/-1"><div class="flow-label">월 생활비 (만원)</div><input class="flow-input" type="number" value="${s.monthlyAmount}" step="10" oninput="stageU(${s.id},'monthlyAmount',+this.value);$('kr-stage-${s.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-stage-${s.id}">${krMoneyLabel(s.monthlyAmount)}</div></div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeStage(${s.id})">× 삭제</button>
