@@ -442,23 +442,31 @@ function switchMiniRe(btn){_reSrc=btn.getAttribute('data-src');refreshRePanels()
 function switchMiniReType(btn){_reType=btn.getAttribute('data-type');refreshRePanels();}
 
 // 부채
-function addDebt(){const t=new Date();debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,originYM:t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0'),linkAssetId:null});renderDebts();}
+function addDebt(){const t=new Date();debts.push({id:++seqDebt,name:'주택담보대출',principal:20000,rate:3.5,method:'equal_payment',years:20,originYM:t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0'),linkAssetId:null,isDeposit:false,returnAge:null});renderDebts();}
 function removeDebt(id){debts=debts.filter(x=>x.id!==id);renderDebts();}
 function debtU(id,f,v){const x=debts.find(d=>d.id===id);if(x)x[f]=v;}
 function renderDebts(){
   const list=$('debt-list');list.innerHTML='';
   if(!debts.length){list.innerHTML='<div class="empty-hint">부채 없음</div>';return;}
+  const minAge=getCurrentAge();
   debts.forEach(d=>{
     const row=document.createElement('div');row.className='flow-item';
     row.innerHTML=`<div class="flow-grid" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:1/-1"><div class="flow-label">부채 이름</div><input class="flow-input" type="text" value="${d.name}" oninput="debtU(${d.id},'name',this.value)"></div>
-      <div style="grid-column:1/-1"><div class="flow-label">담보 실물자산 (선택 시, 해당 자산 매도할 때 매각대금에서 대출잔액이 자동 상환됩니다)</div>
+      <div style="grid-column:1/-1"><div class="flow-label">담보 실물자산 (선택 시, 해당 자산 매도할 때 매각대금에서 ${d.isDeposit?'보증금이':'대출잔액이'} 자동 ${d.isDeposit?'반환':'상환'}됩니다)</div>
         <select class="flow-input" onchange="debtU(${d.id},'linkAssetId',this.value===''?null:+this.value)">
           <option value="">없음 (담보 없음)</option>
           ${realAssets.map(r=>`<option value="${r.id}" ${d.linkAssetId===r.id?'selected':''}>${r.name}</option>`).join('')}
         </select>
       </div>
-      <div><div class="flow-label">원금 (만원)</div><input class="flow-input" type="number" value="${d.principal}" step="100" oninput="debtU(${d.id},'principal',+this.value);$('kr-debt-${d.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-debt-${d.id}">${krMoneyLabel(d.principal)}</div></div>
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;margin-top:2px">
+        <input type="checkbox" id="debt-dep-${d.id}" ${d.isDeposit?'checked':''} onchange="debtU(${d.id},'isDeposit',this.checked);renderDebts()" style="width:auto;margin:0">
+        <label for="debt-dep-${d.id}" style="margin:0;display:inline;font-size:11px;font-weight:500;color:var(--text2)">보증금 (전세/월세 등 임차인에게 받은 보증금 — 이자·상환 현금흐름 없이 원금이 그대로 부채로 유지되다 반환 시점에 전액 반환)</label>
+      </div>
+      <div><div class="flow-label">${d.isDeposit?'보증금 금액':'원금'} (만원)</div><input class="flow-input" type="number" value="${d.principal}" step="100" oninput="debtU(${d.id},'principal',+this.value);$('kr-debt-${d.id}').textContent=krMoneyLabel(+this.value)"><div class="kr-money" id="kr-debt-${d.id}">${krMoneyLabel(d.principal)}</div></div>
+      ${d.isDeposit?`
+      <div><div class="flow-label">반환 시점 (나이, 비우면 반환 없음)</div><input class="flow-input" type="number" min="${minAge}" value="${d.returnAge==null?'':d.returnAge}" oninput="debtU(${d.id},'returnAge',this.value===''?null:Math.max(${minAge},+this.value))"></div>
+      `:`
       <div><div class="flow-label">금리 (연, %)</div><input class="flow-input" type="number" value="${d.rate}" step="0.1" oninput="debtU(${d.id},'rate',+this.value)"></div>
       <div><div class="flow-label">상환방식</div><select class="flow-input" onchange="debtU(${d.id},'method',this.value)">
         <option value="equal_payment" ${d.method==='equal_payment'?'selected':''}>원리금균등</option>
@@ -466,7 +474,8 @@ function renderDebts(){
         <option value="bullet" ${d.method==='bullet'?'selected':''}>만기일시</option>
       </select></div>
       <div><div class="flow-label">상환 기간 (년)</div><input class="flow-input" type="number" value="${d.years}" oninput="debtU(${d.id},'years',+this.value)"></div>
-      <div style="grid-column:1/-1"><div class="flow-label">대출실행일 (과거도 입력 가능 — 이미 상환 중인 대출의 현재 잔액을 정확히 계산합니다)</div>
+      `}
+      <div style="grid-column:1/-1"><div class="flow-label">${d.isDeposit?'수령일 (보증금을 받은 시점, 과거도 입력 가능)':'대출실행일 (과거도 입력 가능 — 이미 상환 중인 대출의 현재 잔액을 정확히 계산합니다)'}</div>
         <input class="flow-input" type="month" value="${d.originYM}" oninput="debtU(${d.id},'originYM',this.value)">
       </div>
       <button class="del-btn" style="grid-column:1/-1;justify-self:end" onclick="removeDebt(${d.id})">× 삭제</button>
@@ -658,7 +667,7 @@ function collectPayload(){
     endAge:simEndAge,
     realAssets:realAssets.map(r=>({id:r.id,value:r.value,growthRate:r.growthRate,buyAge:r.buyAge,sellAge:r.sellAge})),
     finAsset:{current:+$('in-fin').value||0, expReturn:+$('in-ret').value||0, vol:+$('in-vol').value||0},
-    debts:debts.map(d=>{const b=getBirthYM();const[oy,om]=(d.originYM||'').split('-').map(Number);return{principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:ageAtYM(b.y,b.m,oy||b.y,om||1),linkAssetId:d.linkAssetId||null};}),
+    debts:debts.map(d=>{const b=getBirthYM();const[oy,om]=(d.originYM||'').split('-').map(Number);return{principal:d.principal,rate:d.rate,method:d.method,years:d.years,originAge:ageAtYM(b.y,b.m,oy||b.y,om||1),linkAssetId:d.linkAssetId||null,isDeposit:d.isDeposit||false,returnAge:d.returnAge??null};}),
     incomes:incomes.map(i=>({annualAmount:i.annualAmount,startAge:i.startAge,endAge:i.lifetime?simEndAge:i.endAge,growth:i.inflationLinked?(+$('in-infl').value||0):i.growth})),
     stages:computeStageRanges().map(r=>({startAge:r.startAge,endAge:r.endAge,monthlyAmount:r.monthlyAmount})),
     events:[...inflows.map(e=>({startAge:e.startAge,endAge:Math.max(e.startAge,e.endAge),amount:Math.abs(e.amount)})), ...outflows.map(e=>({startAge:e.startAge,endAge:Math.max(e.startAge,e.endAge),amount:-Math.abs(e.amount)}))],

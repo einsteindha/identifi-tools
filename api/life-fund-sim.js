@@ -11,6 +11,14 @@ function randNorm(){
 function debtScheduleForOne(d, ages){
   const principal=d.principal||0, rate=(d.rate||0)/100, years=Math.max(1,d.years||1), originAge=d.originAge||0;
   const method=d.method||'equal_payment';
+  if(d.isDeposit){
+    // 보증금: 이자·상환 없이 원금이 그대로 유지되다 반환 시점(returnAge)에 전액 소멸. returnAge 없으면 시뮬레이션 끝까지 유지.
+    return ages.map(age=>{
+      if(age<originAge) return{bal:0,payment:0};
+      if(d.returnAge!=null && age>=d.returnAge) return{bal:0,payment:0};
+      return{bal:principal,payment:0};
+    });
+  }
   const perYear=[];
   let bal=principal;
   if(method==='bullet'){
@@ -110,6 +118,26 @@ function applyCollateralPayoffs(debts, debtScheds, sellInfo, realCashAdj, n){
     sched.balance[info.ageIdx]=0;
     for(let i=info.ageIdx+1;i<n;i++){ sched.balance[i]=0; sched.payment[i]=0; }
   });
+}
+
+// 보증금(isDeposit) 항목이 returnAge에 자연 반환될 때 그 금액만큼 금융자산에서 현금 유출로 차감한다.
+// 담보 실물자산이 returnAge보다 먼저(또는 같은 시점) 매각되는 경우엔 applyCollateralPayoffs가 이미 그 시점에
+// 매각대금에서 반환 처리를 하므로(debtScheduleForOne이 만든 원 스케줄상 그 시점 잔액은 아직 principal이라
+// 정상적으로 잡힘), 여기서는 중복 차감을 피하기 위해 건너뛴다.
+function applyDepositReturns(debts, debtScheds, sellInfo, ages){
+  const n=ages.length;
+  const depositCashAdj=new Array(n).fill(0);
+  (debts||[]).forEach((d,di)=>{
+    if(!d.isDeposit || d.returnAge==null) return;
+    const idx=ages.indexOf(d.returnAge);
+    if(idx<0) return;
+    const collateralSale=d.linkAssetId!=null ? sellInfo[d.linkAssetId] : null;
+    if(collateralSale && collateralSale.ageIdx<=idx) return;
+    depositCashAdj[idx]-=(d.principal||0);
+    const sched=debtScheds[di];
+    for(let i=idx;i<n;i++){ sched.balance[i]=0; sched.payment[i]=0; }
+  });
+  return depositCashAdj;
 }
 
 // 구간이 startAge~endAge(둘 다 입력 UI상 "포함" 의미)인지 판정.
@@ -250,10 +278,11 @@ module.exports=async(req,res)=>{
 
     const{realArr,cashAdj:realCashAdj,sellInfo}=buildRealAssetsSchedule(realAssets, ages, currentAge);
     const debtScheds=buildDebtSchedules(debts, ages);
+    const depositCashAdj=applyDepositReturns(debts, debtScheds, sellInfo, ages);
     applyCollateralPayoffs(debts, debtScheds, sellInfo, realCashAdj, ages.length);
     const{balance:debtBalanceArr,payment:debtPaymentArr}=sumDebtSchedules(debtScheds, ages.length);
     const flowArr=buildCashflowArray(ages, currentAge, body.incomes||[], body.stages||[], body.events||[], body.inflation||0);
-    const netFlowArr=flowArr.map((v,i)=>v-debtPaymentArr[i]+realCashAdj[i]);
+    const netFlowArr=flowArr.map((v,i)=>v-debtPaymentArr[i]+realCashAdj[i]+depositCashAdj[i]);
     const expenseArr=buildExpenseArray(ages, currentAge, body.stages||[], body.events||[], body.inflation||0);
 
     const finStart=finAsset.current||0;
