@@ -2,15 +2,6 @@ let activeTab = 'settings';
 let gearTarget = -1;
 let gearSubview = '';
 
-const CRISES = [
-  {name:'IMF 외환위기',   s:{y:1997,m:10}, e:{y:1998,m:6}},
-  {name:'닷컴버블',       s:{y:2000,m:3},  e:{y:2002,m:10}},
-  {name:'카드대란',       s:{y:2003,m:1},  e:{y:2003,m:9}},
-  {name:'글로벌 금융위기',s:{y:2007,m:11}, e:{y:2009,m:3}},
-  {name:'코로나19',       s:{y:2020,m:1},  e:{y:2020,m:3}},
-  {name:'금리인상 충격',  s:{y:2022,m:1},  e:{y:2022,m:9}},
-];
-
 // ── Modal open/close ───────────────────────────────────────────
 function _noScroll(e){
   // Allow touchmove only inside scrollable modal regions
@@ -376,97 +367,37 @@ async function doRunBacktest(){
   const uniqueAssets = new Set();
   activePorts.forEach(p => p.rows.forEach(r => uniqueAssets.add(r.assetId)));
 
-  const steps = ['데이터 로딩 중...', '백테스트 계산'];
+  const steps = ['환율 데이터 로딩', ...Array.from(uniqueAssets).map(id=>ASSET_DEF[id]?.name||id), '백테스트 계산'];
   renderLoadingSteps(steps);
 
   try{
     let stepIdx = 0;
     updateStep(stepIdx++, 'active');
-
-    // 데이터 fetch: 메모리 캐시 → 프리로드된 prices.json → 서버 API 폴백
-    const cacheKey = `${Array.from(uniqueAssets).sort().join(',')}`;
-    let fxMap, assetDataMap;
-    if(dataCache.has(cacheKey)){
-      ({fxMap, assetDataMap} = dataCache.get(cacheKey));
-    } else {
-      let fetched = null;
-
-      // 1. 프리로드된 prices.json 사용 (localStorage 캐시 또는 백그라운드 fetch 결과)
-      const sd = _staticPricesData || (await _staticPricesPromise);
-      if (sd) {
-        const assetData = {};
-        const missingIds = [];
-        uniqueAssets.forEach(id => {
-          if (sd.assets?.[id] && !sd.assets[id].error) assetData[id] = sd.assets[id];
-          else missingIds.push(id);
-        });
-
-        if (missingIds.length === 0) {
-          fetched = { assetData, fxMap: sd.fxMap };
-        } else {
-          // 정적 파일에 없는 자산만 API로 보충
-          try {
-            const apiRes = await fetch('/api/fetch-data', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ assetIds: missingIds, startYear: s.startYear, endYear: s.endYear }),
-            });
-            if (apiRes.ok) {
-              const apiData = await apiRes.json();
-              missingIds.forEach(id => { assetData[id] = apiData.assetData?.[id] || { error: '데이터 없음' }; });
-            } else {
-              missingIds.forEach(id => { assetData[id] = { error: '데이터 없음' }; });
-            }
-          } catch (e) {
-            missingIds.forEach(id => { assetData[id] = { error: '데이터 없음' }; });
-          }
-          fetched = { assetData, fxMap: sd.fxMap };
-        }
-      }
-
-      // 2. prices.json 로드 실패 시 → API 전체 로드 폴백
-      if (!fetched) {
-        const fetchRes = await fetch('/api/fetch-data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ assetIds: Array.from(uniqueAssets), startYear: s.startYear, endYear: s.endYear }),
-        });
-        if (!fetchRes.ok) throw new Error('데이터 로드 실패 — 잠시 후 다시 시도해 주세요');
-        fetched = await fetchRes.json();
-      }
-
-      fxMap = fetched.fxMap;
-      assetDataMap = fetched.assetData;
-      dataCache.set(cacheKey, { fxMap, assetDataMap });
-    }
-
-    const warnings = [];
-    Array.from(uniqueAssets).forEach(id=>{
-      const d = assetDataMap[id];
-      if(!d || d.error) warnings.push(`${ASSET_DEF[id]?.name||id}: 데이터 로드 실패 — 제외됨`);
-      else if(d.proxyNote && (d.etfFirstYear != null ? d.etfFirstYear > s.startYear : true)) warnings.push(`${ASSET_DEF[id].name}: ${d.proxyNote}`);
-    });
+    const fxMap = await fetchFX(s.startYear, s.endYear);
     updateStep(stepIdx-1, 'done');
 
+    const assetDataMap = {};
+    const warnings = [];
+    for(const assetId of uniqueAssets){
+      updateStep(stepIdx++, 'active');
+      try{
+        assetDataMap[assetId] = await fetchAssetData(assetId, s.startYear, s.endYear);
+        if(assetDataMap[assetId].proxyNote) warnings.push(`${ASSET_DEF[assetId].name}: ${assetDataMap[assetId].proxyNote}`);
+      }catch(e){
+        warnings.push(`${ASSET_DEF[assetId]?.name||assetId}: 데이터 로드 실패 — 제외됨`);
+      }
+      updateStep(stepIdx-1, 'done');
+    }
+
     updateStep(stepIdx++, 'active');
-    const assetDefs = {};
-    const cleanAssetDataMap = {};
-    Array.from(uniqueAssets).forEach(id => {
-      assetDefs[id] = { cur: ASSET_DEF[id]?.cur || 'KRW' };
-      if(assetDataMap[id] && !assetDataMap[id].error) cleanAssetDataMap[id] = assetDataMap[id];
-    });
-    const apiRes = await fetch('/api/backtest-asset', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ portfolios: activePorts, assetDataMap: cleanAssetDataMap, fxMap, settings: s, assetDefs }),
-    });
-    if (!apiRes.ok) throw new Error('백테스트 서버 오류');
-    const { results: rawResults, error: apiError } = await apiRes.json();
-    if (apiError) throw new Error(apiError);
-    const results = rawResults.map((r, i) => {
-      if (!r) return null;
-      if (r.error) { warnings.push(`${activePorts[i].name}: 계산 오류 — ${r.error}`); return null; }
-      return r;
+    const results = activePorts.map((p,pi) => {
+      if(!p.active) return null;
+      try{
+        return runEngine(p.rows, assetDataMap, fxMap, s);
+      }catch(e){
+        warnings.push(`${p.name}: 계산 오류 — ${e.message}`);
+        return null;
+      }
     });
     updateStep(stepIdx-1, 'done');
 
@@ -559,7 +490,7 @@ function renderResults(results, ports, warnings, settings){
   const crisisRows = CRISES.map(c=>{
     const cells = results.map((r,i)=>{
       if(!r) return '';
-      const ret = r.crisisReturns ? (r.crisisReturns[c.name] ?? null) : null;
+      const ret = getCrisisReturn(r.monthlyValues, c);
       if(ret===null) return `<td style="color:var(--text3)">N/A</td>`;
       return `<td class="${ret>=0?'positive':'negative'}">${pct(ret)}</td>`;
     }).join('');
@@ -571,7 +502,7 @@ function renderResults(results, ports, warnings, settings){
   const rollingHTML = results.map((r,pi)=>{
     if(!r) return '';
     const tRows = rollingYears.map(yr=>{
-      const ro = r.rollingReturns ? r.rollingReturns[yr] : null;
+      const ro = computeRolling(r.monthlyValues, yr);
       if(!ro) return `<tr><td>${yr}년</td><td colspan="3" style="color:var(--text3)">데이터 부족</td></tr>`;
       return `<tr>
         <td>${yr}년</td>
@@ -615,13 +546,23 @@ function renderResults(results, ports, warnings, settings){
   const heatmapHTML = results.map((r,pi)=>{
     if(!r || r.assets.length < 2) return '';
     const labels = r.assets.map(a=>ASSET_DEF[a.id]?.name?.slice(0,8)||a.id);
-    const corrMatrix = r.correlationMatrix || [];
+    // Build monthly return series per asset
+    const retSeries = r.assets.map((a,ai)=>{
+      const vals = r.monthlyValues.map(m=>m.assetVals[ai]);
+      const rets = [];
+      for(let i=1;i<vals.length;i++){
+        rets.push(vals[i-1]>0 && vals[i]>0
+          ? (vals[i]-vals[i-1])/vals[i-1]
+          : null);  // 누락·미상장 구간은 null로 마킹
+      }
+      return rets;
+    });
     let hRows = `<tr><th></th>${labels.map(l=>`<th><span class="hm-col-hdr">${escHtml(l)}</span></th>`).join('')}</tr>`;
     labels.forEach((l,i)=>{
       hRows += `<tr><th>${escHtml(l)}</th>`;
       labels.forEach((_,j)=>{
         if(i===j){ hRows+=`<td style="background:var(--surface2);color:var(--text2)">1.00</td>`; return; }
-        const c = (corrMatrix[i] && corrMatrix[i][j] != null) ? corrMatrix[i][j] : 0;
+        const c = pearsonCorr(retSeries[i], retSeries[j]);
         const bg = corrColor(c);
         hRows+=`<td style="background:${bg.bg};color:${bg.fg}">${c.toFixed(2)}</td>`;
       });
@@ -1111,7 +1052,6 @@ function loadData(){
   try{
     const d = JSON.parse(raw);
     if(d.settings) Object.assign(state.settings, d.settings);
-    if(state.settings.endYear < CY) state.settings.endYear = CY;
     if(d.portfolios) state.portfolios = d.portfolios.map(p=>({...p}));
     if(d.rows) state.rows = d.rows.map(r=>({...r, weights:[...r.weights]}));
     alert('불러오기 완료. 포트폴리오 설정을 열어 확인 후 실행하세요.');

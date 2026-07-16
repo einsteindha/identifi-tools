@@ -1,3 +1,6 @@
+// ── ECOS API KEY ────────────────────────────────────────────────
+const ECOS_API_KEY = 'RSVPYYLHM2SX5A2N181J';
+
 // ── Portfolio colors ───────────────────────────────────────────
 const P_COLORS = ['#185FA5','#1D9E75','#D85A30'];
 const P_BG     = ['rgba(24,95,165,.12)','rgba(29,158,117,.12)','rgba(216,90,48,.12)'];
@@ -71,35 +74,237 @@ const state = {
   rows: Array.from({length:8}, ()=>({assetId:'', weights:['','','']})),
 };
 const dataCache = new Map();
+let fxCache = null;
 
-// ── prices.json 프리로드 ────────────────────────────────────────
-// 페이지 로드 즉시 백그라운드에서 시작 → 버튼 클릭 시 이미 준비 완료
-let _staticPricesData = null;
-let _staticPricesPromise = null;
+// ── Data fetching ──────────────────────────────────────────────
+const PROXIES = [
+  u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u=>`https://thingproxy.freeboard.io/fetch/${u}`,
+  u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+];
+let _wpi = -1;
+let _ecosProxy = undefined; // undefined=미시도, null=직접호출, 0~3=프록시 인덱스
 
-(function _initStaticPrices() {
-  // localStorage 7일 캐시 확인 (즉시 동기 반환)
-  try {
-    const ts = +localStorage.getItem('bt_prices_ts') || 0;
-    if (Date.now() - ts < 7 * 86_400_000) {
-      const text = localStorage.getItem('bt_prices_data');
-      if (text) { _staticPricesData = JSON.parse(text); return; }
+async function tryFetch(url, makeProxy){
+  const pu = makeProxy ? makeProxy(url) : url;
+  const r = await fetch(pu, {signal:AbortSignal.timeout(9000)});
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  const text = await r.text();
+  if(!text || text.trim().startsWith('<')) throw new Error('HTML response');
+  const parsed = JSON.parse(text);
+  if(parsed.contents){
+    const inner = JSON.parse(parsed.contents);
+    return inner;
+  }
+  return parsed;
+}
+
+async function yahooFetch(url){
+  if(_wpi !== -1){
+    try{ return await tryFetch(url, PROXIES[_wpi]); }catch(e){ _wpi=-1; }
+  }
+  return new Promise((resolve, reject) => {
+    const cands = [
+      {idx:-1, fn:()=>tryFetch(url,null)},
+      ...PROXIES.map((p,i)=>({idx:i, fn:()=>tryFetch(url,p)})),
+    ];
+    let settled=0, done=false;
+    cands.forEach(({idx,fn})=>{
+      fn().then(d=>{ if(!done){done=true;_wpi=idx;resolve(d);} })
+         .catch(()=>{ settled++; if(settled===cands.length&&!done) reject(new Error('모든 프록시 실패')); });
+    });
+  });
+}
+
+async function fetchYahooPrices(ticker, startYear, endYear){
+  const t1 = Math.floor(new Date(`${startYear}-01-01`).getTime()/1000);
+  const t2 = Math.floor(new Date(`${endYear}-12-31`).getTime()/1000);
+  const urls = [
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?period1=${t1}&period2=${t2}&interval=1mo&events=adjclose`,
+    `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?period1=${t1}&period2=${t2}&interval=1mo&events=adjclose`,
+  ];
+  let result = null;
+  for(const url of urls){
+    try{
+      const d = await yahooFetch(url);
+      const r = d?.chart?.result?.[0];
+      if(r){ result=r; break; }
+    }catch(e){}
+  }
+  if(!result) throw new Error(`${ticker} 데이터 없음`);
+  const ts = result.timestamp;
+  const closes = result.indicators?.adjclose?.[0]?.adjclose || result.indicators?.quote?.[0]?.close;
+  if(!ts||!closes) throw new Error(`${ticker} 데이터 없음`);
+  const priceMap = {};
+  ts.forEach((t,i)=>{
+    if(!closes[i] || !isFinite(closes[i])) return; // null, 0, NaN 제거
+    const d = new Date(t*1000);
+    priceMap[`${d.getFullYear()}-${d.getMonth()+1}`] = closes[i];
+  });
+  // 인접 ±3개월 중앙값 대비 10배 이상 벗어난 값 제거 (API 일시 오류 방어)
+  const sKeys = Object.keys(priceMap).sort((a,b)=>{
+    const [ay,am]=a.split('-').map(Number),[by,bm]=b.split('-').map(Number);
+    return (ay*12+am)-(by*12+bm);
+  });
+  sKeys.forEach((k,i)=>{
+    const nb=[];
+    for(let d=-3;d<=3;d++){
+      if(d===0||!sKeys[i+d]||!priceMap[sKeys[i+d]]) continue;
+      nb.push(priceMap[sKeys[i+d]]);
     }
-  } catch(e) {}
+    if(nb.length>=2){
+      const med=nb.slice().sort((a,b)=>a-b)[Math.floor(nb.length/2)];
+      const r=priceMap[k]/med;
+      if(r>10||r<0.1) delete priceMap[k];
+    }
+  });
+  const first = new Date(ts[0]*1000);
+  return {priceMap, firstYear:first.getFullYear(), firstMonth:first.getMonth()+1};
+}
 
-  // 캐시 없으면 백그라운드 fetch
-  _staticPricesPromise = fetch('/asset-allocation-backtest/prices.json')
-    .then(r => r.ok ? r.text() : null)
-    .then(text => {
-      if (!text) return null;
-      const data = JSON.parse(text);
-      _staticPricesData = data;
-      try {
-        localStorage.setItem('bt_prices_data', text);
-        localStorage.setItem('bt_prices_ts', Date.now().toString());
-      } catch(e) {}
-      return data;
-    })
-    .catch(() => null);
-})();
+async function fetchECOSData(stat, item, startYear, endYear){
+  if(ECOS_API_KEY==='YOUR_ECOS_API_KEY') throw new Error('ECOS API 키 미설정');
+  const s = `${startYear}01`, e = `${endYear}12`;
+  const url = `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10000/${stat}/M/${s}/${e}/${item}`;
 
+  const toRows = d => {
+    if(!d?.StatisticSearch?.row?.length) return null;
+    return d.StatisticSearch.row
+      .map(r=>({year:parseInt(r.TIME.slice(0,4)),month:parseInt(r.TIME.slice(4,6)),value:parseFloat(r.DATA_VALUE)}))
+      .filter(r=>!isNaN(r.value));
+  };
+
+  // 캐싱된 프록시 먼저 시도
+  if(_ecosProxy !== undefined){
+    try{
+      const d = await tryFetch(url, _ecosProxy===null ? null : PROXIES[_ecosProxy]);
+      const rows = toRows(d);
+      if(rows?.length) return rows;
+    }catch(e){ _ecosProxy=undefined; }
+  }
+
+  // 직접 + 프록시 전체 병렬 시도 (yahooFetch 동일 패턴)
+  return new Promise((resolve,reject)=>{
+    const cands=[
+      {key:null, fn:()=>tryFetch(url,null)},
+      ...PROXIES.map((p,i)=>({key:i, fn:()=>tryFetch(url,p)})),
+    ];
+    let settled=0, done=false;
+    cands.forEach(({key,fn})=>{
+      fn()
+        .then(d=>{
+          const rows=toRows(d);
+          if(!done&&rows?.length){ done=true; _ecosProxy=key; resolve(rows); }
+          else{ settled++; if(settled===cands.length&&!done) reject(new Error('ECOS 데이터 없음')); }
+        })
+        .catch(()=>{ settled++; if(settled===cands.length&&!done) reject(new Error('ECOS 데이터 없음')); });
+    });
+  });
+}
+
+// Convert bond yield series → monthly price return series
+function yieldToReturnMap(yields, duration){
+  const priceMap = {};
+  // 첫 달은 이전 수익률 변화 없으므로 쿠폰 수익만 반영
+  if(yields.length > 0){
+    const {year, month, value} = yields[0];
+    priceMap[`${year}-${month}`] = value/100/12;
+  }
+  for(let i=1; i<yields.length; i++){
+    const py = yields[i-1].value / 100;
+    const cy = yields[i].value / 100;
+    const modDur = duration / (1 + py);
+    const ret = py/12 - modDur*(cy-py);
+    const {year,month} = yields[i];
+    priceMap[`${year}-${month}`] = ret;
+  }
+  return priceMap; // key → monthly return (not price)
+}
+
+async function fetchAssetData(assetId, startYear, endYear){
+  const cacheKey = `${assetId}_${startYear}_${endYear}`;
+  if(dataCache.has(cacheKey)) return dataCache.get(cacheKey);
+
+  const def = ASSET_DEF[assetId];
+  let data = null;
+
+  if(def.ecos){
+    // ECOS-based asset (Korean bonds, cash)
+    const yields = await fetchECOSData(def.ecos.stat, def.ecos.item, startYear, endYear);
+    if(!yields.length) throw new Error(`${def.name} 데이터 없음`);
+    const first = yields[0];
+    let priceMap;
+    if(def.ecos.isCash){
+      priceMap = {};
+      yields.forEach(y=>{ priceMap[`${y.year}-${y.month}`] = y.value/100/12; }); // 첫 달 포함
+    } else {
+      priceMap = yieldToReturnMap(yields, def.dur);
+    }
+    data = {priceMap, firstYear:first.year, firstMonth:first.month, isReturn:true, proxyNote:null};
+  } else {
+    // Yahoo Finance asset
+    try{
+      const r = await fetchYahooPrices(def.ticker, startYear, endYear);
+      let proxyNote = null;
+      // If data starts late and we have a proxy, try to extend
+      if(def.proxy && r.firstYear > startYear){
+        try{
+          const pr = await fetchYahooPrices(def.proxy, startYear, r.firstYear);
+          // Stitch: scale proxy prices to match actual at listing
+          const listKey = `${r.firstYear}-${r.firstMonth}`;
+          const actualFirst = r.priceMap[listKey];
+          // Find proxy price at listing
+          let proxyAtList = pr.priceMap[listKey];
+          if(!proxyAtList){
+            // Try adjacent months
+            for(let dm=-2;dm<=2;dm++){
+              let m=r.firstMonth+dm, y=r.firstYear;
+              if(m<1){m+=12;y--;} if(m>12){m-=12;y++;}
+              if(pr.priceMap[`${y}-${m}`]){proxyAtList=pr.priceMap[`${y}-${m}`];break;}
+            }
+          }
+          if(actualFirst && proxyAtList){
+            const scale = actualFirst / proxyAtList;
+            // Add proxy prices before listing
+            Object.entries(pr.priceMap).forEach(([k,v])=>{
+              const [ky,km] = k.split('-').map(Number);
+              if(ky < r.firstYear || (ky===r.firstYear && km < r.firstMonth)){
+                r.priceMap[k] = v * scale;
+              }
+            });
+            r.firstYear = pr.firstYear;
+            r.firstMonth = pr.firstMonth;
+            proxyNote = `상장 전 기간은 ${def.proxy} 데이터로 대체`;
+          }
+        }catch(e){}
+      }
+      if(def.est && def.note && !proxyNote) proxyNote = def.note;
+      data = {priceMap:r.priceMap, firstYear:r.firstYear, firstMonth:r.firstMonth, isReturn:false, proxyNote};
+    }catch(e){
+      throw new Error(`${def.name}: ${e.message}`);
+    }
+  }
+  dataCache.set(cacheKey, data);
+  return data;
+}
+
+async function fetchFX(startYear, endYear){
+  const key = `${startYear}_${endYear}`;
+  if(fxCache && fxCache.key===key) return fxCache.map;
+  try{
+    const r = await fetchYahooPrices('USDKRW=X', startYear, endYear);
+    // USDKRW=X는 USD→KRW (≈1350) 반환이 정상
+    // 만약 KRW→USD (≈0.00073)로 오면 역수 처리
+    const map = {};
+    Object.entries(r.priceMap).forEach(([k,v]) => {
+      if(!v || !isFinite(v) || v <= 0) return;
+      const rate = v < 10 ? 1/v : v; // per-entry 역수 처리 (0.001 → 1000)
+      if(rate >= 500 && rate <= 3000) map[k] = rate; // 비합리적 FX 값 제거
+    });
+    fxCache = {key, map};
+    return map;
+  }catch(e){
+    return null;
+  }
+}
